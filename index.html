@@ -115,11 +115,14 @@
     font-weight:500; border:1px solid var(--ink);
   }
   .nav-cta:hover{background:transparent; color:var(--ink);}
-  .menu-btn{display:none; background:none; border:none; font-size:1.4rem; color:var(--ink); cursor:pointer; z-index:60;}
+  .menu-btn{display:none; background:none; border:none; font-size:1.4rem; color:var(--ink); cursor:pointer; z-index:1000; position:relative;}
   .mobile-nav{
-    display:none; position:fixed; inset:0; z-index:55;
+    display:none; position:fixed; inset:0; z-index:999;
     background:var(--parchment-2);
     padding:100px 32px 32px;
+    height:100vh; height:100dvh;
+    overflow-y:auto;
+    isolation:isolate;
   }
   .mobile-nav.open{display:block;}
   .mobile-nav ul{list-style:none; display:flex; flex-direction:column; gap:8px;}
