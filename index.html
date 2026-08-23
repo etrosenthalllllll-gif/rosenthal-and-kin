@@ -689,7 +689,8 @@
         <div><span>Direct</span><span>ethan@rosenthalandkin.com</span></div>
       </div>
     </div>
-    <form id="leadForm" name="lead-search">
+    <form id="leadForm" name="lead-search" action="https://formspree.io/f/mnparylb" method="POST">
+            <input type="text" name="_gotcha" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off">
       <div class="field">
         <label for="name">Your name</label>
         <input id="name" name="name" type="text" required placeholder="Full name">
@@ -843,39 +844,43 @@
     });
   });
 
-  // Contact form — pure client-side mailto (no backend, no third-party service, works on any host)
-  const leadForm = document.getElementById('leadForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const formStatus = document.getElementById('formStatus');
-  leadForm.addEventListener('submit', function(e){
-    e.preventDefault();
-    const name = document.getElementById('name').value.trim();
-    const search = document.getElementById('search').value.trim();
-    const county = document.getElementById('county').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const notes = document.getElementById('notes').value.trim();
+  // Contact form — submits directly to Formspree, lands in ethan@rosenthalandkin.com's inbox.
+    // No mail app involved, works identically on every device/browser.
+    const leadForm = document.getElementById('leadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const formStatus = document.getElementById('formStatus');
+    leadForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Sending…';
+          formStatus.style.display = 'none';
 
-    const subject = `Free search request — ${name}`;
-    const bodyLines = [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      `Name being searched: ${search}`,
-      `County: ${county || '(not provided)'}`,
-      `Notes: ${notes || '(none)'}`
-    ];
-    const body = bodyLines.join('\n');
-    const mailtoLink = `mailto:ethan@rosenthalandkin.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-    window.location.href = mailtoLink;
-
-    submitBtn.textContent = 'Opening your email…';
-    formStatus.textContent = "Your email app should open with this pre-filled — just hit send. If nothing opens, email ethan@rosenthalandkin.com directly.";
-    formStatus.style.display = 'block';
-
-    setTimeout(()=>{
-      submitBtn.textContent = 'Request a free search';
-    }, 3000);
-  });
+          fetch(leadForm.action, {
+                  method: 'POST',
+                  body: new FormData(leadForm),
+                  headers: { 'Accept': 'application/json' }
+          })
+            .then(function(response){
+                      if(response.ok){
+                                  leadForm.reset();
+                                  submitBtn.style.display = 'none';
+                                  formStatus.textContent = "Thanks — your request has been sent. I'll follow up within 1–2 business days.";
+                                  formStatus.style.color = 'var(--brass)';
+                                  formStatus.style.display = 'block';
+                      } else {
+                                  submitBtn.disabled = false;
+                                  submitBtn.textContent = 'Request a free search';
+                                  formStatus.textContent = "Something went wrong sending your request. Please try again, or email ethan@rosenthalandkin.com directly.";
+                                  formStatus.style.display = 'block';
+                      }
+            })
+            .catch(function(){
+                      submitBtn.disabled = false;
+                      submitBtn.textContent = 'Request a free search';
+                      formStatus.textContent = "Something went wrong sending your request. Please try again, or email ethan@rosenthalandkin.com directly.";
+                      formStatus.style.display = 'block';
+            });
+    });
 
 </script>
 
