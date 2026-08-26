@@ -1735,13 +1735,16 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   requests, never guessed HEALTHY; HEALTHY/DEGRADED/DOWN by
   configurable error-rate thresholds). 13 new tests, full suite
   1073/1073 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-23 todo — Automation dependencies + pre/post-flight checks
-  (doc 11 §91-93): declared per-workflow dependencies (don't start if a
-  required system/provider is unavailable), a pre-flight
-  READY/BLOCKED check (data/documents/permissions/provider/case-state/
-  conflicting-workflow/budget), and post-flight validation that checks
-  the actual expected outcome occurred rather than trusting a
-  non-throwing API response.
+- [x] P10-23 done — Automation dependencies + pre/post-flight checks
+  (doc 11 §91-93): `workflowPreflight.ts` --
+  `evaluateWorkflowDependencies()` (lists every missing dependency, not
+  just the first), `evaluatePreFlightCheck()` (config-table-style
+  READY/BLOCKED across data/documents/permissions/provider/case-state/
+  conflicting-workflow/budget, every blocker collected), 
+  `validatePostFlightOutcome()` (checks the actual expected outcome key
+  is present in the response -- never trusts a non-throwing API call
+  alone as proof of success). 6 new tests, full suite 1079/1079
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-24 todo — State reconciliation + stale-workflow + SLA
   tracking (doc 11 §94-96): nightly reconciliation jobs comparing
   internal state against provider/invoice/schedule state (flag, don't
@@ -1886,3 +1889,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-20] `dataConsistency.ts`: buildOutboxEntry()/markOutboxDelivered(), buildInboxEntry()/evaluateInboxIntake()/markInboxProcessed(), needsReconciliationTask(), attachCorrelationId(), buildCaseTimeline(). 8 new tests, full suite 1051/1051 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-21 (Notification + escalation engine).
 - 2026-08-26 — [P10-21] `automationNotification.ts`: shouldNotify(), buildAutomationNotification(), resolveEscalationAction()/DEFAULT_APPROVAL_ESCALATION_LADDER (24h/48h/72h ladder). 9 new tests, full suite 1060/1060 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-22 (Circuit breaker + provider health).
 - 2026-08-26 — [P10-22] `providerCircuitBreaker.ts`: nextCircuitStateOnFailure()/nextCircuitStateOnSuccess(), shouldMoveToHalfOpen(), canAttemptRequest(), computeProviderHealthStatus(). 13 new tests, full suite 1073/1073 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-23 (Automation dependencies + pre/post-flight checks).
+- 2026-08-26 — [P10-23] `workflowPreflight.ts`: evaluateWorkflowDependencies(), evaluatePreFlightCheck(), validatePostFlightOutcome(). 6 new tests, full suite 1079/1079 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-24 (State reconciliation + stale-workflow + SLA tracking).
