@@ -740,12 +740,21 @@ content goes in, same as P2-1.
   true only when every check clears, and every failure is reported as a
   specific typed issue (never a bare fail) for the caller to act on
   before READY_FOR_FILING. 6 new tests.
-- [ ] P6-16 todo — Claim preparation state machine (doc 07 §49-53):
-  explicit state machine (CASE_VERIFIED through READY_FOR_FILING),
-  mirrors stateMachine.ts's (P0-3) validated-transition discipline;
-  jurisdiction/rule/form-version changes invalidate the affected
-  package pieces and require a new preparation version rather than
-  silently patching the existing one.
+- [x] P6-16 done — Claim preparation state machine (doc 07 §49-53):
+  `claimPreparationStateMachine.ts` mirrors stateMachine.ts's (P0-3)
+  validated-transition discipline exactly, over the schema's
+  `ClaimPreparationStatus` enum (P6-1) instead of `ClaimantStatus`: an
+  explicit forward path (NOT_STARTED through FILED), REJECTED/CANCELLED/
+  SUPERSEDED as universal exits reachable from any non-terminal state,
+  and a thrown typed error on any transition not in the allowed table.
+  SUPERSEDED specifically models doc 07's "a jurisdiction/rule/form-
+  version change invalidates this preparation" -- terminal for the
+  affected preparation, since the correct response is a brand-new
+  ClaimPreparation version/row, never patching this one in place.
+  COMPLETENESS_REVIEW -> REQUIRES_OPERATOR_REVIEW -> READY_FOR_APPROVAL
+  models the completeness engine's (P6-13) REQUIRES_REVIEW outcome, same
+  "no further forward transitions besides resolution + universal exits"
+  shape as stateMachine.ts's ESCALATED. 9 new tests.
 - [ ] P6-17 todo — Claim package decision integration (doc 07 §44-48):
   new decision type(s) for package review/approval
   (APPROVE/REVISE/REJECT/REQUEST_MORE_EVIDENCE/ESCALATE, doc 07's own
@@ -828,3 +837,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan asked for a progress percentage + time estimate (answered ~55-60% by rough phase-weighting, flagged that Phases 7-9 aren't decomposed yet and involve the heaviest remaining vendor-account blockers) and said to keep going. Still queued behind the GitHub-login blocker (still away from his computer). [P6-13] `claimCompletenessEngine.ts`: `evaluateClaimCompleteness()` composes CompletenessSignal entries from earlier P6 modules into COMPLETE/INCOMPLETE/REQUIRES_REVIEW -- any unsatisfied hard blocker forces INCOMPLETE un-overridably, an unsatisfied soft signal alone only reaches REQUIRES_REVIEW, every result carries a specific human-readable explanation. 5 new tests, full suite 467/467 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-14] `claimPackage.ts`: `assembleClaimPackage()` (deterministic document ordering + manifest, always a new object per version) + `diffClaimPackages()` (same-id-different-hash is `changed`, never remove+add). 7 new tests, full suite 474/474 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-15] `claimPackageIntegrity.ts`: `checkPackageIntegrity()` -- missing documents, duplicate manifest entries, superseded form versions, missing required signatures, manifest/document-list mismatches; `passed` only true once every check clears, every failure a specific typed issue. 6 new tests, full suite 480/480 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-16] `claimPreparationStateMachine.ts`: mirrors stateMachine.ts's (P0-3) validated-transition discipline over ClaimPreparationStatus -- forward path, REJECTED/CANCELLED/SUPERSEDED universal exits (SUPERSEDED terminal for a jurisdiction/rule/form-version change, correct response is a new preparation version, never a patch), COMPLETENESS_REVIEW -> REQUIRES_OPERATOR_REVIEW -> READY_FOR_APPROVAL. 9 new tests, full suite 489/489 passing, `tsc --noEmit` clean, `next build` clean.
