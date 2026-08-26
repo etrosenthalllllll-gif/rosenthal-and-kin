@@ -167,6 +167,25 @@ export const DECISION_TYPES = {
     highConsequence: false,
     category: "EXCEPTION",
   },
+  RESOLVE_AMBIGUOUS_CASE_MATCH: {
+    key: "RESOLVE_AMBIGUOUS_CASE_MATCH",
+    displayName: "Resolve Ambiguous Case Match",
+    description:
+      "An inbound communication could plausibly belong to more than one case, or to none on file -- doc 04 section 3. 'Do not guess.'",
+    // Doc 04's own example UI shows per-candidate buttons
+    // ([CASE 1842] [CASE 1917] [CREATE NEW CASE] [REVIEW]), but the
+    // decision-type registry's actions are static per type, not
+    // generated per candidate list. RESOLVE covers "operator picked one
+    // of the candidate cases" (which one goes in evidenceRefs/reason,
+    // same pattern as RESOLVE_DUPLICATE_CASE); CREATE_NEW_CASE is its
+    // own explicit action since "none of these" is a distinct, common
+    // outcome doc 04 calls out by name, not just a variant of RESOLVE.
+    availableActions: ["RESOLVE", "CREATE_NEW_CASE", "ESCALATE", "DEFER"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

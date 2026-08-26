@@ -105,12 +105,27 @@ idempotency, follow-up scheduling) is buildable now.
   when no AI summary exists yet) + `fetchCommunicationTimeline()` (thin
   Prisma wrapper, untested by design, same split as `decisionQueue.ts`).
   7 new tests, full suite 167/167, `next build` clean.
-- [ ] P3-2 todo — Conversation-to-case matching engine (doc 04 §3): pure,
-  confidence-scored function over available signals (email, phone,
-  thread/provider IDs, name, case references). High confidence
-  auto-attaches; ambiguous match creates a Decision (reuses existing
-  Decision/exception-queue machinery from P1-3/P2, `category: EXCEPTION`)
-  rather than guessing. Depends on P3-1.
+- [x] P3-2 done — Conversation-to-case matching engine (doc 04 §3):
+  `matchConversationToCase.ts` — pure, confidence-scored function over
+  the signals doc 04 lists (provider thread ID, explicit case-number
+  reference in text, email, phone, name), weighted so the strongest
+  signals (thread continuation, case-number reference) dominate over the
+  weakest (name alone, which can't clear even the ambiguous floor by
+  itself — common names collide). Three outcomes: `AUTO_ATTACH` (one
+  candidate clears 0.9 confidence AND clearly leads the runner-up by a
+  margin — two candidates both clearing the threshold is treated as
+  ambiguous, not a coin-flip auto-attach, matching doc 04's own "Cases
+  RK-1842 and RK-1917" example exactly), `AMBIGUOUS`, or `NO_MATCH`.
+  Never guesses, per the doc's explicit instruction. Added
+  `RESOLVE_AMBIGUOUS_CASE_MATCH` to `decisionTypes.ts`'s EXCEPTION set
+  (reuses the existing Decision/exception-queue machinery from
+  P1-3/exceptionQueue.ts rather than a new model) with a `CREATE_NEW_CASE`
+  action alongside `RESOLVE`/`ESCALATE`/`DEFER`, since "none of these
+  matches" is a named, common outcome in doc 04's own example, not just
+  a variant of picking one. 13 new tests, full suite 180/180, `next
+  build` clean. Wiring this into the real inbound pipeline (calling it
+  with live Prisma candidate rows, actually creating the Decision row)
+  is P3-3.
 - [ ] P3-3 todo — Inbound email ingestion pipeline, minus the live inbox
   connection (doc 04 §4-5): validate/store/dedupe a `RawInboundEmail`-shaped
   payload end to end (idempotent on provider message ID / Message-ID +
@@ -202,3 +217,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-25 — Ethan explicitly overrode the "leave blocked for attorney review" defaults on both P2-1 and P2-3 and asked for real legal research rather than an unresolved gap. Did a second, deeper research pass on the CA fee-cap question: found `Cal. Prob. Code § 11604.5` (the actual probate-estate heir-locator disclosure statute -- filing deadlines, 10-point-type disclosure, no agency/recourse clauses) and `Cal. Code Civ. Proc. § 1582` (a REAL, verified, fixed 10% fee cap -- but scoped only to CA State Controller unclaimed-property recovery agreements, not probate estates). This explains the widely-repeated "10% heir-finder cap" claim: it's a real number, just attached to the wrong statute by multiple secondary sources. Rewrote `complianceRules.ts`'s `checkFeeCompliance()` to be asset-source-aware (`PROBATE_ESTATE` vs `STATE_CONTROLLER_UNCLAIMED_PROPERTY`) so it actually enforces the real 10% cap for unclaimed-property cases while correctly staying fail-closed for probate estates (CA hands that to case-by-case court judgment, confirmed, not an open question). Updated `docs/decisions/named-approver.md`: Ethan named as the approver (owner override), with an explicit note that this doesn't override the UPL licensing requirement for cases where a licensed attorney is actually required to file. P2-1 and P2-3 marked done in PLAN.md, both explicitly noted as owner-approved rather than attorney-reviewed. Full suite: 152/152 passing, `next build` clean.
 - 2026-08-25 — [P2-2] Engagement/fee agreement generator (`engagementAgreement.ts`), now unblocked since P2-1 has real disclosure content to read from. Drafts agreement text from `complianceRules.ts`'s verified rules, records which rule versions backed each draft, and gates `canAdvanceToEngaged` on `checkFeeCompliance()` rather than duplicating that logic. Deliberately still drafts a document for CA probate estates even though the fee can never auto-clear (doc 03 blocks advancing the claimant, not producing something for a human to review), and deliberately does NOT invent a rescission right neither verified statute contains. 8 new tests, full suite 160/160 passing, `next build` clean. Same owner-approved-override status as P2-1.
 - 2026-08-25 — Phase 2 fully done; started Phase 3 (Communications). Read doc 04 ("Communications," 48 sections) in full from Drive and decomposed it into P3-1 through P3-13 in PLAN.md, flagging every task that needs a real vendor account (SMS/voice/mail providers, live inbound-email webhook) as `blocked: needs credential` per the ground rules rather than self-approving around the gap — only the provider-agnostic logic is buildable right now. [P3-1] Built the unified `Communication`/`Conversation` Prisma model (doc 04 §1-2), reusing the existing channel-unified `CommunicationProvider` interface from `providers/types.ts` instead of inventing separate per-channel provider types (already satisfies doc 04 §32). Keyed to both `claimantId` and `personId` independently per §2's "don't assume 1:1." `providerMessageId`/`idempotencyKey` are unique DB constraints, the real backing for §34's idempotency requirement. Added centralized per-Person communication preferences (§19) as pure schema now, enforcement logic deferred to P3-6. Pushed to the live Render DB via `prisma db push`. Built `communicationTimeline.ts` (pure chronological view-model builder, doc 04 §24, + a thin Prisma fetch wrapper). 7 new tests, full suite 167/167 passing, `next build` clean.
+- 2026-08-26 — [P3-2] `matchConversationToCase.ts`: pure, confidence-scored conversation-to-case matcher over doc 04 §3's signal list (thread ID, case-number reference, email, phone, name), weighted so no single weak signal (name alone) can cross even the ambiguous floor. Never guesses: two candidates both clearing the auto-attach threshold resolve to `AMBIGUOUS`, exactly matching doc 04's own "Cases RK-1842 and RK-1917" example rather than picking one arbitrarily. Added `RESOLVE_AMBIGUOUS_CASE_MATCH` to the EXCEPTION set in `decisionTypes.ts` (reuses P1-3's Decision/exception-queue machinery, no new model) with an explicit `CREATE_NEW_CASE` action. 13 new tests, full suite 180/180 passing, `next build` clean.
