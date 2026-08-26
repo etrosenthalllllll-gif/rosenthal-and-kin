@@ -1434,3 +1434,51 @@ model Adjustment {
   @@index([estateId])
   @@index([invoiceId])
 }
+
+// --- Phase 10: Automation Control (doc 11) --------------------------------
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  DISABLED
+  ARCHIVED
+}
+
+// The Workflow row is the current pointer; WorkflowVersion holds every
+// version ever published. A running WorkflowExecution always stores the
+// specific version it started with (P10-2) -- an active workflow is never
+// silently changed underneath an execution already in flight (doc 11 §4).
+model Workflow {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  currentVersion Int         @default(1)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  versions WorkflowVersion[]
+}
+
+// Append-only: publishing a new version creates a new row, never edits a
+// prior one -- same versioned-record discipline as RecoveryEstimateVersion/
+// Distribution elsewhere in this schema.
+model WorkflowVersion {
+  id            String   @id @default(cuid())
+  workflowId    String
+  version       Int
+  definition    Json
+  triggerType   String
+  changes       String?
+  author        String
+  reason        String?
+  approvedBy    String?
+  effectiveDate DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id])
+
+  @@unique([workflowId, version])
+  @@index([workflowId])
+}
