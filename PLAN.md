@@ -959,12 +959,20 @@ provider call itself is `blocked: needs credential`.
   -confirmed provider status), otherwise UNCERTAIN_REQUIRES_REVIEW,
   which a caller maps to FILING_STATUS = UNKNOWN + human review per the
   doc's own instruction. 9 new tests.
-- [ ] P7-15 todo — Filing tracking + reconciliation (doc 08 §34-36, 56,
-  58): scheduled status-polling job (configurable backoff intervals) as
-  the no-webhook fallback, plus a reconciliation engine comparing
-  internal vs. external state and creating a
-  FILING_RECONCILIATION_EXCEPTION on any mismatch rather than assuming
-  they agree.
+- [x] P7-15 done — Filing tracking + reconciliation (doc 08 §34-36, 56,
+  58): `filingTrackingReconciliation.ts`'s `planNextStatusCheck()` --
+  never polls a connector with webhook support (webhooks always
+  preferred), otherwise follows the doc's own immediate/1hr/6hr/24hr/
+  configured-interval schedule and stops once `shouldStopPolling()`
+  says ACCEPTED/REJECTED/CLOSED (a deliberately narrower set than
+  filingStateMachine.ts's terminal states -- there's nothing further to
+  poll for even though ACCEPTED still continues on to CLOSED
+  administratively). `isDuplicateWebhookEvent()` covers §36's
+  never-duplicate-a-filing-event requirement. `reconcileFilingStatus()`
+  never assumes internal/external state agree; `shouldCreateReconciliationException()`
+  flags a mismatch for review. `classifyProviderCheckOutcome()` reports
+  PROVIDER_UNAVAILABLE explicitly rather than silently treating an
+  unreachable provider as "no change." 10 new tests.
 - [ ] P7-16 todo — Rejection handling + classification + severity (doc
   08 §39-42): configurable rejection-category table +
   LOW/MEDIUM/HIGH/CRITICAL severity (fails closed to CRITICAL for an
@@ -1306,3 +1314,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-11] `filingAuthorization.ts`: `evaluateSubmissionAuthorization()` (BLOCKED_NOT_READY regardless of mode/level, high-risk always needs an explicit operator submit even at level 4) + `applyHumanOverride()` (never overrides a hard blocker, rejects an incomplete override record for a soft blocker). 9 new tests, full suite 557/557 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-12] `filingSubmissionGuard.ts`: `evaluateSubmissionGuard()` (reused idempotency key or SUBMITTED status -> ALREADY_SUBMITTED, UNKNOWN -> UNKNOWN_MUST_RECONCILE, never auto-resubmit) + `resolveUnknownSubmission()` (only provider-confirmed-absent is safe to resubmit). [P7-13] `filingStateMachine.ts`: mirrors stateMachine.ts/claimPreparationStateMachine.ts over a plain-TS FilingStatus union, PROCESSING's three-way branch, REJECTED's correction/resubmission branch, CANCELLED/FAILED/CLOSED terminal. 21 new tests, full suite 578/578 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-14] `filingProviderNormalization.ts`: `normalizeProviderStatus()` (fails closed to UNKNOWN for an unrecognized raw status/connector, raw response always preserved) + `verifyFilingConfirmation()` (a bare network response alone is never sufficient, VERIFIED needs an external filing ID plus a corroborating signal). 9 new tests, full suite 587/587 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-15] `filingTrackingReconciliation.ts`: `planNextStatusCheck()` (never polls webhook-capable connectors, follows the immediate/1hr/6hr/24hr schedule otherwise, stops at ACCEPTED/REJECTED/CLOSED) + `isDuplicateWebhookEvent()` + `reconcileFilingStatus()`/`shouldCreateReconciliationException()` (never assumes agreement) + `classifyProviderCheckOutcome()` (explicit PROVIDER_UNAVAILABLE, never silently "unchanged"). 10 new tests, full suite 597/597 passing, `tsc --noEmit` clean, `next build` clean.
