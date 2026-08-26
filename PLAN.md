@@ -1621,12 +1621,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   `evaluateWebhookIntake()` (duplicate webhook id ignored, never
   reprocessed). 10 new tests, full suite 979/979 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P10-12 todo — Event ordering + state-transition + concurrency
-  protection (doc 11 §50-53): an out-of-order event (e.g. ACCEPTED
-  before SUBMITTED) produces an `EVENT_ORDER_EXCEPTION` rather than
-  corrupting state; every automated transition is checked against the
-  case state machine's allowed-next-states; conflicting concurrent
-  workflows on the same case are detected and blocked, not raced.
+- [x] P10-12 done — Event ordering + state-transition + concurrency
+  protection (doc 11 §50-53): `concurrencyGuard.ts` --
+  `detectEventOrderException()` (ACCEPTED before SUBMITTED, the doc's
+  own example, is flagged; an unknown stage is never blocked),
+  `validateAutomatedTransition()` (a thin generic wrapper that
+  delegates to whichever domain-specific `canTransition*` state
+  machine already exists, never a second competing transition table),
+  `detectWorkflowConflicts()` (config-table of mutually-exclusive
+  workflow-type pairs, symmetric), `isRaceProtected()`
+  (optimistic-lock check by claim key). 10 new tests, full suite
+  989/989 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-13 todo — Automation priority + resource/rate/cost limits (doc
   11 §54-58): CRITICAL/HIGH/NORMAL/LOW priority affecting queue order
   and escalation; per-provider/workflow/case rate limits; per-case AI/
@@ -1826,3 +1831,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-9] `idempotentAction.ts`: buildIdempotencyKey(), checkIdempotentAction(), buildDuplicateEmailKey()/checkDuplicateFiling()/isDuplicatePayment(), evaluateStepTimeout() (timeout = status-unknown, not FAILED). 13 new tests, full suite 961/961 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-10 (Scheduled job system + deadline-aware scheduling).
 - 2026-08-26 — [P10-10] `scheduledJob.ts`: computeNextRunAt(), isJobDue(), planDeadlineReminders(), formatTimezoneAwareTimestamp(). 8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-11 (Cross-system synchronization + sync exceptions).
 - 2026-08-26 — [P10-11] `crossSystemSync.ts`: SOURCE_OF_TRUTH table, detectSyncException(), buildExternalApiSyncRecord(), evaluatePollResult(), evaluateWebhookIntake(). 10 new tests, full suite 979/979 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-12 (Event ordering + state-transition + concurrency protection).
+- 2026-08-26 — [P10-12] `concurrencyGuard.ts`: detectEventOrderException(), validateAutomatedTransition() (delegates to existing domain state machines), detectWorkflowConflicts() (config-table), isRaceProtected(). 10 new tests, full suite 989/989 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-13 (Automation priority + resource/rate/cost limits).
