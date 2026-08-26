@@ -1661,11 +1661,14 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   outcome log, stored for later deliberate review, never auto-applied
   to change rules/thresholds). 8 new tests, full suite 1013/1013
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-16 todo — Configuration management (doc 11 §68-69):
-  centralized, versioned, audited config for thresholds/retry
-  policies/timeouts/approval requirements/rate & cost limits -- every
-  change records old value, new value, reason, actor, timestamp,
-  affected workflows.
+- [x] P10-16 done — Configuration management (doc 11 §68-69):
+  `automationConfig.ts` -- `planNextConfigVersion()` (a config change
+  is always a new version, never an in-place edit -- same append-only
+  discipline as WorkflowVersion), `recordConfigChange()` (reason +
+  actor structurally required, matching the doc's own worked example
+  verbatim: old/new value, reason, actor, timestamp, affected
+  workflows). 5 new tests, full suite 1018/1018 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P10-17 todo — Dry-run/test mode + manual controls (doc 11
   §70-75): a simulate-only mode that reports what the system *would*
   do without sending/filing/moving money; sandboxed test mode; operator
@@ -1845,3 +1848,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-13] `automationLimits.ts`: sortByAutomationPriority(), isWithinResourceLimit(), evaluateRateLimit(), evaluateCostLimit(), evaluateAutomationBudget(). 12 new tests, full suite 1001/1001 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-14 (Observability: workflow trace + execution log + error dashboard).
 - 2026-08-26 — [P10-14] `automationObservability.ts`: buildWorkflowTrace(), buildExecutionLogEntry() (reference-only, no duplicated payloads), sortByExceptionPriority() (doc's 8-level ladder). 4 new tests, full suite 1005/1005 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-15 (Automation health score + analytics + quality loop).
 - 2026-08-26 — [P10-15] `automationAnalytics.ts`: computeAutomationHealthScore(), computeWorkflowInterventionMetrics(), buildAutomationOutcomeRecord()/computeOutcomeAgreementRate() (never auto-applied to change rules). 8 new tests, full suite 1013/1013 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-16 (Configuration management).
+- 2026-08-26 — [P10-16] `automationConfig.ts`: planNextConfigVersion() (never in-place edit), recordConfigChange() (reason+actor required). 5 new tests, full suite 1018/1018 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-17 (Dry-run/test mode + manual controls).
