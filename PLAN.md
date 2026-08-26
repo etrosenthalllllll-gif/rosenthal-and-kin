@@ -168,11 +168,26 @@ idempotency, follow-up scheduling) is buildable now.
   from any source, tested against synthetic results that exercise the
   exact same logic a real model's output would. 9 new tests, full suite
   199/199, `next build` clean. Depends on P3-1.
-- [ ] P3-5 todo — Communications automation rule engine (doc 04 §9, §29):
-  configurable IF/THEN rules over case state + classification + confidence
-  + opt-out status → {respond automatically, create decision, escalate,
-  schedule follow-up, stop}. Same config-table discipline as
-  `complianceRules.ts`. Depends on P3-2, P3-4, P3-6.
+- [x] P3-5 done — Communications automation rule engine (doc 04 §9, §29,
+  §30): `communicationAutomationRules.ts` — `decideAutomationAction()`
+  composes the three engines already built this phase rather than
+  re-deriving any of their logic (the doc's own point: this module is
+  "the evaluator," not a new source of truth for any one signal):
+  P3-4's `routeClassifiedCommunication()` for classification/confidence,
+  P3-6's `canSendOnChannel()` for opt-out enforcement, and §30's
+  `humanHandling` flag. Fixed precedence: (1) a human already owns the
+  conversation → `DO_NOTHING`, automation stays out of the way entirely;
+  (2) the message itself is an opt-out signal (`DO_NOT_CONTACT`/
+  `UNSUBSCRIBE`) → `STOP_COMMUNICATIONS`, honoring it *is* the automated
+  action, no human decision needed to process a stop request; (3)
+  classifier requires human review → `CREATE_DECISION`; (4) classifier
+  would allow automation but the person is opted out on this channel →
+  `ESCALATE` rather than silently doing nothing or sending anyway (§44:
+  "never silently disappear") — this contradiction is exactly the kind
+  of case that needs a human's attention; (5) otherwise →
+  `RESPOND_AUTOMATICALLY`. 10 new tests, full suite 217/217, `next
+  build` clean. Depends on P3-2 (already used inside the earlier
+  pipeline stages), P3-4, P3-6.
 - [x] P3-6 done — Communication preferences / opt-out / do-not-contact
   (doc 04 §19): `communicationPreferences.ts` — `canSendOnChannel()` is
   the single check every outbound path should call before sending;
@@ -258,3 +273,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-3] `planInboundEmailIngestion.ts`: pure inbound-email ingestion decision layer, sitting on top of P3-2's matcher. Validates the payload, dedupes on provider message ID (idempotency), matches via P3-2 using In-Reply-To as the thread signal, and produces one of REJECT_INVALID/SKIP_DUPLICATE/ATTACH_TO_CASE/CREATE_MATCH_EXCEPTION. Treats a genuine no-match the same as an ambiguous match (raise for human review) rather than silently dropping the message, per doc 04's "never silently disappear." The live webhook endpoint stays blocked (no inbound email provider account provisioned yet); this decision logic has no such dependency. 8 new tests, full suite 189/189 passing, `next build` clean.
 - 2026-08-26 — [P3-4] `communicationClassification.ts`: configurable category table covering doc 04 section 6's full list (20 categories), per-category confidence thresholds (section 28), and an `alwaysRequiresHumanReview` flag for the categories section 7/9 name explicitly (legal questions, payment questions, suspicious messages, deceased-person reports, unclear/escalate) -- no confidence level clears these. `routeClassifiedCommunication()` fails closed to human review on an unrecognized category. No live AI model call yet (no AIProvider account provisioned -- same gap as caseSummary.ts); this is the config-and-routing layer, fully tested against synthetic classification results. 9 new tests, full suite 199/199 passing, `next build` clean.
 - 2026-08-26 — [P3-6] `communicationPreferences.ts`: `canSendOnChannel()` (the single before-send check, centralized doNotContact always wins over per-channel flags) and `applyOptOutSignal()` (pure state transition -- DO_NOT_CONTACT is centralized/channel-independent, UNSUBSCRIBE only touches the one channel it arrived on, per doc 04's own SMS-opt-out example). Both signal keys map directly onto P3-4's DO_NOT_CONTACT/UNSUBSCRIBE classification categories. 9 new tests, full suite 207/207 passing, `next build` clean.
+- 2026-08-26 — [P3-5] `communicationAutomationRules.ts`: `decideAutomationAction()` composes P3-4's classification routing, P3-6's opt-out enforcement, and doc 04 section 30's humanHandling flag into one fixed-precedence evaluator (human-owned conversation > opt-out signal processed as an automated stop > classifier-requires-human > classifier-allows-but-channel-blocked escalates rather than silently dropping or wrongly sending > otherwise respond automatically). No new business rule invented -- this module is the evaluator over signals the earlier P3 tasks already produce. 10 new tests, full suite 217/217 passing, `next build` clean.
