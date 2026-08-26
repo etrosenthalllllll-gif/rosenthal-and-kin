@@ -115,6 +115,24 @@ describe("computePriorityScore", () => {
     expect(result.components.competingHeirs).toBe(0);
     expect(result.components.unresolvedIssues).toBe(0);
   });
+
+  // --- doc 09 section 55's post-filing extension (P8-16) ---------------
+
+  it("ranks a higher post-filing escalation level above a lower one", () => {
+    const level1 = computePriorityScore({ createdAt: NOW, now: NOW, escalationLevel: 1 });
+    const level4 = computePriorityScore({ createdAt: NOW, now: NOW, escalationLevel: 4 });
+    expect(level4.score).toBeGreaterThan(level1.score);
+  });
+
+  it("treats an omitted escalation level as zero contribution", () => {
+    const result = computePriorityScore({ createdAt: NOW, now: NOW });
+    expect(result.components.escalation).toBe(0);
+  });
+
+  it("escalation level 0 (Normal) contributes nothing, same as omitted", () => {
+    const normal = computePriorityScore({ createdAt: NOW, now: NOW, escalationLevel: 0 });
+    expect(normal.components.escalation).toBe(0);
+  });
 });
 
 describe("priorityLabel", () => {

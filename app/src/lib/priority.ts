@@ -41,6 +41,14 @@ export interface PriorityInput {
   // severity; five minor discrepancies still deserve more attention
   // than zero, even if none individually rises to HIGH/CRITICAL.
   unresolvedIssueCount?: number;
+  // doc 09 section 55's own post-filing prioritization factor --
+  // postFilingEscalation.ts's (P8-13) evaluateEscalation().level can be
+  // passed straight in, no translation step, same "reuse the identical
+  // vocabulary" pattern as riskLevel/ReviewRiskLevel. Note: this only
+  // affects *ranking* -- it never overrides a hard deadline's own
+  // blocking behavior (filingReadiness.ts/postFilingDeadline.ts), which
+  // is enforced independently of where an item sits in the queue.
+  escalationLevel?: 0 | 1 | 2 | 3 | 4;
 }
 
 const RISK_SCORE: Record<RiskLevel, number> = {
@@ -107,6 +115,22 @@ function unresolvedIssueScore(count?: number): number {
   return clamp(count * 3, 0, 15);
 }
 
+// doc 09 section 55: mirrors RISK_SCORE's shape over
+// postFilingEscalation.ts's (P8-13) 0-4 ladder instead of
+// LOW/MEDIUM/HIGH/CRITICAL. Absent (undefined) contributes 0, same as
+// every other optional signal here.
+const ESCALATION_LEVEL_SCORE: Record<0 | 1 | 2 | 3 | 4, number> = {
+  0: 0,
+  1: 10,
+  2: 25,
+  3: 45,
+  4: 70,
+};
+
+function escalationScore(level?: 0 | 1 | 2 | 3 | 4): number {
+  return level == null ? 0 : ESCALATION_LEVEL_SCORE[level];
+}
+
 export interface PriorityScore {
   score: number; // 0-100+
   label: PriorityLabel;
@@ -119,6 +143,7 @@ export interface PriorityScore {
     highConsequenceBonus: number;
     competingHeirs: number;
     unresolvedIssues: number;
+    escalation: number;
   };
 }
 
@@ -136,6 +161,7 @@ export function computePriorityScore(input: PriorityInput): PriorityScore {
     highConsequenceBonus: input.highConsequence ? 10 : 0,
     competingHeirs: competingHeirScore(input.competingHeirsCount),
     unresolvedIssues: unresolvedIssueScore(input.unresolvedIssueCount),
+    escalation: escalationScore(input.escalationLevel),
   };
 
   const score =
@@ -146,7 +172,8 @@ export function computePriorityScore(input: PriorityInput): PriorityScore {
     components.confidence +
     components.highConsequenceBonus +
     components.competingHeirs +
-    components.unresolvedIssues;
+    components.unresolvedIssues +
+    components.escalation;
 
   return { score, label: priorityLabel(score), components };
 }

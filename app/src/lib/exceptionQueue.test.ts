@@ -15,7 +15,7 @@ function fixture(decisionTypeKey: string, score: number): DecisionQueueItem {
     caseNumber: "RK-1",
     decedentName: "John Smith",
     estimatedValueCents: 100_000_00,
-    priority: { score, label: "MEDIUM", components: { value: 0, deadline: 0, age: 0, risk: 0, confidence: 0, highConsequenceBonus: 0, competingHeirs: 0, unresolvedIssues: 0 } },
+    priority: { score, label: "MEDIUM", components: { value: 0, deadline: 0, age: 0, risk: 0, confidence: 0, highConsequenceBonus: 0, competingHeirs: 0, unresolvedIssues: 0, escalation: 0 } },
   };
 }
 

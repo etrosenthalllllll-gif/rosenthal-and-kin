@@ -1215,13 +1215,27 @@ routing logic itself, synthetic-data testing).
   result rather than one silently overwriting the other -- same
   never-pick-a-winner discipline as conflictDetection.ts (P5-6), reused
   for scheduled dates instead of heirship facts. 7 new tests.
-- [ ] P8-16 todo — Stale-case/no-update monitoring + prioritization +
-  calendar/timezone handling (doc 09 §53-58): configurable
-  no-update/stale-case thresholds (never implying delay means
-  rejection); automatic priority scoring (extends priority.ts/P1-4,
-  never lets a score override a hard deadline); every
-  event/deadline preserves its real timezone, business-day calculations
-  use a versioned holiday calendar rather than hardcoded assumptions.
+- [x] P8-16 done — Stale-case/no-update monitoring + prioritization +
+  calendar/timezone handling (doc 09 §53-58): `postFilingStaleness.ts`'s
+  `checkNoUpdate()` (purely factual days-since-last-update, never
+  implying delay means rejection) + `checkStaleCaseThreshold()` (the
+  doc's own PROCESSING/ADDITIONAL_INFORMATION_REQUIRED/PENDING
+  thresholds as a config table, a status with no configured threshold
+  never triggers staleness) + `isValidTimestampWithTimezone()` (a
+  timestamp with no named authority timezone is invalid -- never
+  assumes the operator's timezone) + `isBusinessDay()`/`addBusinessDays()`
+  (a versioned, explicit `HolidayCalendar` input, never a hardcoded
+  weekend/holiday assumption baked into the function). Extended
+  `priority.ts` (P1-4/P5-13) with optional `escalationLevel` (0-4,
+  postFilingEscalation.ts's/P8-13 own vocabulary, no translation
+  step) -- affects ranking only, never overrides a hard deadline's own
+  blocking behavior, which stays enforced independently in
+  filingReadiness.ts/postFilingDeadline.ts. Fixed the now-stale
+  hardcoded `components` object literal in exceptionQueue.test.ts, same
+  pattern as P5-13's fix. 14 new tests (11 in postFilingStaleness.ts, 3
+  in priority.ts) -- caught and corrected an off-by-one in my own
+  business-day test expectation (not the implementation) before it
+  shipped, by reasoning through the calendar by hand.
 - [ ] P8-17 todo — Case closure + reopening (doc 09 §59-60): explicit
   closure workflow verifying no outstanding deadline/document
   request/escalation/active hearing before closing; REOPEN_CASE
@@ -1449,3 +1463,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-12] `postFilingClaimantResponse.ts`: `planClaimantResponseAction()` -- doc's worked examples as config table, OTHER fails closed to a generic operator decision. [P8-13] `postFilingEscalation.ts`: `ESCALATION_TRIGGER_LEVEL` (fails closed to level 4), `evaluateEscalation()`, `nextEscalationLevelIfUnacknowledged()` (climbs only while UNACKNOWLEDGED, caps at 4). 10 new tests, full suite 707/707 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-14] Added REVIEW_POST_FILING_EXCEPTION to decisionTypes.ts; `postFilingDecisionRouting.ts`'s `planPostFilingEscalationDecision()` wires P8-13's escalation result into it, no decision below level 1. No separate Operator Task entity built -- reuses Decision machinery per doc's own §46 instruction. 4 new tests, full suite 711/711 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-15] `postFilingDocumentConflict.ts`: `isValidEventSourceReference()` (fails closed on empty doc id/text) + `detectDateConflict()` (never picks a winner between two disagreeing sources, always requires review). 7 new tests, full suite 718/718 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-16] `postFilingStaleness.ts`: `checkNoUpdate()`, `checkStaleCaseThreshold()` (config table, no threshold configured means never stale), `isValidTimestampWithTimezone()`, `isBusinessDay()`/`addBusinessDays()` (versioned holiday calendar, never hardcoded). Extended `priority.ts` with optional `escalationLevel` (P8-13's own vocabulary), ranking-only, never overrides hard-deadline blocking. Fixed the exceptionQueue.test.ts fixture. 14 new tests, full suite 732/732 passing, `tsc --noEmit` clean, `next build` clean.
