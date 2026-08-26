@@ -819,18 +819,26 @@ provider call itself is `blocked: needs credential`.
   `Estate`/`Claimant`. `prisma format`/`validate`/`generate` all clean;
   queued behind the same still-pending live-DB push as every schema
   change since P4-1.
-- [ ] P7-2 todo — Filing eligibility/readiness check (doc 08 §4-5):
-  deterministic pure check composing claimCompletenessEngine.ts
-  (P6-13) + claimPackageIntegrity.ts (P6-15) + jurisdiction/method/
-  destination/credential/fee/payment-availability signals into
-  READY/NOT_READY, listing every blocker rather than a bare boolean --
-  same shape as buildDocumentChecklist()/evaluateClaimCompleteness().
-- [ ] P7-3 todo — Filing method config table (doc 08 §7): configurable
-  `FilingMethod` records (online portal, API, electronic provider,
-  email, secure upload, physical mail, other), each declaring
-  submission mechanism/required metadata/documents/authentication/fee
-  process/confirmation mechanism/retry behavior -- config table, not
-  hardcoded, same discipline as claimTypes.ts (P6-2).
+- [x] P7-2 done — Filing eligibility/readiness check (doc 08 §4-5):
+  `filingReadiness.ts`'s `evaluateFilingReadiness()` -- a config table of
+  the doc's own 14-item checklist (never an inline if/else chain),
+  READY only when every applicable check passes, NOT_READY listing
+  every failing check by key -- never a bare boolean. Callers supply
+  the booleans (typically sourced directly from
+  claimCompletenessEngine.ts/P6-13 and claimPackageIntegrity.ts/P6-15);
+  `paymentMethodAvailable` only gates readiness when `feeAmountCents >
+  0`, per the doc's own "if necessary" qualifier. 6 new tests.
+- [x] P7-3 done — Filing method config table (doc 08 §7):
+  `filingMethods.ts`'s `FILING_METHODS` -- configurable records for
+  online portal/API/electronic provider/email/secure upload/physical
+  mail/other, each declaring submission mechanism/required metadata/
+  document formats/authentication/fee process/confirmation mechanism/
+  status mechanism/retry behavior/manual-steps flag/supported
+  operations -- config table, not hardcoded, same discipline as
+  claimTypes.ts (P6-2). `methodSupportsOperation()` reports false for
+  an unlisted operation (or an unrecognized method) rather than
+  guessing, echoing doc 08 §8's "connector must explicitly report
+  unsupported operations" at the method-config level too. 6 new tests.
 - [ ] P7-4 todo — Filing connector abstraction + registry (doc 08
   §8-11): `FilingConnector` interface (validate/get_requirements/
   calculate_fee/create_submission/upload_document/submit/get_status/
@@ -1237,3 +1245,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-18] `claimPreparationUpdateHandling.ts`: `detectJurisdictionChange()` (no KEEP_CURRENT -- the old jurisdiction's rules genuinely no longer apply) + `detectRuleVersionDrift()`/`detectFormVersionDrift()` (full KEEP_CURRENT/REGENERATE/REVIEW choice, never silently swaps in the newer version) + `requiresNewPreparationVersion()`. 8 new tests, full suite 504/504 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 6's currently-unblocked work (P6-1 through P6-18) is now done.** P6-12 (e-signature) stays blocked on a vendor account; P6-19/P6-20 stay deferred pending real prepared-claim data. Next unblocked work is decomposing Phases 7-9 (Filing, Post-filing, Recovery) into tasks, same as was done for Phases 3-6.
 - 2026-08-26 — Ethan asked for a full progress explanation + time estimate, then said to continue. Still queued behind the GitHub-login blocker (still away from his computer), so no push yet this entry either -- purely planning work, no code changed. Read docs 08 ("Filing & Submission," 69 sections), 09 ("Post-filing Monitoring & Case Management," 75 sections), and 10 ("Recovery, Distribution & Payment," 79 sections) in full from Drive and decomposed all three into P7-1 through P7-18, P8-1 through P8-19, and P9-1 through P9-19 in PLAN.md -- replacing the old "Phases 7-9: not started" stub. Followed the same split as Phases 4/6: connector/state-machine/decision/ledger logic is buildable now against in-memory reference implementations and synthetic data; live calls to a real filing provider, court/agency monitoring API, or payment provider are each flagged `blocked: needs credential` (P7-5, P7-10, P8-3, P9-8) since those accounts don't exist yet. AI-assisted pieces (rejection-message interpretation, case summaries, document-request classification, financial-variance explanations) are noted as needing an AIProvider without blocking the surrounding routing logic, same status as caseSummary.ts throughout this project. Next unblocked task is P7-1 (Filing + FilingAttempt data model).
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-1] Added `Filing`/`FilingAttempt` models + `FilingStatus` enum to `schema.prisma` -- FilingAttempt is deliberately create-only (no updatedAt), a Filing's packageId+packageVersion pair is its immutable package reference since ClaimPackage isn't a Prisma model yet. `prisma validate`/`generate` clean, 504/504 tests passing (unchanged, schema-only), `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-2] `filingReadiness.ts`: `evaluateFilingReadiness()` -- config-table 14-item readiness checklist, READY/NOT_READY listing every specific blocker, paymentMethodAvailable conditional on a nonzero fee. [P7-3] `filingMethods.ts`: `FILING_METHODS` config table (7 methods) + `methodSupportsOperation()`. 12 new tests, full suite 516/516 passing, `tsc --noEmit` clean, `next build` clean.
