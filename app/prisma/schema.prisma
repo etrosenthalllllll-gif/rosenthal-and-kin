@@ -1,0 +1,303 @@
+// Rosenthal & Kin — Core Infrastructure data model
+// Implements the estate/claimant split from docs/decisions and
+// "00 - Master Architecture & Index" / "01 - Core Infrastructure".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------
+// Auth / permissions (doc 01, Phase 7-8)
+// ---------------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+  REVIEWER
+  READ_ONLY
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(OPERATOR)
+  disabledAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  decisionsDecided Decision[]     @relation("DecisionDecidedBy")
+  auditEvents      AuditEvent[]
+  notes            Note[]
+}
+
+// ---------------------------------------------------------------------
+// Estate / Claimant split — see docs/decisions and doc 00 "THE DATA MODEL"
+// ---------------------------------------------------------------------
+
+enum EstateStatus {
+  SOURCED
+  RESEARCHING
+  RESEARCH_COMPLETE
+  ACTIVE
+  CLOSED
+}
+
+enum FundsFlowModel {
+  DIRECT_PAY
+  PASS_THROUGH
+}
+
+model Estate {
+  id                 String       @id @default(cuid())
+  caseNumber         String       @unique // human-readable, e.g. RK-1842
+  decedentName       String
+  jurisdiction        String       @default("CA")
+  estimatedValueCents Int?
+  probateCaseNumber  String?
+  filingDeadline     DateTime?
+  status             EstateStatus @default(SOURCED)
+  sourceTrackerRowId String?      // link back to the Sheets tracker row this came from
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  claimants     Claimant[]
+  relationships Relationship[]
+  documents     Document[]
+  notes         Note[]
+
+  @@index([status])
+}
+
+enum ClaimantStatus {
+  LEAD
+  CONTACTED
+  RESPONDED
+  POTENTIAL_HEIR
+  VERIFIED
+  ENGAGED
+  DOCUMENTS_REQUESTED
+  DOCUMENTS_COMPLETE
+  CLAIM_READY
+  AWAITING_OPERATOR_APPROVAL
+  APPROVED
+  FILED
+  PENDING
+  RECOVERY
+  PAID
+  CLOSED
+  REJECTED
+  WITHDRAWN
+  ESCALATED
+}
+
+model Claimant {
+  id             String         @id @default(cuid())
+  estateId       String
+  personId       String
+  status         ClaimantStatus @default(LEAD)
+  fundsFlowModel FundsFlowModel @default(DIRECT_PAY) // see docs/decisions/funds-flow-model.md
+  priorityScore  Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  estate      Estate        @relation(fields: [estateId], references: [id])
+  person      Person        @relation(fields: [personId], references: [id])
+  documents   Document[]
+  decisions   Decision[]
+  notes       Note[]
+  transitions ClaimantStateTransition[]
+
+  @@index([estateId])
+  @@index([status])
+}
+
+// Every status change is validated and recorded — never mutate `status`
+// directly without writing a transition row. See src/lib/stateMachine.ts.
+model ClaimantStateTransition {
+  id         String         @id @default(cuid())
+  claimantId String
+  fromStatus ClaimantStatus
+  toStatus   ClaimantStatus
+  actor      String // user id, or "system:<workflow-name>"
+  reason     String?
+  createdAt  DateTime       @default(now())
+
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@index([claimantId])
+}
+
+// ---------------------------------------------------------------------
+// Person / relationship graph (doc 06 groundwork)
+// ---------------------------------------------------------------------
+
+model Person {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  dob       DateTime?
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  claimants     Claimant[]
+  relationsFrom Relationship[] @relation("PersonA")
+  relationsTo   Relationship[] @relation("PersonB")
+}
+
+enum RelationshipType {
+  PARENT_OF
+  CHILD_OF
+  SPOUSE_OF
+  FORMER_SPOUSE_OF
+  SIBLING_OF
+  HALF_SIBLING_OF
+  GRANDPARENT_OF
+  GRANDCHILD_OF
+  AUNT_OR_UNCLE_OF
+  NIECE_OR_NEPHEW_OF
+  COUSIN_OF
+  OTHER
+}
+
+model Relationship {
+  id         String           @id @default(cuid())
+  estateId   String
+  personAId  String
+  personBId  String
+  type       RelationshipType
+  evidence   String? // free text now; Document link comes with doc 05
+  confidence Float? // 0.0 - 1.0
+  createdAt  DateTime         @default(now())
+
+  estate  Estate @relation(fields: [estateId], references: [id])
+  personA Person @relation("PersonA", fields: [personAId], references: [id])
+  personB Person @relation("PersonB", fields: [personBId], references: [id])
+
+  @@index([estateId])
+}
+
+// ---------------------------------------------------------------------
+// Documents (doc 05 groundwork — storage abstraction lives in app code)
+// ---------------------------------------------------------------------
+
+enum DocumentStatus {
+  RECEIVED
+  PROCESSING
+  READY
+  REQUIRES_REVIEW
+  VERIFIED
+  REJECTED
+  FAILED
+}
+
+model Document {
+  id               String         @id @default(cuid())
+  estateId         String?
+  claimantId       String?
+  documentType     String
+  originalFilename String
+  storageKey       String // object-storage key, never a public URL
+  mimeType         String
+  sizeBytes        Int
+  status           DocumentStatus @default(RECEIVED)
+  uploadedByUserId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  estate   Estate?   @relation(fields: [estateId], references: [id])
+  claimant Claimant? @relation(fields: [claimantId], references: [id])
+
+  @@index([estateId])
+  @@index([claimantId])
+}
+
+// ---------------------------------------------------------------------
+// Decisions (doc 02 groundwork)
+// ---------------------------------------------------------------------
+
+enum DecisionStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  REVISED
+  ESCALATED
+  DEFERRED
+  EXPIRED
+  CANCELLED
+  COMPLETED
+}
+
+model Decision {
+  id               String         @id @default(cuid())
+  claimantId       String
+  decisionType     String // e.g. APPROVE_OUTREACH, REQUEST_DOCUMENTS — configurable, not an enum
+  status           DecisionStatus @default(PENDING)
+  priority         Int            @default(0)
+  deadline         DateTime?
+  aiRecommendation String?
+  aiConfidence     Float?
+  evidenceRefs     Json?
+  availableActions Json // string[]
+  selectedAction   String?
+  reason           String?
+  decidedByUserId  String?
+  decidedAt        DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  claimant   Claimant @relation(fields: [claimantId], references: [id])
+  decidedBy  User?    @relation("DecisionDecidedBy", fields: [decidedByUserId], references: [id])
+
+  @@index([claimantId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------
+// Audit trail — immutable, append-only (doc 01 Phase 6)
+// ---------------------------------------------------------------------
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  entityType String // "Estate" | "Claimant" | "Document" | "Decision" | ...
+  entityId   String
+  eventType  String // "CREATED" | "STATUS_CHANGED" | "DOCUMENT_UPLOADED" | ...
+  actorUserId String?
+  previousValue Json?
+  newValue      Json?
+  metadata      Json?
+  correlationId String?
+  createdAt     DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------
+// Operator notes (doc 02 §13) — supplement structured data, never replace it
+// ---------------------------------------------------------------------
+
+model Note {
+  id         String    @id @default(cuid())
+  estateId   String?
+  claimantId String?
+  authorId   String
+  content    String
+  createdAt  DateTime  @default(now())
+
+  estate   Estate?   @relation(fields: [estateId], references: [id])
+  claimant Claimant? @relation(fields: [claimantId], references: [id])
+  author   User      @relation(fields: [authorId], references: [id])
+}

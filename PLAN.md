@@ -24,16 +24,16 @@ Status legend: `todo` · `in_progress` · `blocked` · `done`
 
 ## Phase 0 — Foundation
 - [x] P0-DECIDE — funds-flow, launch jurisdiction, hosting/stack decisions recorded in `docs/decisions/`.
-- [ ] P0-1 todo — Next.js + TS project scaffold, Prisma + Postgres wired up.
-- [ ] P0-2 todo — Estate/Claimant schema + migration (the data-model decision from `docs/decisions/`).
-- [ ] P0-3 todo — Case/claimant ID scheme + duplicate-estate detection.
-- [ ] P0-4 todo — Claimant lifecycle state machine (validated transitions only).
-- [ ] P0-5 todo — Event log / audit trail (immutable, append-only).
-- [ ] P0-6 todo — Auth + RBAC (operator / licensed-reviewer / claimant-portal, separate realms).
-- [ ] P0-7 todo — Document storage abstraction (S3-compatible, signed URLs).
-- [ ] P0-8 todo — Background job queue (BullMQ) with idempotency keys.
+- [x] P0-2 done — Estate/Claimant/Person/Document/Decision/AuditEvent Prisma schema (`app/prisma/schema.prisma`), validated with `npx prisma validate`. Not yet migrated against a real DB (no Postgres instance exists — see P0-10).
+- [x] P0-4 done — Claimant lifecycle state machine (`app/src/lib/stateMachine.ts`), 8 passing tests. Enforces doc 00's forward path + universal REJECTED/WITHDRAWN/ESCALATED exits + terminal-state protection.
+- [x] P0-6 partial/done — Password hashing (bcrypt) + role-based permission checks (`app/src/lib/auth.ts`), 8 passing tests, fail-closed by default. Session/login flow itself (the actual auth *endpoint*) not yet built — this is the permission-check primitive it will call.
+- [ ] P0-1 todo — Next.js app framework itself not yet scaffolded (no `next`/`react` installed or verified — only the framework-agnostic `src/lib` layer above exists and is tested). Needed before any page/API route can run.
+- [ ] P0-3 todo — Case/claimant ID scheme (human-readable case numbers) + duplicate-estate detection logic.
+- [ ] P0-5 todo — AuditEvent *writer* (the schema exists; nothing calls it yet — needs to be wired into every mutation).
+- [ ] P0-7 todo — Document storage abstraction (S3-compatible, signed URLs) — needs an object-storage account (blocked on P0-10-style credential).
+- [ ] P0-8 todo — Background job queue (BullMQ) with idempotency keys — needs Redis (blocked on hosting).
 - [ ] P0-9 todo — Provider abstraction interfaces (email/SMS/voice/AI/filing/payment) — no vendor calls yet, just the interfaces.
-- [ ] P0-10 blocked: needs credential — Render account + Postgres + object storage provisioned (needs Ethan to create the Render account; I can configure once it exists).
+- [ ] P0-10 blocked: needs credential — Render account + Postgres + object storage provisioned. Needs Ethan to create the Render account; I can configure once it exists. Nothing in P0-2/P0-7/P0-8 can run against real infrastructure until this unblocks.
 - [ ] P0-11 todo — Sheets-tracker → Estate/Claimant import job (per `docs/decisions/sheets-integration.md`).
 
 ## Phase 1 — Decision & Operator Dashboard (`ops.*`)
@@ -57,3 +57,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 
 ## Session log
 - 2026-08-26 — Repo inspected (was GitHub Pages marketing site only, no backend). Decisions recorded (funds-flow, jurisdiction, hosting/stack, sheets-integration). Named-approver left blocked. PLAN.md created. No Phase 0 code written yet — next session starts P0-1.
+- 2026-08-26 — [P0-2, P0-4, P0-6] Prisma schema (Estate/Claimant/Person/Document/Decision/AuditEvent/Note), claimant state machine, and auth/permission primitives implemented under `app/`, all with passing tests (16/16, `npx vitest run`) and a validated Prisma schema (`npx prisma validate`). Portable Node.js v20.16.0 installed locally (machine had none; winget MSI install hung on a UAC prompt, switched to the no-admin-required zip distribution). Still open: Next.js itself isn't scaffolded yet (P0-1), so nothing is servable as a web app yet — next session should scaffold the app shell and wire these lib modules into real API routes, then tackle P0-3/P0-5.

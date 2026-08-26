@@ -1,0 +1,32 @@
+{
+  "name": "rosenthal-and-kin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@prisma/client": "5.18.0",
+    "bcryptjs": "2.4.3",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4",
+    "@types/node": "20.14.15",
+    "@types/react": "18.3.3",
+    "@types/bcryptjs": "2.4.6",
+    "prisma": "5.18.0",
+    "vitest": "2.0.5",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5"
+  }
+}
