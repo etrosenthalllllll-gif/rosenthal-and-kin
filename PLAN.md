@@ -1574,11 +1574,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   workflow-level + case-level pause all checked together -- any one of
   the three blocks action). 8 new tests, full suite 939/939 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-8 todo — Retry engine + failure classification + dead-letter
-  queue (doc 11 §30-34): only transient failures retry (timeout, rate
-  limit, provider outage); permanent/data/auth failures go straight to
-  the dead-letter queue with operator actions (RETRY/SKIP/REASSIGN/
-  ESCALATE/CANCEL).
+- [x] P10-8 done — Retry engine + failure classification + dead-letter
+  queue (doc 11 §30-34): `retryEngine.ts` -- `isRetryableFailure()`
+  (only TRANSIENT/RATE_LIMIT/PROVIDER_ERROR/TIMEOUT retry; PERMANENT/
+  DATA_ERROR/AUTH_ERROR/HUMAN_REVIEW_REQUIRED/UNKNOWN never do --
+  fail-closed on an unrecognized classification), `computeRetryDelayMs()`
+  (deterministic exponential backoff capped at maxDelayMs, caller
+  supplies jitter), `planRetry()` (dead-letters immediately on a
+  non-retryable classification or exhausted attempts),
+  `buildDeadLetterEntry()` (a failure the retry engine gives up on is
+  always visible, never silently dropped). 9 new tests, full suite
+  948/948 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-9 todo — Timeouts + idempotency keys + duplicate-action
   protection (doc 11 §35-39): every externally-impactful action (send
   email/SMS, file a claim, create an invoice, record a payment) gets an
@@ -1798,3 +1804,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-5] `confidenceGate.ts`: classifyConfidence() (configurable bands), actionForConfidenceBand(), combineRuleAndConfidence()/evaluateRuleAndConfidence() (rule FAIL always blocks, never overridden by confidence). 9 new tests, full suite 922/922 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-6 (Approval gates + expiration + multi-approval dependencies).
 - 2026-08-26 — [P10-6] `approvalGate.ts`: planApprovalGate() (reuses Decision/decisionTypes.ts, no second queue), isApprovalExpired(), evaluateApprovalDependencies() (one rejection blocks the whole group). 9 new tests, full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-7 (Operator override + automation pause).
 - 2026-08-26 — [P10-7] `automationPause.ts`: recordOperatorOverride() (reason+operator required), canStartNewAutomatedAction() (global kill switch), isAutomationBlocked() (global+workflow+case pause combined). 8 new tests, full suite 939/939 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-8 (Retry engine + failure classification + dead-letter queue).
+- 2026-08-26 — [P10-8] `retryEngine.ts`: isRetryableFailure(), computeRetryDelayMs() (deterministic exponential backoff), planRetry(), buildDeadLetterEntry(). 9 new tests, full suite 948/948 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-9 (Timeouts + idempotency keys + duplicate-action protection).
