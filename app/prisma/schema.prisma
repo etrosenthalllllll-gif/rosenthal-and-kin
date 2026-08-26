@@ -94,6 +94,7 @@ model Estate {
   claimPreparations     ClaimPreparation[]
   filings               Filing[]
   postFilingCases       PostFilingCase[]
+  recoveries            Recovery[]
 
   @@index([status])
 }
@@ -143,6 +144,7 @@ model Claimant {
   claimPreparations     ClaimPreparation[]
   filings               Filing[]
   postFilingCases       PostFilingCase[]
+  recoveries            Recovery[]
 
   @@index([estateId])
   @@index([status])
@@ -1106,4 +1108,90 @@ model DocumentRequest {
 
   @@index([postFilingCaseId])
   @@index([status])
+}
+
+// ---------------------------------------------------------------------
+// Recovery, Distribution & Payment (doc 10) — PLAN.md P9-1.
+// EXPECTED ≠ ACTUAL, INVOICE ≠ PAYMENT, PAYMENT ≠ RECONCILIATION,
+// CALCULATION ≠ APPROVAL, FINANCIAL COMPLETION ≠ CASE CLOSURE — the
+// doc's own central discipline, repeated throughout doc 10. Never
+// collapse these into one field.
+// ---------------------------------------------------------------------
+
+// doc 10 section 1's own status list, verbatim.
+enum RecoveryStatus {
+  EXPECTED
+  PENDING
+  PARTIALLY_RECEIVED
+  RECEIVED
+  VERIFIED
+  DISTRIBUTION_PENDING
+  DISTRIBUTED
+  PARTIALLY_DISTRIBUTED
+  DISPUTED
+  CANCELLED
+  UNKNOWN
+}
+
+// doc 10 section 3's own configurable source list.
+enum RecoverySource {
+  COURT_AUTHORITY_DISTRIBUTION
+  ESTATE_DISTRIBUTION
+  SETTLEMENT
+  PROPERTY_RECOVERY
+  ACCOUNT_RECOVERY
+  INSURANCE_RECOVERY
+  OTHER
+}
+
+model Recovery {
+  id                  String         @id @default(cuid())
+  estateId            String
+  claimantId          String
+  filingId            String?
+  recoverySource      RecoverySource
+  recoveryType        String?
+  expectedAmountCents Int?
+  expectedDate        DateTime?
+  actualAmountCents   Int?
+  actualReceiptDate   DateTime?
+  currency            String         @default("USD") // doc 10 sec 59: never assume USD
+  status              RecoveryStatus @default(EXPECTED)
+  verificationStatus  String?
+  distributionStatus  String?
+  feeStatus           String?
+  paymentStatus       String?
+  notes               String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  estate           Estate                    @relation(fields: [estateId], references: [id])
+  claimant         Claimant                  @relation(fields: [claimantId], references: [id])
+  estimateVersions RecoveryEstimateVersion[]
+
+  @@index([estateId])
+  @@index([claimantId])
+  @@index([status])
+}
+
+// doc 10 section 4: "Never overwrite historical expectations." A
+// revised estimate is always a new version -- deliberately no
+// `updatedAt`, create-only, same discipline as VerificationSnapshot/
+// FilingAttempt.
+model RecoveryEstimateVersion {
+  id                   String    @id @default(cuid())
+  recoveryId           String
+  version              Int
+  amountCents          Int
+  expectedDate         DateTime?
+  source               String?
+  reasonForChange      String?
+  operatorOrSystem     String
+  supportingDocumentId String?
+  createdAt            DateTime  @default(now())
+
+  recovery Recovery @relation(fields: [recoveryId], references: [id])
+
+  @@unique([recoveryId, version])
+  @@index([recoveryId])
 }

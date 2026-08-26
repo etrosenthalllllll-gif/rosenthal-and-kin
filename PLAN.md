@@ -1282,12 +1282,17 @@ doesn't exist yet, so the payment-rail tasks split the same way as
 Phase 7/8: the entity/ledger/reconciliation logic is buildable now; the
 live provider call is blocked.
 
-- [ ] P9-1 todo — Recovery entity + ExpectedRecovery + estimate
-  versioning (doc 10 §1-4): the doc's own Recovery status list;
-  `RecoveryEstimateVersion` never overwrites a prior expected-amount
-  estimate -- a revised estimate is a new version, both stay visible,
-  same versioned-history discipline as every other *Version model in
-  this codebase.
+- [x] P9-1 done — Recovery entity + ExpectedRecovery + estimate
+  versioning (doc 10 §1-4): added `Recovery`/`RecoveryStatus`/
+  `RecoverySource` (the doc's own status + source lists;
+  `currency` defaults to `"USD"` but is always an explicit field, never
+  hardcoded elsewhere per §59) + append-only `RecoveryEstimateVersion`
+  (no `updatedAt`, `@@unique([recoveryId, version])`) to
+  `schema.prisma`. `recoveryEstimate.ts`'s `getCurrentEstimate()` --
+  the highest version number wins, not the most recently created row.
+  `createNextEstimateVersion()` never overwrites a prior estimate --
+  always a new version one past the current highest, regardless of what
+  the prior estimate said. 4 new tests.
 - [ ] P9-2 todo — ActualRecovery tracking + receipt ingestion +
   verification (doc 10 §5-7): actual recovery ingested from
   authority notifications/bank integration/uploaded receipts/manual
@@ -1484,3 +1489,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-17] `postFilingClosure.ts`: `evaluateClosureReadiness()` (6-item config table, every blocker named) + `reopenCase()` (empty reason rejected outright, prior closure record always preserved unchanged). 8 new tests, full suite 740/740 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-18] `postFilingMonitoringReconciliation.ts`: reconciliation/outage classification delegate to filingTrackingReconciliation.ts (P7-15); new `shouldEscalateMonitoringFailure()` + `computeBackoffDelayMinutes()` (exponential, capped). 8 new tests, full suite 748/748 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-19] `postFilingAnalytics.ts`: `computePostFilingCaseMetrics()`/`computeDocumentRequestMetrics()`, scoped to what's honestly measurable right now (no real post-filing case has ever run through the system, no automated-vs-manual distinction in the schema yet). 4 new tests, full suite 752/752 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 8's currently-unblocked work (P8-1 through P8-19, minus P8-3) is now done.** Next unblocked work is Phase 9 (Recovery, Distribution & Payment, doc 10) starting at P9-1.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 9 (Recovery, Distribution & Payment, doc 10). [P9-1] Added Recovery/RecoveryStatus/RecoverySource + append-only RecoveryEstimateVersion schema models; `recoveryEstimate.ts`: `getCurrentEstimate()` (highest version wins) + `createNextEstimateVersion()` (never overwrites, always a new version). 4 new tests, full suite 756/756 passing, `tsc --noEmit` clean, `next build` clean.
