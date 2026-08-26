@@ -1257,11 +1257,18 @@ routing logic itself, synthetic-data testing).
   threshold reports an escalation is due. `computeBackoffDelayMinutes()`
   doubles the delay per attempt, capped at a configured maximum --
   "do not hammer external systems." 8 new tests.
-- [ ] P8-19 todo — Post-filing analytics + automation analytics (doc 09
-  §68-69): pure-math metrics (time to acceptance, document-request
-  resolution time, escalation rate, automation vs. human-review rate)
-  scoped to what's honestly measurable, same discipline as
-  documentProcessingMetrics.ts (P4-15).
+- [x] P8-19 done — Post-filing analytics + automation analytics (doc 09
+  §68-69): `postFilingAnalytics.ts`'s `computePostFilingCaseMetrics()`
+  (closure/escalation rate) + `computeDocumentRequestMetrics()`
+  (acceptance rate), scoped to what PostFilingCase/DocumentRequest's own
+  status fields can measure honestly right now -- average time to
+  acceptance/completion and automation-vs-human-review percentages are
+  both left out (not faked as a meaningless 0%) since no real
+  post-filing case has ever gone through the system yet and this schema
+  doesn't distinguish automated from manual checks, same discipline as
+  documentProcessingMetrics.ts (P4-15). 4 new tests. **Every
+  currently-unblocked Phase 8 task (P8-1 through P8-19, minus P8-3) is
+  now done.**
 
 ## Phase 9 — Recovery, Distribution & Payment (doc 10)
 Doc 10 (79 sections) read in full from Drive. Begins when a claim is
@@ -1476,3 +1483,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-16] `postFilingStaleness.ts`: `checkNoUpdate()`, `checkStaleCaseThreshold()` (config table, no threshold configured means never stale), `isValidTimestampWithTimezone()`, `isBusinessDay()`/`addBusinessDays()` (versioned holiday calendar, never hardcoded). Extended `priority.ts` with optional `escalationLevel` (P8-13's own vocabulary), ranking-only, never overrides hard-deadline blocking. Fixed the exceptionQueue.test.ts fixture. 14 new tests, full suite 732/732 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-17] `postFilingClosure.ts`: `evaluateClosureReadiness()` (6-item config table, every blocker named) + `reopenCase()` (empty reason rejected outright, prior closure record always preserved unchanged). 8 new tests, full suite 740/740 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-18] `postFilingMonitoringReconciliation.ts`: reconciliation/outage classification delegate to filingTrackingReconciliation.ts (P7-15); new `shouldEscalateMonitoringFailure()` + `computeBackoffDelayMinutes()` (exponential, capped). 8 new tests, full suite 748/748 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-19] `postFilingAnalytics.ts`: `computePostFilingCaseMetrics()`/`computeDocumentRequestMetrics()`, scoped to what's honestly measurable right now (no real post-filing case has ever run through the system, no automated-vs-manual distinction in the schema yet). 4 new tests, full suite 752/752 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 8's currently-unblocked work (P8-1 through P8-19, minus P8-3) is now done.** Next unblocked work is Phase 9 (Recovery, Distribution & Payment, doc 10) starting at P9-1.
