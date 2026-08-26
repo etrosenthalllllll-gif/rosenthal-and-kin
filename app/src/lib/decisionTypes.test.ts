@@ -73,4 +73,22 @@ describe("decision type registry", () => {
       "ESCALATE",
     ]);
   });
+
+  it("registers the doc 06 verification exception types (P5-10)", () => {
+    expect(DECISION_TYPES.RESOLVE_IDENTITY_VERIFICATION.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_IDENTITY_VERIFICATION.availableActions).toEqual([
+      "VERIFY",
+      "REJECT",
+      "REQUEST_MORE_EVIDENCE",
+      "REVISE",
+      "ESCALATE",
+    ]);
+    expect(DECISION_TYPES.RESOLVE_RELATIONSHIP_VERIFICATION.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.REVIEW_COMPETING_HEIR_CANDIDATE.availableActions).toEqual([
+      "RESEARCH",
+      "VERIFY",
+      "RULE_OUT",
+      "ESCALATE",
+    ]);
+  });
 });

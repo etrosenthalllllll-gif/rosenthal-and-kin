@@ -506,16 +506,27 @@ documentValidation.ts).
   own, per §23's own escalation ladder) and `classifyNegativeEvidence()`
   (NO_EVIDENCE_FOUND kept distinct from EVIDENCE_OF_ABSENCE, §24). 7 new
   tests.
-- [ ] P5-9 todo — Human-review triggers + risk-based review levels (doc
-  06 §28-29): configurable trigger table (identity below threshold,
-  conflicting relationship evidence, competing heir detected, genealogy
-  incomplete, etc.) mapped to LOW/MEDIUM/HIGH/CRITICAL, same
-  config-table discipline as communicationClassification.ts.
-- [ ] P5-10 todo — Verification decision integration (doc 06 §30): new
-  decision types (identity conflict, relationship conflict, competing
-  heir review, etc.) in decisionTypes.ts + a routing module mirroring
-  documentDecisionRouting.ts, wiring P5-2/P5-6/P5-8/P5-9's outputs into
-  the existing Decision system.
+- [x] P5-9 done — Human-review triggers + risk-based review levels (doc
+  06 §28-29, 46): `humanReviewTriggers.ts`'s `evaluateReviewTriggers()`
+  -- configurable trigger table (identity ambiguity, relationship
+  conflict, competing heir, genealogy incompleteness, etc.) mapped to
+  LOW/MEDIUM/HIGH/CRITICAL per §29/§46's own worked examples, fails
+  closed to CRITICAL for an unconfigured trigger. Review is
+  unconditional whenever any trigger fires (doc 06's own instruction --
+  no "3 low-risk triggers don't count" exception exists), and reports
+  the single highest risk level across everything that fired. 7 new
+  tests.
+- [x] P5-10 done — Verification decision integration (doc 06 §30, 41):
+  added `RESOLVE_IDENTITY_VERIFICATION`, `RESOLVE_RELATIONSHIP_VERIFICATION`
+  (both use §30's literal [VERIFY]/[REJECT]/[REQUEST_MORE_EVIDENCE]/
+  [REVISE]/[ESCALATE] action set), and `REVIEW_COMPETING_HEIR_CANDIDATE`
+  (§41's own distinct [RESEARCH]/[VERIFY]/[RULE_OUT]/[ESCALATE] set) to
+  `decisionTypes.ts`. `verificationDecisionRouting.ts` wires
+  identityResolution.ts (P5-2) / relationshipVerification.ts (P5-3) /
+  competingHeirDetection.ts (P5-8)'s actual outputs into recommendations
+  against that registry -- pure, same plan-now/wire-later split as
+  documentDecisionRouting.ts (P4-14). 12 new tests, full suite 380/380
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P5-11 todo — Verification snapshot (doc 06 §34): immutable
   point-in-time record of a case's verification state at a workflow
   stage; future evidence must never rewrite a past snapshot.
@@ -573,3 +584,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. [P5-3] `relationshipVerification.ts`: `verifyRelationshipClaim()`, doc 06 §7-8's per-claim classifier over supporting/independent/contradicting evidence entries -- CONFLICTED is a first-class outcome (never silently picks a side when both exist), non-independent duplicate sources never establish sufficiency alone (§13). [P5-4] `genealogyGraph.ts`: `findLineagePath()` (BFS over PARENT_OF/CHILD_OF edges, tracks whether every edge along a multi-generation path actually has evidence rather than assuming a chain is verified just because each person has a record -- §9-10's own explicit warning) and `checkGenealogyCompleteness()` (§25 -- flags an unresearched branch as incomplete rather than declaring the tree done once every currently-known relative has a record). 18 new tests, full suite 336/336 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan asked what percent of the project is done (answered ~45-50% by rough phase-weighting, flagged that Phases 6-9 aren't even decomposed yet so the true total is uncertain) and said to continue. [P5-5] `crossSourceComparison.ts`: generalizes documentValidation.ts's compareFieldAcrossDocuments() (P4-5) to any source type per doc 06 §11; `countIndependentSources()` resolves a `derivedFromSourceId` chain to its origin so republications of one source never inflate the independent-confirmation count (§13's own obituary example). [P5-6] `conflictDetection.ts`: `classifyConflictSeverity()` (config-table LOW/MEDIUM/HIGH/CRITICAL per field, fails closed to CRITICAL for anything unconfigured) + `explainConflict()` (full what/sources/why-it-matters/possible-explanations/recommended-next-step record, HIGH/CRITICAL auto-flag for human review, explanations always a neutral list per §16's "do not assert a speculative explanation as fact"). 16 new tests, full suite 352/352 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-7] `confidenceScoring.ts`: `computeConfidenceScore()` composes whichever confidence components a caller actually supplies (identityResolution.ts's matchScore, crossSourceComparison.ts's independent-source ratio, document/extraction confidence, relationship-path consistency) into one weighted, explainable score -- never confidence-equals-document-count per §17's explicit warning; conflict penalty subtracted as its own visible line, every component preserved for audit per §18. Calibration (§19) intentionally deferred -- no real outcome history exists to calibrate against yet. [P5-8] `competingHeirDetection.ts`: `assessCompetingHeirCandidate()` -- doc 06 §23's own escalation ladder (single weak signal alone is always LOW, a document explicitly naming the relationship is HIGH on its own, two-plus corroborating weak signals reach MEDIUM/REQUIRES_REVIEW) and `classifyNegativeEvidence()` (§24's NO_EVIDENCE_FOUND vs. EVIDENCE_OF_ABSENCE distinction). 13 new tests, full suite 365/365 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan said to continue again. [P5-9] `humanReviewTriggers.ts`: `evaluateReviewTriggers()` composes doc 06 §28's full trigger list into one config table + evaluator (fails closed to CRITICAL for anything unconfigured, same discipline as conflictDetection.ts), reports the single highest risk level across everything that fired -- review itself is unconditional whenever any trigger fires, per doc 06's own wording. [P5-10] Added `RESOLVE_IDENTITY_VERIFICATION`/`RESOLVE_RELATIONSHIP_VERIFICATION` (doc 06 §30's literal action set) and `REVIEW_COMPETING_HEIR_CANDIDATE` (§41's own distinct action set) to `decisionTypes.ts`; `verificationDecisionRouting.ts` wires P5-2/P5-3/P5-8's actual outputs into recommendations against that registry, same plan-now/wire-later split as documentDecisionRouting.ts. 19 new tests, full suite 380/380 passing, `tsc --noEmit` clean, `next build` clean.

@@ -259,6 +259,50 @@ export const DECISION_TYPES = {
     highConsequence: false,
     category: "EXCEPTION",
   },
+
+  // --- Verification & heirship analysis exceptions (doc 06 sec 30) ---
+  // "Integrate with the existing Decision Dashboard. When review is
+  // required, create a decision... The operator should be able to:
+  // [VERIFY] [REJECT] [REQUEST MORE EVIDENCE] [REVISE] [ESCALATE]."
+  // Used literally for identity/relationship verification, since doc
+  // 06 gives this exact action set for both. Competing-heir review gets
+  // its own type below because section 41's own example uses a
+  // different, more specific action set: [RESEARCH] [VERIFY] [RULE OUT]
+  // [ESCALATE].
+  RESOLVE_IDENTITY_VERIFICATION: {
+    key: "RESOLVE_IDENTITY_VERIFICATION",
+    displayName: "Resolve Identity Verification",
+    description:
+      "Two records could plausibly refer to the same real-world person, or a confirmed conflict undermines an identity match -- doc 06 sections 3, 28. 'Never merge identities automatically when evidence is ambiguous.'",
+    availableActions: ["VERIFY", "REJECT", "REQUEST_MORE_EVIDENCE", "REVISE", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_RELATIONSHIP_VERIFICATION: {
+    key: "RESOLVE_RELATIONSHIP_VERIFICATION",
+    displayName: "Resolve Relationship Verification",
+    description:
+      "A proposed relationship claim is conflicted or unsupported by its gathered evidence -- doc 06 section 8. 'Do not automatically choose one.'",
+    availableActions: ["VERIFY", "REJECT", "REQUEST_MORE_EVIDENCE", "REVISE", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  REVIEW_COMPETING_HEIR_CANDIDATE: {
+    key: "REVIEW_COMPETING_HEIR_CANDIDATE",
+    displayName: "Review Competing Heir Candidate",
+    description:
+      "A potential competing heir was identified with enough corroborating signal to warrant human review -- doc 06 sections 20-23, 41. 'Do not automatically conclude that the person is legally entitled.'",
+    // doc 06 section 41's own action set, used literally.
+    availableActions: ["RESEARCH", "VERIFY", "RULE_OUT", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;
