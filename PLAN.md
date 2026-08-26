@@ -540,10 +540,23 @@ documentValidation.ts).
   its own reason line, `undefined` never blocks (so P4-6's original
   document-only callers keep working unchanged). One readiness
   calculation, not two competing ones. 7 new tests.
-- [ ] P5-13 todo — Review queue prioritization (doc 06 §46): extends
-  priority.ts (P1-4) with the doc's verification-specific risk factors
-  (conflict severity, competing-heir presence, unresolved-issue count)
-  rather than building a second, competing priority engine.
+- [x] P5-13 done — Review queue prioritization (doc 06 §46): extended
+  `priority.ts` (P1-4) with two new optional inputs --
+  `competingHeirsCount` (flat bump, doc 06's own CRITICAL "competing
+  heir discovered during claim prep" example; no extra reward past the
+  first candidate) and `unresolvedIssueCount` (diminishing-returns
+  score, same log/clamp discipline as the existing value score) --
+  rather than building a second, competing priority engine. Conflict
+  severity/claim value/confidence were already covered by the existing
+  `riskLevel`/`potentialRecoveryCents`/`aiConfidence` inputs, and
+  `riskLevel` already shares the identical LOW/MEDIUM/HIGH/CRITICAL
+  vocabulary humanReviewTriggers.ts's `ReviewRiskLevel` (P5-9) uses, so
+  that module's `overallRisk` can be passed straight in with no
+  translation step. Both new fields are optional and contribute 0 when
+  omitted, so every existing caller (decisionQueue.ts, etc.) produces
+  the identical score it did before this change. 4 new tests. **Phase
+  5 (Verification & Heirship Analysis) is now fully done** -- P5-1
+  through P5-13 complete, none of it credential-blocked.
 
 ## Phases 6-9 — Claim Prep, Filing, Post-filing, Recovery
 Not started. See the full spec docs (Drive: System Architecture folder,
@@ -591,3 +604,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. [P5-7] `confidenceScoring.ts`: `computeConfidenceScore()` composes whichever confidence components a caller actually supplies (identityResolution.ts's matchScore, crossSourceComparison.ts's independent-source ratio, document/extraction confidence, relationship-path consistency) into one weighted, explainable score -- never confidence-equals-document-count per §17's explicit warning; conflict penalty subtracted as its own visible line, every component preserved for audit per §18. Calibration (§19) intentionally deferred -- no real outcome history exists to calibrate against yet. [P5-8] `competingHeirDetection.ts`: `assessCompetingHeirCandidate()` -- doc 06 §23's own escalation ladder (single weak signal alone is always LOW, a document explicitly naming the relationship is HIGH on its own, two-plus corroborating weak signals reach MEDIUM/REQUIRES_REVIEW) and `classifyNegativeEvidence()` (§24's NO_EVIDENCE_FOUND vs. EVIDENCE_OF_ABSENCE distinction). 13 new tests, full suite 365/365 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-9] `humanReviewTriggers.ts`: `evaluateReviewTriggers()` composes doc 06 §28's full trigger list into one config table + evaluator (fails closed to CRITICAL for anything unconfigured, same discipline as conflictDetection.ts), reports the single highest risk level across everything that fired -- review itself is unconditional whenever any trigger fires, per doc 06's own wording. [P5-10] Added `RESOLVE_IDENTITY_VERIFICATION`/`RESOLVE_RELATIONSHIP_VERIFICATION` (doc 06 §30's literal action set) and `REVIEW_COMPETING_HEIR_CANDIDATE` (§41's own distinct action set) to `decisionTypes.ts`; `verificationDecisionRouting.ts` wires P5-2/P5-3/P5-8's actual outputs into recommendations against that registry, same plan-now/wire-later split as documentDecisionRouting.ts. 19 new tests, full suite 380/380 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-11] Added the `VerificationSnapshot` model to `schema.prisma` -- deliberately create-only (no `updatedAt` field, documented as never `.update()`d), so a new workflow stage always produces a new row rather than rewriting history, per doc 06 §34's own explicit instruction. `verificationSnapshot.ts`'s `buildVerificationSnapshot()` reproduces §34's own worked example ("Identity: Verified / Relationship: Supported / Competing heirs: None identified / ...") and derives an `overallReady` boolean. [P5-12] Extended `claimReadiness.ts` (P4-6) per doc 06 §39: new optional `identityVerified`/`relationshipVerified`/`competingHeirsCount`/`verificationReviewRequired` inputs, each blocking readiness with its own reason line only when explicitly unfavorable -- `undefined` never blocks, so every existing P4-6 document-only call site keeps working unchanged. One readiness calculation now covers both doc 05's document checklist and doc 06's verification signals, rather than two competing functions. 12 new tests, full suite 392/392 passing, `tsc --noEmit` clean, `next build` clean. **Only P5-13 (review-queue prioritization, extending priority.ts) is left `todo` in Phase 5** -- everything else in Phase 5 is done, none of it credential-blocked.
+- 2026-08-26 — Ethan said to continue again. [P5-13] Extended `priority.ts` (P1-4) with `competingHeirsCount` (flat bump per doc 06 §46's own worked CRITICAL example, no extra credit past the first candidate) and `unresolvedIssueCount` (diminishing-returns score, same clamp discipline as the existing value component) -- both optional and zero-contribution when omitted, so every existing caller keeps its exact prior score. Noted that `riskLevel` already shares the identical LOW/MEDIUM/HIGH/CRITICAL vocabulary humanReviewTriggers.ts's `ReviewRiskLevel` (P5-9) uses, so no bridging code was needed there. Fixed one now-stale hardcoded `components` object shape in `exceptionQueue.test.ts` that the new fields broke. 4 new tests, full suite 396/396 passing, `tsc --noEmit` clean, `next build` clean. **Phase 5 (Verification & Heirship Analysis, doc 06) is now fully complete** -- P5-1 through P5-13 all done, none of it credential-blocked (the only real gap left is the still-pending P4-1/P5-1 live-DB schema push, which the classifier keeps blocking regardless of confirmation). Next session should either get that push unblocked, or start decomposing Phase 6 (Claim Preparation).

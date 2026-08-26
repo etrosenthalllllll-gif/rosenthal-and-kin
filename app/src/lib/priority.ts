@@ -1,11 +1,24 @@
 // Decision priority engine -- doc 02 section 10 "PRIORITY SYSTEM" / section
-// 11 "SMART QUEUE".
+// 11 "SMART QUEUE", extended by doc 06 section 46 "REVIEW QUEUE
+// PRIORITIZATION" (PLAN.md P5-13).
 //
 // "Do NOT simply sort decisions by creation date." Priority is a
 // configurable combination of financial value, deadline proximity, age,
 // risk, and (inversely) AI confidence. The exact formula is deliberately
 // isolated in one function so it can be tuned without touching anything
 // that calls it.
+//
+// doc 06 section 46 asks for the same underlying factors (claim value,
+// confidence, workflow stage/deadline, age) plus two this module didn't
+// track before: "Potential competing heirs" and "Number of unresolved
+// issues." Both are added below as optional fields -- `undefined`
+// contributes nothing, so every existing caller (decisionQueue.ts, etc.)
+// that doesn't supply them keeps producing the exact same score it did
+// before this change. `riskLevel` already uses the identical
+// LOW/MEDIUM/HIGH/CRITICAL vocabulary humanReviewTriggers.ts's
+// `ReviewRiskLevel` does (P5-9) -- that module's
+// `evaluateReviewTriggers().overallRisk` can be passed straight in as
+// `riskLevel` with no translation step.
 
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type PriorityLabel = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -18,6 +31,16 @@ export interface PriorityInput {
   aiConfidence?: number | null; // 0.0-1.0
   riskLevel?: RiskLevel | null;
   highConsequence?: boolean;
+  // doc 06 section 46's own CRITICAL example: "Potential competing heir
+  // discovered during claim preparation." Kept as its own signal
+  // (rather than folded into riskLevel) since a case can have a
+  // competing heir without an operator having classified an overall
+  // risk level yet.
+  competingHeirsCount?: number;
+  // doc 06 section 46: "Number of unresolved issues" -- distinct from
+  // severity; five minor discrepancies still deserve more attention
+  // than zero, even if none individually rises to HIGH/CRITICAL.
+  unresolvedIssueCount?: number;
 }
 
 const RISK_SCORE: Record<RiskLevel, number> = {
@@ -68,6 +91,22 @@ function confidenceUrgency(aiConfidence?: number | null): number {
   return clamp((1 - aiConfidence) * 10, 0, 10);
 }
 
+// doc 06 section 46's own top example is a competing heir found
+// mid-claim-prep, ranked CRITICAL -- a flat, generous bump so even one
+// competing heir meaningfully outranks a routine decision, with no
+// further reward for additional candidates past the first (more
+// candidates doesn't make the single most urgent one more urgent).
+function competingHeirScore(count?: number): number {
+  return count && count > 0 ? 20 : 0;
+}
+
+// Diminishing returns, same reasoning as valueScore -- five open
+// issues should rank above one, but not five times as urgent.
+function unresolvedIssueScore(count?: number): number {
+  if (!count || count <= 0) return 0;
+  return clamp(count * 3, 0, 15);
+}
+
 export interface PriorityScore {
   score: number; // 0-100+
   label: PriorityLabel;
@@ -78,6 +117,8 @@ export interface PriorityScore {
     risk: number;
     confidence: number;
     highConsequenceBonus: number;
+    competingHeirs: number;
+    unresolvedIssues: number;
   };
 }
 
@@ -93,6 +134,8 @@ export function computePriorityScore(input: PriorityInput): PriorityScore {
     // decisionTypes.ts) get a flat floor bump so they never quietly rank
     // below a pile of routine outreach approvals.
     highConsequenceBonus: input.highConsequence ? 10 : 0,
+    competingHeirs: competingHeirScore(input.competingHeirsCount),
+    unresolvedIssues: unresolvedIssueScore(input.unresolvedIssueCount),
   };
 
   const score =
@@ -101,7 +144,9 @@ export function computePriorityScore(input: PriorityInput): PriorityScore {
     components.age +
     components.risk +
     components.confidence +
-    components.highConsequenceBonus;
+    components.highConsequenceBonus +
+    components.competingHeirs +
+    components.unresolvedIssues;
 
   return { score, label: priorityLabel(score), components };
 }

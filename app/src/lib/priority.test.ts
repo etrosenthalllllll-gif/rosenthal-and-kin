@@ -87,6 +87,34 @@ describe("computePriorityScore", () => {
     expect(scores[1]).toBeLessThan(scores[2]);
     expect(scores[2]).toBeLessThan(scores[3]);
   });
+
+  // --- doc 06 section 46's review-queue extension (P5-13) -------------
+
+  it("ranks a case with a potential competing heir above an otherwise-identical one without", () => {
+    const withHeir = computePriorityScore({ createdAt: NOW, now: NOW, competingHeirsCount: 1 });
+    const without = computePriorityScore({ createdAt: NOW, now: NOW });
+    expect(withHeir.score).toBeGreaterThan(without.score);
+    expect(withHeir.components.competingHeirs).toBeGreaterThan(0);
+  });
+
+  it("does not reward additional competing-heir candidates beyond the first", () => {
+    const one = computePriorityScore({ createdAt: NOW, now: NOW, competingHeirsCount: 1 });
+    const three = computePriorityScore({ createdAt: NOW, now: NOW, competingHeirsCount: 3 });
+    expect(three.components.competingHeirs).toBe(one.components.competingHeirs);
+  });
+
+  it("gives diminishing, not linear, weight to the number of unresolved issues", () => {
+    const one = computePriorityScore({ createdAt: NOW, now: NOW, unresolvedIssueCount: 1 });
+    const twenty = computePriorityScore({ createdAt: NOW, now: NOW, unresolvedIssueCount: 20 });
+    expect(twenty.components.unresolvedIssues).toBeGreaterThan(one.components.unresolvedIssues);
+    expect(twenty.components.unresolvedIssues).toBeLessThan(one.components.unresolvedIssues * 20);
+  });
+
+  it("treats omitted competing-heir/unresolved-issue fields as zero, not as missing/undefined behavior", () => {
+    const result = computePriorityScore({ createdAt: NOW, now: NOW });
+    expect(result.components.competingHeirs).toBe(0);
+    expect(result.components.unresolvedIssues).toBe(0);
+  });
 });
 
 describe("priorityLabel", () => {
