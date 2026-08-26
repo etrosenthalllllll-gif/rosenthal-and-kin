@@ -455,15 +455,21 @@ documentValidation.ts).
   LIKELY_DIFFERENT_PERSON, matching doc 06's own worked example. 13 new
   tests, full suite 318/318 passing, `tsc --noEmit` clean, `next build`
   clean.
-- [ ] P5-3 todo — Relationship claim verification status (doc 06 §7-8):
-  pure function over a relationship claim's supporting/conflicting
-  evidence -> STRONGLY_SUPPORTED/SUPPORTED/PARTIALLY_SUPPORTED/
-  UNSUPPORTED/CONFLICTED/INSUFFICIENT_EVIDENCE/REQUIRES_HUMAN_REVIEW.
-- [ ] P5-4 todo — Genealogy graph + relationship-path calculation (doc
-  06 §9-10, 25): pure graph traversal over Relationship records;
-  multi-generation path calculation; genealogy-completeness check
-  (flags an unresearched branch, doesn't assume completeness from
-  "each person's record exists").
+- [x] P5-3 done — Relationship claim verification status (doc 06 §7-8):
+  `relationshipVerification.ts`'s `verifyRelationshipClaim()` -- pure
+  function over a relationship claim's supporting/independent/
+  contradicting evidence entries -> STRONGLY_SUPPORTED/SUPPORTED/
+  PARTIALLY_SUPPORTED/UNSUPPORTED/CONFLICTED/INSUFFICIENT_EVIDENCE, plus
+  a `requiresHumanReview` recommendation (CONFLICTED/UNSUPPORTED always
+  warrant one). Non-independent duplicate sources never count toward
+  sufficiency on their own, per §13. 8 new tests.
+- [x] P5-4 done — Genealogy graph + relationship-path calculation (doc
+  06 §9-10, 25): `genealogyGraph.ts`'s `findLineagePath()` (BFS over
+  PARENT_OF/CHILD_OF edges, tracks whether every edge along the path
+  has evidence -- "do not treat a chain as verified merely because each
+  person's record exists") and `checkGenealogyCompleteness()` (flags an
+  unresearched branch rather than assuming completeness once every
+  currently-known relative has a record). 10 new tests.
 - [ ] P5-5 todo — Cross-source comparison + source independence (doc 06
   §11-13): generalizes documentValidation.ts's
   compareFieldAcrossDocuments() beyond documents to any source
@@ -549,3 +555,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue; the live-DB schema push is still blocked by the same classifier (still waiting on him), so moved to the next unblocked task instead of stalling. [P4-14] Document-based decision types (doc 05 §35): added `RESOLVE_AMBIGUOUS_DOCUMENT_MATCH`, `RESOLVE_DOCUMENT_CONFLICT`, `RESOLVE_SUSPECTED_DUPLICATE_DOCUMENT` to `decisionTypes.ts` -- the rest of §35's list folds into types that already existed (low-confidence, invalid-document, request-documents) rather than being duplicated; person-matching/document-quality decisions deliberately not added since P4-10/P4-11 are still blocked and an unreachable decision type is dead configuration. `documentDecisionRouting.ts` wires P4-3 (duplicate detection) / P4-4 (case matching) / P4-5 (conflict detection) / P4-6 (claim readiness) outputs into recommendations against that registry -- pure, same "plan now, a caller wires the real DB write later" split as `planInboundEmailIngestion.ts`. 12 new tests, full suite 298/298 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P4-15] Document processing observability/analytics (doc 05 §48-49): `documentProcessingMetrics.ts`, same pure-math/thin-wrapper split as `communicationDashboardMetrics.ts` (P3-13), scoped to what the schema can measure honestly (review rate, duplicate rate, human-verified rate, validation-failure rate) rather than the doc's full list -- per-stage processing time needs timestamps that don't exist, and OCR/classification/extraction failure rates would just report a meaningless 0% while those pipelines stay blocked. Deliberately did NOT wire this into `/ops` yet, unlike P3-13: the live production DB still doesn't have the P4-1 columns (`duplicateStatus` etc.) since that schema push is still pending, so querying them from a live page would 500 the dashboard rather than show an honest empty state -- wiring it in is a one-line addition once the push lands. 7 new tests, full suite 305/305 passing, `tsc --noEmit` clean, `next build` clean. **P4-13 (needs real uploaded documents) is the only Phase 4 task left `todo`; P4-7 through P4-12 remain `blocked: needs credential`. The P4-1 live-DB schema push is still the single blocking item for all of it to actually run in production** -- still waiting on Ethan to run `npx prisma db push --skip-generate` from `app/`, or grant a permission rule so I can.
 - 2026-08-26 — Ethan said to continue again. Phase 4's remaining buildable work is done, so read doc 06 ("Verification & Heirship Analysis," 53 sections) in full from Drive and decomposed it into P5-1 through P5-13 in PLAN.md -- unlike Phase 4, nothing in Phase 5 is credential-blocked (it's a pure evidence-organization/confidence-scoring engine over whatever facts already exist), so the split here is "buildable now against synthetic facts" vs. "the document-extracted facts it'll eventually consume aren't real yet since P4-9 is blocked," same discipline as documentValidation.ts. [P5-1] Extended `schema.prisma`: new `Verification`/`VerificationClaim`/`PotentialHeir` models + `VerificationType`/`VerificationStatus`/`PotentialHeirStatus` enums; extended the existing `Relationship` model (built back in P0-2) with `status`/`source`/`updatedAt` instead of duplicating it. `prisma validate` and `prisma generate` both clean; queued behind the same still-pending live-DB push as P4-1 rather than opening a second blocked push. [P5-2] `identityResolution.ts`: `resolveIdentityMatch()`/`nameMatchScore()`, doc 06 §3-5's identity-verification workflow -- multi-signal confidence scoring (name, DOB, address, phone, email, documented links) that never decides from name similarity alone, reproduces the doc's own worked examples (John Smith/John A Smith/J. A. Smith name variations, marriage-record-linked maiden name, DOB-conflict → LIKELY_DIFFERENT_PERSON). 13 new tests, full suite 318/318 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan said to continue again. [P5-3] `relationshipVerification.ts`: `verifyRelationshipClaim()`, doc 06 §7-8's per-claim classifier over supporting/independent/contradicting evidence entries -- CONFLICTED is a first-class outcome (never silently picks a side when both exist), non-independent duplicate sources never establish sufficiency alone (§13). [P5-4] `genealogyGraph.ts`: `findLineagePath()` (BFS over PARENT_OF/CHILD_OF edges, tracks whether every edge along a multi-generation path actually has evidence rather than assuming a chain is verified just because each person has a record -- §9-10's own explicit warning) and `checkGenealogyCompleteness()` (§25 -- flags an unresearched branch as incomplete rather than declaring the tree done once every currently-known relative has a record). 18 new tests, full suite 336/336 passing, `tsc --noEmit` clean, `next build` clean.
