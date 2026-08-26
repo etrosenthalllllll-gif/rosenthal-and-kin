@@ -558,9 +558,161 @@ documentValidation.ts).
   5 (Verification & Heirship Analysis) is now fully done** -- P5-1
   through P5-13 complete, none of it credential-blocked.
 
-## Phases 6-9 — Claim Prep, Filing, Post-filing, Recovery
+## Phase 6 — Claim Preparation (doc 07)
+Read doc 07 ("Claim Preparation & Claim Package Generation," 65
+sections) in full from Drive before decomposing. Same split as every
+prior phase: pure logic/config/versioning buildable now vs. genuinely
+blocked. The one hard blocker here is e-signature (needs a real
+provider account, P6-12); everything else -- jurisdiction determination,
+rules engine, requirement/form/exhibit/completeness logic, package
+generation/versioning -- is deterministic logic this session can build
+and test without any vendor credential. Real jurisdiction-specific form
+templates/legal declaration language are a second, softer gap: the
+*mechanism* (form catalog, field mapping, template-based generation,
+provenance) is buildable now, but the actual CA-specific form content
+and declaration wording need the same attorney review Phase 2's
+compliance rules got -- built and tested against placeholder/example
+form definitions, left for owner/attorney review before real filing
+content goes in, same as P2-1.
+
+- [x] P6-1 done — ClaimPreparation data model (doc 07 §1): added
+  `ClaimPreparation` model + `ClaimPreparationStatus` enum (NOT_STARTED
+  through CANCELLED, verbatim) + `ClaimCompletenessStatus` enum
+  (§33's COMPLETE/INCOMPLETE/REQUIRES_REVIEW plus NOT_EVALUATED) to
+  `schema.prisma`. Decedent info reuses Estate's existing
+  `decedentName` rather than a separate decedentId; the
+  requiredDocuments/selectedForms/generatedDocuments/exhibits/
+  signatureRequirements relations will attach once P6-6/P6-7/P6-11/
+  P6-12 build those models. `prisma validate`/`generate` clean;
+  queued behind the same still-pending live-DB push as P4-1/P5-1.
+- [x] P6-2 done — ClaimType config model (doc 07 §2): `claimTypes.ts`'s
+  `CLAIM_TYPES` table (unclaimed property, estate claim, probate-
+  related, government-held property, plus an `OTHER` fallback that
+  always requires review rather than guessing requirements) -- each
+  specifying required info/documents/forms/signatures/declarations/
+  exhibits/filing method/review requirement, config-table not
+  hardcoded frontend logic. Estate and probate-related claims flagged
+  `alwaysRequiresReview: true` (court/probate involvement). 5 new
+  tests.
+- [x] P6-3 done — Jurisdiction determination (doc 07 §3):
+  `jurisdictionDetermination.ts`'s `determineJurisdiction()` -- pure
+  multi-signal evaluator (asset location, holder jurisdiction, decedent
+  domicile, claimant location, etc., weighted so claimant location
+  alone can never determine jurisdiction per §3's explicit warning);
+  returns the best candidate plus every scored candidate and a
+  `requiresHumanReview` flag that's true whenever more than one
+  jurisdiction is plausible, the top candidate isn't confident enough
+  alone, or there's no signal at all -- never a silent default. 6 new
+  tests.
+- [ ] P6-4 todo — Jurisdiction/claim rules engine (doc 07 §4, 6):
+  versioned, structured IF/THEN rule objects (jurisdiction + claim_type
+  + claimant_type -> required documents/forms/signatures/declarations/
+  exhibits), never overwrites an old rule version.
+- [ ] P6-5 todo — Rule conflict detection (doc 07 §7): two applicable
+  rules disagreeing never auto-resolves -- routes to human review with
+  both rules/sources/effective dates shown, same pattern as
+  conflictDetection.ts (P5-6).
+- [ ] P6-6 todo — Required-document rules / requirement engine (doc 07
+  §8-10): extends documentRequirements.ts's (P4-2) checklist model with
+  doc 07's richer status set (REQUIRED/RECEIVED/VALIDATED/VERIFIED/
+  MISSING/CONFLICTED/EXPIRED/NOT_APPLICABLE/PENDING) and conditional
+  requirements (e.g. "if claimant acts on behalf of an estate, require
+  estate documentation"); every requirement traces back to the rule
+  that created it.
+- [ ] P6-7 todo — Form catalog + form selection engine (doc 07 §11-13):
+  configurable form metadata (versioned, jurisdiction/claim-type
+  scoped); pure selection logic over jurisdiction/claim type/claimant
+  type/rules -> selected forms with the rule that caused each
+  selection; multiple plausible forms -> decision, never guessed. Real
+  fillable-PDF templates are a separate, later concern (needs actual
+  official CA forms) -- this task is the selection logic + metadata
+  shape only.
+- [ ] P6-8 todo — Form field mapping + auto-population engine (doc 07
+  §14-17): explicit case-data-path -> form-field mappings (never "rely
+  entirely on an LLM to populate forms"); priority order
+  (human-verified > source-supported > validated document data > other
+  case data > AI inference only where explicitly permitted); missing
+  required data flags rather than guesses; every populated field
+  carries its source + verification status for the review UI.
+- [ ] P6-9 todo — Form validation + cross-form consistency (doc 07
+  §18-19): required-field/format/date/cross-field validation before a
+  form can proceed; cross-form value comparison generalizing
+  crossSourceComparison.ts (P5-5) to compare values across generated
+  forms rather than sources, same CONFLICT-never-picks-a-winner
+  discipline.
+- [ ] P6-10 todo — Declaration/document generation (doc 07 §20-22):
+  versioned-template-based generation (declarations, cover letters,
+  exhibit indexes, claim summaries); every factual statement traces
+  back to verified case data/evidence; AI-assisted drafting (where
+  used) always stores the original draft + final + required human
+  approval, never freely invents legal language. Actual declaration
+  wording is placeholder/example content pending attorney review, same
+  owner-approved-override status as P2-1/P2-2.
+- [ ] P6-11 todo — Exhibit assembly, eligibility, indexing, numbering,
+  page tracking (doc 07 §23-28): deterministic ordered-exhibit builder
+  from verified/eligible documents (correct type, correct case,
+  validated, not superseded/duplicate); auto-generated exhibit index +
+  page map; deterministic numbering (alphabetical/numerical/custom)
+  that never collides on regeneration.
+- [ ] P6-12 blocked: needs credential — Signature integration (doc 07
+  §29-32): `SignatureProvider` interface (create request/send/status/
+  webhook/retrieve/expiration/decline) can be built and tested against
+  an in-memory reference implementation, same pattern as
+  CommunicationProvider (P0-9); a live e-signature vendor account
+  (DocuSign, HelloSign/Dropbox Sign, etc.) doesn't exist yet, so the
+  actual send/receive path stays blocked. Signature *requirement*
+  tracking and the SIGNATURE_PRESENT vs. SIGNATURE_REQUIREMENT_SATISFIED
+  distinction (§32) don't need the live provider and can still be built
+  now as their own task if split out.
+- [ ] P6-13 todo — Completeness engine (doc 07 §33-37): central
+  evaluator combining every requirement/form/signature/exhibit/
+  verification/conflict signal into COMPLETE/INCOMPLETE/
+  REQUIRES_REVIEW, with explicit hard blockers (never overridable by a
+  score) vs. soft warnings, and a human-readable explanation (never
+  just "claim incomplete").
+- [ ] P6-14 todo — Claim package generator + versioning + manifest +
+  diff (doc 07 §38-40, 54): deterministic package assembly from
+  forms/declarations/documents/exhibits; every version preserved (never
+  mutates a historical package version); machine-readable manifest;
+  package-to-package diff for fast operator re-review.
+- [ ] P6-15 todo — Package integrity checker (doc 07 §41): verifies
+  every referenced document/exhibit exists, no duplicates, form
+  versions correct, signatures present where required, manifest
+  matches actual contents -- any mismatch blocks READY_FOR_FILING.
+- [ ] P6-16 todo — Claim preparation state machine (doc 07 §49-53):
+  explicit state machine (CASE_VERIFIED through READY_FOR_FILING),
+  mirrors stateMachine.ts's (P0-3) validated-transition discipline;
+  jurisdiction/rule/form-version changes invalidate the affected
+  package pieces and require a new preparation version rather than
+  silently patching the existing one.
+- [ ] P6-17 todo — Claim package decision integration (doc 07 §44-48):
+  new decision type(s) for package review/approval
+  (APPROVE/REVISE/REJECT/REQUEST_MORE_EVIDENCE/ESCALATE, doc 07's own
+  literal action set) wired the same way as documentDecisionRouting.ts/
+  verificationDecisionRouting.ts; approval snapshot (§48) is
+  create-only, same discipline as verificationSnapshot.ts (P5-11). AI
+  package review (§45) itself needs an AIProvider (blocked); the
+  routing logic that consumes an AI review result once one exists is
+  not.
+- [ ] P6-18 todo — Rule/form/jurisdiction update handling (doc 07
+  §50-53): jurisdiction change invalidates affected rules/forms/
+  requirements/exhibits and creates a new preparation version rather
+  than mutating the existing one; a newer rule/form version never
+  silently replaces one already used in an existing package -- always
+  a reviewable alert with an explicit keep-current/regenerate/review
+  choice.
+- [ ] P6-19 todo — Claim preview / review UI: deferred like P4-13 --
+  genuinely needs a real prepared claim (real forms, real documents,
+  real exhibits) to be worth building against; revisit once P6-1
+  through P6-16 have real data flowing through them.
+- [ ] P6-20 todo — Claim preparation observability/analytics (doc 07
+  §63 admin config, implied by the doc's testing section): same
+  pattern as P3-13/P4-15 dashboard metrics, once real claim
+  preparations exist to measure.
+
+## Phases 7-9 — Filing, Post-filing, Recovery
 Not started. See the full spec docs (Drive: System Architecture folder,
-docs 07-10) for detail — summarized in the chat plan already delivered.
+docs 08-10) for detail — summarized in the chat plan already delivered.
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -605,3 +757,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. [P5-9] `humanReviewTriggers.ts`: `evaluateReviewTriggers()` composes doc 06 §28's full trigger list into one config table + evaluator (fails closed to CRITICAL for anything unconfigured, same discipline as conflictDetection.ts), reports the single highest risk level across everything that fired -- review itself is unconditional whenever any trigger fires, per doc 06's own wording. [P5-10] Added `RESOLVE_IDENTITY_VERIFICATION`/`RESOLVE_RELATIONSHIP_VERIFICATION` (doc 06 §30's literal action set) and `REVIEW_COMPETING_HEIR_CANDIDATE` (§41's own distinct action set) to `decisionTypes.ts`; `verificationDecisionRouting.ts` wires P5-2/P5-3/P5-8's actual outputs into recommendations against that registry, same plan-now/wire-later split as documentDecisionRouting.ts. 19 new tests, full suite 380/380 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-11] Added the `VerificationSnapshot` model to `schema.prisma` -- deliberately create-only (no `updatedAt` field, documented as never `.update()`d), so a new workflow stage always produces a new row rather than rewriting history, per doc 06 §34's own explicit instruction. `verificationSnapshot.ts`'s `buildVerificationSnapshot()` reproduces §34's own worked example ("Identity: Verified / Relationship: Supported / Competing heirs: None identified / ...") and derives an `overallReady` boolean. [P5-12] Extended `claimReadiness.ts` (P4-6) per doc 06 §39: new optional `identityVerified`/`relationshipVerified`/`competingHeirsCount`/`verificationReviewRequired` inputs, each blocking readiness with its own reason line only when explicitly unfavorable -- `undefined` never blocks, so every existing P4-6 document-only call site keeps working unchanged. One readiness calculation now covers both doc 05's document checklist and doc 06's verification signals, rather than two competing functions. 12 new tests, full suite 392/392 passing, `tsc --noEmit` clean, `next build` clean. **Only P5-13 (review-queue prioritization, extending priority.ts) is left `todo` in Phase 5** -- everything else in Phase 5 is done, none of it credential-blocked.
 - 2026-08-26 — Ethan said to continue again. [P5-13] Extended `priority.ts` (P1-4) with `competingHeirsCount` (flat bump per doc 06 §46's own worked CRITICAL example, no extra credit past the first candidate) and `unresolvedIssueCount` (diminishing-returns score, same clamp discipline as the existing value component) -- both optional and zero-contribution when omitted, so every existing caller keeps its exact prior score. Noted that `riskLevel` already shares the identical LOW/MEDIUM/HIGH/CRITICAL vocabulary humanReviewTriggers.ts's `ReviewRiskLevel` (P5-9) uses, so no bridging code was needed there. Fixed one now-stale hardcoded `components` object shape in `exceptionQueue.test.ts` that the new fields broke. 4 new tests, full suite 396/396 passing, `tsc --noEmit` clean, `next build` clean. **Phase 5 (Verification & Heirship Analysis, doc 06) is now fully complete** -- P5-1 through P5-13 all done, none of it credential-blocked (the only real gap left is the still-pending P4-1/P5-1 live-DB schema push, which the classifier keeps blocking regardless of confirmation). Next session should either get that push unblocked, or start decomposing Phase 6 (Claim Preparation).
+- 2026-08-26 — Ethan said to continue again. Read doc 07 ("Claim Preparation," 65 sections) in full from Drive and decomposed it into P6-1 through P6-20 in PLAN.md, flagging P6-12 (e-signature) as `blocked: needs credential` (a real provider account) and P6-19/P6-20 as deferred (need real filed-claim data), with everything else buildable now. [P6-1] Added the `ClaimPreparation` model + `ClaimPreparationStatus`/`ClaimCompletenessStatus` enums to `schema.prisma` (doc 07 §1's exact status list), with back-relations on `Estate`/`Claimant`; `prisma validate`/`generate` clean, queued behind the same still-pending live-DB push as P4-1/P5-1. [P6-2] `claimTypes.ts`: `CLAIM_TYPES` config table (doc 07 §2's own claim-type list plus an `OTHER` fallback that always requires review), each entry specifying required info/documents/forms/signatures/declarations/exhibits/filing method/review requirement -- config table, not hardcoded frontend logic; estate and probate-related claims flagged `alwaysRequiresReview: true` for their probate/court involvement. Explicitly flagged as illustrative starting content pending real jurisdiction-specific legal sourcing, same status as P2-1/complianceRules.ts. [P6-3] `jurisdictionDetermination.ts`: `determineJurisdiction()`, doc 07 §3's multi-signal evaluator (asset location, holder jurisdiction, decedent domicile, claimant location, etc.), weighted so claimant location alone can never determine jurisdiction per §3's explicit warning; returns every scored candidate plus a `requiresHumanReview` flag that's true whenever more than one jurisdiction is plausible, the top candidate isn't confident enough alone, or there's no signal at all. Self-caught and corrected a design flaw mid-implementation (an initial 3-way DETERMINED/AMBIGUOUS/NO_SIGNAL outcome union mislabeled a single weak candidate as "ambiguous") before writing tests. 11 new tests, full suite 407/407 passing, `tsc --noEmit` clean, `next build` clean.

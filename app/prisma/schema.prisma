@@ -91,6 +91,7 @@ model Estate {
   verifications         Verification[]
   potentialHeirs        PotentialHeir[]
   verificationSnapshots VerificationSnapshot[]
+  claimPreparations     ClaimPreparation[]
 
   @@index([status])
 }
@@ -137,6 +138,7 @@ model Claimant {
   communications        Communication[]
   verifications         Verification[]
   verificationSnapshots VerificationSnapshot[]
+  claimPreparations     ClaimPreparation[]
 
   @@index([estateId])
   @@index([status])
@@ -382,6 +384,72 @@ model VerificationSnapshot {
 
   estate   Estate    @relation(fields: [estateId], references: [id])
   claimant Claimant? @relation(fields: [claimantId], references: [id])
+
+  @@index([estateId])
+  @@index([claimantId])
+}
+
+// ---------------------------------------------------------------------
+// Claim Preparation (doc 07) -- PLAN.md P6-1.
+// ---------------------------------------------------------------------
+
+// doc 07 section 1's own lifecycle, verbatim.
+enum ClaimPreparationStatus {
+  NOT_STARTED
+  INITIALIZING
+  JURISDICTION_REVIEW
+  REQUIREMENTS_DETERMINED
+  FORMS_SELECTED
+  FORM_POPULATION
+  DOCUMENT_GENERATION
+  EXHIBIT_ASSEMBLY
+  SIGNATURE_PENDING
+  COMPLETENESS_REVIEW
+  REQUIRES_OPERATOR_REVIEW
+  READY_FOR_APPROVAL
+  APPROVED_FOR_FILING
+  FILED
+  REJECTED
+  SUPERSEDED
+  CANCELLED
+}
+
+// doc 07 section 33's own three-way completeness output, kept as a
+// real enum rather than a free-text field so callers can't introduce a
+// fourth ad-hoc value.
+enum ClaimCompletenessStatus {
+  NOT_EVALUATED
+  COMPLETE
+  INCOMPLETE
+  REQUIRES_REVIEW
+}
+
+// doc 07 section 1: "Create a unified ClaimPreparation entity." Decedent
+// info is already on Estate (decedentName) rather than a separate
+// Person-linked "decedent" record, so there's no separate decedentId
+// field here -- the existing estate relation already carries it.
+// requiredDocuments/selectedForms/generatedDocuments/exhibits/
+// signatureRequirements from doc 07's field list will become relations
+// to their own models once P6-6/P6-7/P6-11/P6-12 build them; scalar
+// summary fields (ruleSetVersion, packageStatus, etc.) are added now so
+// this model is usable standalone from the start.
+model ClaimPreparation {
+  id                     String                  @id @default(cuid())
+  estateId               String
+  claimantId             String
+  jurisdiction           String?
+  jurisdictionConfidence Float?
+  claimType              String? // keys into claimTypes.ts's CLAIM_TYPES config (P6-2)
+  ruleSetVersion         String? // e.g. "CA-UnclaimedProperty-v3" -- see claimRules.ts (P6-4)
+  status                 ClaimPreparationStatus  @default(NOT_STARTED)
+  completenessStatus     ClaimCompletenessStatus @default(NOT_EVALUATED)
+  packageVersion         Int? // current ClaimPackage version, once P6-14 exists
+  filingReadiness        Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  estate   Estate   @relation(fields: [estateId], references: [id])
+  claimant Claimant @relation(fields: [claimantId], references: [id])
 
   @@index([estateId])
   @@index([claimantId])
