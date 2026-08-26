@@ -1823,9 +1823,14 @@ observability logic over data the platform already produces.
   api/endpoint/provider/workflow/case, not five ad-hoc reducers). 7
   new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P11-4 todo — API latency + availability monitoring (doc 12
-  §8-9): P50/P90/P95/P99 latency-threshold classification, rolling
-  availability percentage over 24h/7d/30d windows.
+- [x] P11-4 done — API latency + availability monitoring (doc 12
+  §8-9): `apiLatencyMonitoring.ts` -- `computeLatencyPercentile()`/
+  `computeLatencyDistribution()` (P50/P90/P95/P99, null on empty
+  sample set, never a misleading 0), `evaluateLatencyStatus()`
+  (P95-threshold DEGRADED classification), `computeAvailabilityReports()`
+  (24h/7d/30d windows computed independently, divide-by-zero guarded).
+  7 new tests, full suite 1117/1117 passing, `tsc --noEmit` clean,
+  `next build` clean.
 - [ ] P11-5 todo — Workflow monitoring + failure/spike detection (doc
   12 §10-13): per-workflow execution/success/failure/retry counts,
   configurable failure-rate thresholds (WARNING/CRITICAL), and
@@ -2093,3 +2098,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-1] `healthStatus.ts`: resolveHealthStatus(), buildSystemHealthRecord(), health-check-type vocabulary. 9 new tests, full suite 1099/1099 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-2 (Database health monitoring).
 - 2026-08-26 — [P11-2] `databaseHealth.ts`: evaluateDatabaseHealthAlerts() (config-table checks, every abnormal signal collected). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-3 (API monitoring + error classification).
 - 2026-08-26 — [P11-3] `apiMonitoring.ts`: classifyApiError(), isOutageClassError(), computeApiCallMetrics(), groupApiMetricsBy(). 7 new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-4 (API latency + availability monitoring).
+- 2026-08-26 — [P11-4] `apiLatencyMonitoring.ts`: computeLatencyPercentile()/computeLatencyDistribution(), evaluateLatencyStatus(), computeAvailabilityReports(). 7 new tests, full suite 1117/1117 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-5 (Workflow monitoring + failure/spike detection).
