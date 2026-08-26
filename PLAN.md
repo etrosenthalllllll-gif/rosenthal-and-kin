@@ -486,17 +486,26 @@ documentValidation.ts).
   `requiresHumanReview` true for HIGH/CRITICAL) -- possible
   explanations are always a neutral list, never a single asserted
   cause. 8 new tests.
-- [ ] P5-7 todo — Confidence scoring engine (doc 06 §17-19): explainable,
+- [x] P5-7 done — Confidence scoring engine (doc 06 §17-19):
+  `confidenceScoring.ts`'s `computeConfidenceScore()` -- explainable,
   component-based confidence (identity match, source quality,
-  independence, cross-source agreement, conflict penalty), configurable
-  weights, never a bare document-count proxy. Calibration tracking
-  (§19, comparing AI confidence to eventual human/final outcomes) is
-  schema/plumbing only for now -- there's no real outcome history yet
-  to calibrate against.
-- [ ] P5-8 todo — Competing-heir detection (doc 06 §20-24): conservative,
-  multi-signal-required detector over the genealogy graph + case
-  evidence; explicit false-positive control (same name alone is never
-  enough); NO_EVIDENCE_FOUND kept distinct from EVIDENCE_OF_ABSENCE.
+  independence, cross-source agreement, document/extraction
+  confidence, relationship-path consistency), configurable weights,
+  only weights whichever components the caller actually supplies
+  (never a bare document-count proxy), conflict penalty subtracted as
+  its own visible line rather than folded into a weight. Every
+  component is preserved in the result for auditability per §18.
+  Calibration (§19, comparing AI confidence to eventual human/final
+  outcomes) intentionally not built -- no real decision-outcome history
+  exists yet to calibrate against. 6 new tests.
+- [x] P5-8 done — Competing-heir detection (doc 06 §20-24):
+  `competingHeirDetection.ts`'s `assessCompetingHeirCandidate()` --
+  conservative, multi-signal-required classifier (a single weak signal
+  like shared surname is always LOW/POTENTIAL regardless of how it's
+  phrased; a document explicitly naming the relationship is HIGH on its
+  own, per §23's own escalation ladder) and `classifyNegativeEvidence()`
+  (NO_EVIDENCE_FOUND kept distinct from EVIDENCE_OF_ABSENCE, §24). 7 new
+  tests.
 - [ ] P5-9 todo — Human-review triggers + risk-based review levels (doc
   06 §28-29): configurable trigger table (identity below threshold,
   conflicting relationship evidence, competing heir detected, genealogy
@@ -563,3 +572,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. Phase 4's remaining buildable work is done, so read doc 06 ("Verification & Heirship Analysis," 53 sections) in full from Drive and decomposed it into P5-1 through P5-13 in PLAN.md -- unlike Phase 4, nothing in Phase 5 is credential-blocked (it's a pure evidence-organization/confidence-scoring engine over whatever facts already exist), so the split here is "buildable now against synthetic facts" vs. "the document-extracted facts it'll eventually consume aren't real yet since P4-9 is blocked," same discipline as documentValidation.ts. [P5-1] Extended `schema.prisma`: new `Verification`/`VerificationClaim`/`PotentialHeir` models + `VerificationType`/`VerificationStatus`/`PotentialHeirStatus` enums; extended the existing `Relationship` model (built back in P0-2) with `status`/`source`/`updatedAt` instead of duplicating it. `prisma validate` and `prisma generate` both clean; queued behind the same still-pending live-DB push as P4-1 rather than opening a second blocked push. [P5-2] `identityResolution.ts`: `resolveIdentityMatch()`/`nameMatchScore()`, doc 06 §3-5's identity-verification workflow -- multi-signal confidence scoring (name, DOB, address, phone, email, documented links) that never decides from name similarity alone, reproduces the doc's own worked examples (John Smith/John A Smith/J. A. Smith name variations, marriage-record-linked maiden name, DOB-conflict → LIKELY_DIFFERENT_PERSON). 13 new tests, full suite 318/318 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-3] `relationshipVerification.ts`: `verifyRelationshipClaim()`, doc 06 §7-8's per-claim classifier over supporting/independent/contradicting evidence entries -- CONFLICTED is a first-class outcome (never silently picks a side when both exist), non-independent duplicate sources never establish sufficiency alone (§13). [P5-4] `genealogyGraph.ts`: `findLineagePath()` (BFS over PARENT_OF/CHILD_OF edges, tracks whether every edge along a multi-generation path actually has evidence rather than assuming a chain is verified just because each person has a record -- §9-10's own explicit warning) and `checkGenealogyCompleteness()` (§25 -- flags an unresearched branch as incomplete rather than declaring the tree done once every currently-known relative has a record). 18 new tests, full suite 336/336 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan asked what percent of the project is done (answered ~45-50% by rough phase-weighting, flagged that Phases 6-9 aren't even decomposed yet so the true total is uncertain) and said to continue. [P5-5] `crossSourceComparison.ts`: generalizes documentValidation.ts's compareFieldAcrossDocuments() (P4-5) to any source type per doc 06 §11; `countIndependentSources()` resolves a `derivedFromSourceId` chain to its origin so republications of one source never inflate the independent-confirmation count (§13's own obituary example). [P5-6] `conflictDetection.ts`: `classifyConflictSeverity()` (config-table LOW/MEDIUM/HIGH/CRITICAL per field, fails closed to CRITICAL for anything unconfigured) + `explainConflict()` (full what/sources/why-it-matters/possible-explanations/recommended-next-step record, HIGH/CRITICAL auto-flag for human review, explanations always a neutral list per §16's "do not assert a speculative explanation as fact"). 16 new tests, full suite 352/352 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan said to continue again. [P5-7] `confidenceScoring.ts`: `computeConfidenceScore()` composes whichever confidence components a caller actually supplies (identityResolution.ts's matchScore, crossSourceComparison.ts's independent-source ratio, document/extraction confidence, relationship-path consistency) into one weighted, explainable score -- never confidence-equals-document-count per §17's explicit warning; conflict penalty subtracted as its own visible line, every component preserved for audit per §18. Calibration (§19) intentionally deferred -- no real outcome history exists to calibrate against yet. [P5-8] `competingHeirDetection.ts`: `assessCompetingHeirCandidate()` -- doc 06 §23's own escalation ladder (single weak signal alone is always LOW, a document explicitly naming the relationship is HIGH on its own, two-plus corroborating weak signals reach MEDIUM/REQUIRES_REVIEW) and `classifyNegativeEvidence()` (§24's NO_EVIDENCE_FOUND vs. EVIDENCE_OF_ABSENCE distinction). 13 new tests, full suite 365/365 passing, `tsc --noEmit` clean, `next build` clean.
