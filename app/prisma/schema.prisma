@@ -1408,3 +1408,29 @@ model FinancialTransaction {
   @@index([recoveryId])
   @@index([invoiceId])
 }
+
+// doc 10 section 61. "All adjustments require appropriate
+// authorization" -- `reason`/`approvedBy` are required (non-optional)
+// fields, same structural enforcement as
+// financialAdjustments.ts's createAdjustment().
+enum AdjustmentType {
+  CREDIT
+  DEBIT
+  CORRECTION
+  REFUND
+  OTHER
+}
+
+model Adjustment {
+  id          String         @id @default(cuid())
+  estateId    String
+  invoiceId   String?
+  type        AdjustmentType
+  amountCents Int
+  reason      String
+  approvedBy  String
+  createdAt   DateTime       @default(now())
+
+  @@index([estateId])
+  @@index([invoiceId])
+}

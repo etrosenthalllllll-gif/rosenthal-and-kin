@@ -1460,18 +1460,20 @@ live provider call is blocked.
   what/when/affected-record) rather than building a second audit
   mechanism -- `reason` becomes part of `metadata` since audit.ts has
   no dedicated "why" field. 8 new tests (6 auth.ts + 2 financialAudit.ts).
-- [ ] P9-18 todo — Currency + rounding + adjustments (doc 10 §59-62):
-  every amount carries an explicit currency (never assumes USD);
-  deterministic, versioned rounding rules so the same calculation
-  always produces the same result; an `Adjustment` model
-  (CREDIT/DEBIT/CORRECTION/REFUND/OTHER) requiring authorization for
-  every entry -- no silent fee/balance/payment/recovery/distribution
-  change is ever permitted. AI financial assistance (§63 -- explaining
-  variances, classifying references, drafting reminders) itself needs
-  an AIProvider (blocked); by design it must never independently change
-  a fee, approve a distribution, issue a refund, or move money --
-  those stay deterministic-rule-and/or-human-approval-only regardless
-  of whether AI assistance is ever wired in.
+- [x] P9-18 done — Currency + rounding + adjustments (doc 10 §59-62):
+  added `Adjustment`/`AdjustmentType` (the doc's own type list,
+  `reason`/`approvedBy` required non-optional fields) to
+  `schema.prisma`. `financialAdjustments.ts`'s `convertCurrency()` --
+  the original amount/currency are preserved on the result, never
+  overwritten. `applyRounding()` -- deterministic UP/DOWN/HALF_UP/
+  HALF_EVEN, the identical input always produces the identical output.
+  `createAdjustment()` -- structurally enforces "all adjustments
+  require appropriate authorization": rejected outright with no reason
+  or no approver, no exception for any type including OTHER. AI
+  financial assistance (§63) itself needs an AIProvider (blocked); by
+  design it must never independently move money -- `createAdjustment()`'s
+  authorization requirement holds regardless of whether AI assistance
+  is ever wired in. 9 new tests.
 - [ ] P9-19 todo — Financial analytics + case profitability + recovery
   forecasting + reporting (doc 10 §68-71): pure-math metrics (average
   days to payment, overdue rate, reconciliation rate) clearly labeling
@@ -1580,3 +1582,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-15] `financialDashboard.ts`: `buildFinancialTotals()`, `buildCaseFinancialSummary()` (readyToClose requires both clean reconciliation AND zero outstanding), `buildRecoveryTimeline()`. 5 new tests, full suite 836/836 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-16] `financialClosure.ts`: `evaluateFinancialClosureReadiness()` (financial-subset config table, never auto-closes with a blocker present) + `reopenFinancialCase()` (reason required, prior closure preserved unchanged). 6 new tests, full suite 842/842 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-17] Extended auth.ts's Permission union with 10 fine-grained financial permissions (OPERATOR gets routine work, REVIEWER/ADMIN get approve/refund/close); `financialAudit.ts`'s `buildFinancialAuditEntry()` maps onto audit.ts's existing AuditEventInput shape. 8 new tests, full suite 848/848 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-18] Added Adjustment/AdjustmentType schema model (reason/approvedBy required); `financialAdjustments.ts`: `convertCurrency()` (never overwrites original), `applyRounding()` (deterministic UP/DOWN/HALF_UP/HALF_EVEN), `createAdjustment()` (authorization structurally required, no exceptions). 9 new tests, full suite 857/857 passing, `tsc --noEmit` clean, `next build` clean.
