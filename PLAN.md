@@ -675,14 +675,18 @@ content goes in, same as P2-1.
   fact, so two forms disagreeing on the same case-data path gets the
   identical CONFLICT-never-picks-a-winner treatment as two external
   sources disagreeing. 9 new tests.
-- [ ] P6-10 todo — Declaration/document generation (doc 07 §20-22):
-  versioned-template-based generation (declarations, cover letters,
-  exhibit indexes, claim summaries); every factual statement traces
-  back to verified case data/evidence; AI-assisted drafting (where
-  used) always stores the original draft + final + required human
-  approval, never freely invents legal language. Actual declaration
-  wording is placeholder/example content pending attorney review, same
-  owner-approved-override status as P2-1/P2-2.
+- [x] P6-10 done — Declaration/document generation (doc 07 §20-22):
+  `claimDocumentGeneration.ts`'s `generateDocumentFromTemplate()` --
+  versioned `DocumentTemplate` with `{{casePath}}` placeholders; a
+  required case fact that's missing OR present-but-unverified both
+  block generation entirely (fails closed) rather than asserting an
+  unconfirmed fact as established, per §21. `createDocumentDraftHistory()`/
+  `applyDocumentRevision()`/`approveFinalDocument()` mirror
+  humanHandoff.ts's (P3-8) `MessageRevisionHistory` shape exactly --
+  original draft never overwritten, a document isn't final until
+  explicitly approved. Template bodies are placeholder/example content
+  pending attorney review, same owner-approved-override status as
+  engagementAgreement.ts (P2-2). 5 new tests.
 - [ ] P6-11 todo — Exhibit assembly, eligibility, indexing, numbering,
   page tracking (doc 07 §23-28): deterministic ordered-exhibit builder
   from verified/eligible documents (correct type, correct case,
@@ -797,3 +801,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan still away from his computer; continuing to work locally, committed but not pushed (same GitHub-login blocker as the prior entry). [P6-7] `formCatalog.ts`: `FORM_CATALOG` config table (versioned, each entry keyed by its own `id` distinct from the shared `formId` so a new version can `supersede` an old entry cleanly) + `selectFormsForClaim()`, pure selection sourced from P6-4's required-form-ids -- MISSING_CATALOG_ENTRY / AMBIGUOUS_SELECTION (two current entries both match) never auto-resolve, every selection records the rule that caused it. 5 new tests, full suite 431/431 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-8] `formFieldMapping.ts`: `populateFormFields()` -- explicit formId+fieldKey -> case-data-path mappings, doc 07 §15's exact source-priority order (human-verified > source-supported > validated document data > other case data > AI inference), AI_INFERENCE excluded outright unless a mapping's `aiInferenceAllowed` flag explicitly permits it, `detectMissingRequiredFields()` flags rather than guesses. 6 new tests, full suite 437/437 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-9] `formValidation.ts`: `validateFormField()`/`validateFormFields()` (required/format/date checks, format only applies once a value exists) + `compareValuesAcrossForms()`, reusing crossSourceComparison.ts's compareAcrossSources() to treat two generated forms disagreeing on the same case-data path exactly like two external sources disagreeing -- never picks a winner. 9 new tests, full suite 446/446 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-10] `claimDocumentGeneration.ts`: `generateDocumentFromTemplate()` -- missing OR unverified required facts both block generation (fails closed rather than asserting unconfirmed facts); draft/revision/approval history mirrors humanHandoff.ts's MessageRevisionHistory shape exactly. Template content flagged EXAMPLE_PENDING_LEGAL_SOURCING, same status as engagementAgreement.ts. 5 new tests, full suite 451/451 passing, `tsc --noEmit` clean, `next build` clean.
