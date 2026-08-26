@@ -527,14 +527,19 @@ documentValidation.ts).
   against that registry -- pure, same plan-now/wire-later split as
   documentDecisionRouting.ts (P4-14). 12 new tests, full suite 380/380
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P5-11 todo — Verification snapshot (doc 06 §34): immutable
-  point-in-time record of a case's verification state at a workflow
-  stage; future evidence must never rewrite a past snapshot.
-- [ ] P5-12 todo — Claim readiness extension (doc 06 §39): extends
-  claimReadiness.ts (P4-6) to also fold in identity/relationship
-  verification status and competing-heir findings, not just document
-  checklist completeness -- one readiness calculation, not two
-  competing ones.
+- [x] P5-11 done — Verification snapshot (doc 06 §34): added the
+  `VerificationSnapshot` model to `schema.prisma` (create-only by
+  convention -- no `updatedAt`, documented as never `.update()`d or
+  `.delete()`d, a new stage always produces a new row); `verificationSnapshot.ts`'s
+  `buildVerificationSnapshot()` reproduces §34's own worked example
+  summary lines and derives `overallReady`. 5 new tests.
+- [x] P5-12 done — Claim readiness extension (doc 06 §39): extended
+  `claimReadiness.ts` (P4-6) with optional `identityVerified`/
+  `relationshipVerified`/`competingHeirsCount`/`verificationReviewRequired`
+  inputs -- any explicit `false`/positive count blocks readiness with
+  its own reason line, `undefined` never blocks (so P4-6's original
+  document-only callers keep working unchanged). One readiness
+  calculation, not two competing ones. 7 new tests.
 - [ ] P5-13 todo — Review queue prioritization (doc 06 §46): extends
   priority.ts (P1-4) with the doc's verification-specific risk factors
   (conflict severity, competing-heir presence, unresolved-issue count)
@@ -585,3 +590,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan asked what percent of the project is done (answered ~45-50% by rough phase-weighting, flagged that Phases 6-9 aren't even decomposed yet so the true total is uncertain) and said to continue. [P5-5] `crossSourceComparison.ts`: generalizes documentValidation.ts's compareFieldAcrossDocuments() (P4-5) to any source type per doc 06 §11; `countIndependentSources()` resolves a `derivedFromSourceId` chain to its origin so republications of one source never inflate the independent-confirmation count (§13's own obituary example). [P5-6] `conflictDetection.ts`: `classifyConflictSeverity()` (config-table LOW/MEDIUM/HIGH/CRITICAL per field, fails closed to CRITICAL for anything unconfigured) + `explainConflict()` (full what/sources/why-it-matters/possible-explanations/recommended-next-step record, HIGH/CRITICAL auto-flag for human review, explanations always a neutral list per §16's "do not assert a speculative explanation as fact"). 16 new tests, full suite 352/352 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-7] `confidenceScoring.ts`: `computeConfidenceScore()` composes whichever confidence components a caller actually supplies (identityResolution.ts's matchScore, crossSourceComparison.ts's independent-source ratio, document/extraction confidence, relationship-path consistency) into one weighted, explainable score -- never confidence-equals-document-count per §17's explicit warning; conflict penalty subtracted as its own visible line, every component preserved for audit per §18. Calibration (§19) intentionally deferred -- no real outcome history exists to calibrate against yet. [P5-8] `competingHeirDetection.ts`: `assessCompetingHeirCandidate()` -- doc 06 §23's own escalation ladder (single weak signal alone is always LOW, a document explicitly naming the relationship is HIGH on its own, two-plus corroborating weak signals reach MEDIUM/REQUIRES_REVIEW) and `classifyNegativeEvidence()` (§24's NO_EVIDENCE_FOUND vs. EVIDENCE_OF_ABSENCE distinction). 13 new tests, full suite 365/365 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-9] `humanReviewTriggers.ts`: `evaluateReviewTriggers()` composes doc 06 §28's full trigger list into one config table + evaluator (fails closed to CRITICAL for anything unconfigured, same discipline as conflictDetection.ts), reports the single highest risk level across everything that fired -- review itself is unconditional whenever any trigger fires, per doc 06's own wording. [P5-10] Added `RESOLVE_IDENTITY_VERIFICATION`/`RESOLVE_RELATIONSHIP_VERIFICATION` (doc 06 §30's literal action set) and `REVIEW_COMPETING_HEIR_CANDIDATE` (§41's own distinct action set) to `decisionTypes.ts`; `verificationDecisionRouting.ts` wires P5-2/P5-3/P5-8's actual outputs into recommendations against that registry, same plan-now/wire-later split as documentDecisionRouting.ts. 19 new tests, full suite 380/380 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan said to continue again. [P5-11] Added the `VerificationSnapshot` model to `schema.prisma` -- deliberately create-only (no `updatedAt` field, documented as never `.update()`d), so a new workflow stage always produces a new row rather than rewriting history, per doc 06 §34's own explicit instruction. `verificationSnapshot.ts`'s `buildVerificationSnapshot()` reproduces §34's own worked example ("Identity: Verified / Relationship: Supported / Competing heirs: None identified / ...") and derives an `overallReady` boolean. [P5-12] Extended `claimReadiness.ts` (P4-6) per doc 06 §39: new optional `identityVerified`/`relationshipVerified`/`competingHeirsCount`/`verificationReviewRequired` inputs, each blocking readiness with its own reason line only when explicitly unfavorable -- `undefined` never blocks, so every existing P4-6 document-only call site keeps working unchanged. One readiness calculation now covers both doc 05's document checklist and doc 06's verification signals, rather than two competing functions. 12 new tests, full suite 392/392 passing, `tsc --noEmit` clean, `next build` clean. **Only P5-13 (review-queue prioritization, extending priority.ts) is left `todo` in Phase 5** -- everything else in Phase 5 is done, none of it credential-blocked.

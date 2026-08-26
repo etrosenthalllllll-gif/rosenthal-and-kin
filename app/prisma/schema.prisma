@@ -84,12 +84,13 @@ model Estate {
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
-  claimants      Claimant[]
-  relationships  Relationship[]
-  documents      Document[]
-  notes          Note[]
-  verifications  Verification[]
-  potentialHeirs PotentialHeir[]
+  claimants             Claimant[]
+  relationships         Relationship[]
+  documents             Document[]
+  notes                 Note[]
+  verifications         Verification[]
+  potentialHeirs        PotentialHeir[]
+  verificationSnapshots VerificationSnapshot[]
 
   @@index([status])
 }
@@ -126,15 +127,16 @@ model Claimant {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  estate         Estate                    @relation(fields: [estateId], references: [id])
-  person         Person                    @relation(fields: [personId], references: [id])
-  documents      Document[]
-  decisions      Decision[]
-  notes          Note[]
-  transitions    ClaimantStateTransition[]
-  conversations  Conversation[]
-  communications Communication[]
-  verifications  Verification[]
+  estate                Estate                    @relation(fields: [estateId], references: [id])
+  person                Person                    @relation(fields: [personId], references: [id])
+  documents             Document[]
+  decisions             Decision[]
+  notes                 Note[]
+  transitions           ClaimantStateTransition[]
+  conversations         Conversation[]
+  communications        Communication[]
+  verifications         Verification[]
+  verificationSnapshots VerificationSnapshot[]
 
   @@index([estateId])
   @@index([status])
@@ -355,6 +357,34 @@ model PotentialHeir {
   person Person @relation(fields: [personId], references: [id])
 
   @@index([estateId])
+}
+
+// doc 06 section 34: "At important workflow stages, create a
+// verification snapshot... Future evidence should not rewrite
+// historical snapshots." This model is create-only by convention: no
+// code in this codebase may call `.update()` or `.delete()` on it --
+// a new stage produces a new row, it never edits an old one. There is
+// deliberately no `updatedAt` field, since a snapshot that could be
+// updated wouldn't be a snapshot.
+model VerificationSnapshot {
+  id                       String   @id @default(cuid())
+  estateId                 String
+  claimantId               String?
+  workflowStage            String // e.g. "CLAIM_PREPARATION" -- free text, mirrors documentRequirements.ts's ClaimWorkflowStage without a hard dependency on it
+  identityStatus           String
+  relationshipStatus       String
+  competingHeirsCount      Int
+  conflictsCount           Int
+  requiredEvidenceComplete Boolean
+  reviewStatus             String
+  reviewerId               String?
+  createdAt                DateTime @default(now())
+
+  estate   Estate    @relation(fields: [estateId], references: [id])
+  claimant Claimant? @relation(fields: [claimantId], references: [id])
+
+  @@index([estateId])
+  @@index([claimantId])
 }
 
 // ---------------------------------------------------------------------
