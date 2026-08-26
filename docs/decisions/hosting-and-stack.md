@@ -13,6 +13,27 @@ GitHub repo on push, per `20 - Hosting & Deployment Architecture`.
   new subdomains pointed at the Render deployment once Phase 0/1 exist
   to serve them. Not created yet — nothing to point them at.
 
+## Live infrastructure (provisioned 2026-08-26, see PLAN.md P0-10)
+
+- **Database:** `rosenthal-and-kin-db` — Render Postgres, Free tier,
+  Ohio (US East) region. **Expires and is deleted September 24, 2026**
+  unless upgraded to a paid plan before then — this is a real deadline
+  that needs a decision (upgrade, or migrate/re-provision), not
+  something to let lapse silently.
+- **App:** `rosenthal-and-kin-app` — Render Web Service, Free tier,
+  same region (private-network-eligible with the DB), connected to
+  this GitHub repo with auto-deploy on push to `main`. Root directory
+  `app/`. Build: `npm install && npx prisma generate && npm run build`.
+  Start: `npm start`. Live at
+  `https://rosenthal-and-kin-app.onrender.com`. Free tier spins down
+  after inactivity (~50s cold-start on the next request).
+- Schema is synced via `npx prisma db push`, not `prisma migrate dev` —
+  Render's free-tier Postgres user lacks the SUPERUSER privilege
+  `migrate dev`'s shadow-database step needs. This means there's no
+  migration history yet, just a schema in sync with the DB. Move to
+  `migrate deploy` with real migration files once that matters (before
+  a second environment, or before this matters for rollback safety).
+
 ## Tech stack: Next.js + TypeScript + Prisma + Postgres
 No existing application code to match (the repo was GitHub Pages only
 — see `README.md`), so this is a new choice, not an inference:
