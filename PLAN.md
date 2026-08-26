@@ -796,9 +796,381 @@ content goes in, same as P2-1.
   pattern as P3-13/P4-15 dashboard metrics, once real claim
   preparations exist to measure.
 
-## Phases 7-9 — Filing, Post-filing, Recovery
-Not started. See the full spec docs (Drive: System Architecture folder,
-docs 08-10) for detail — summarized in the chat plan already delivered.
+## Phase 7 — Filing & Submission (doc 08)
+Doc 08 (69 sections) read in full from Drive. Consumes an APPROVED,
+IMMUTABLE claim package (P6-14/P6-15/P6-17) -- explicitly does not
+rebuild claim preparation. Real filing-provider accounts, a payment
+provider, and a secrets manager don't exist yet, so several tasks split
+the same way Phase 4/6 did: the connector/state-machine/decision logic
+is buildable now against an in-memory reference connector; the live
+provider call itself is `blocked: needs credential`.
+
+- [ ] P7-1 todo — Filing + FilingAttempt data model (doc 08 §1-3):
+  `Filing` (the doc's full status list, NOT_READY through CLOSED) +
+  append-only `FilingAttempt` (never overwritten -- a rejected attempt
+  and its resubmission both stay permanently visible). A filing
+  references an exact `ClaimPackage` id+version (P6-14) and must never
+  silently follow a newer version -- same immutable-reference
+  discipline as claimPackageDecisionRouting.ts's approval snapshot.
+- [ ] P7-2 todo — Filing eligibility/readiness check (doc 08 §4-5):
+  deterministic pure check composing claimCompletenessEngine.ts
+  (P6-13) + claimPackageIntegrity.ts (P6-15) + jurisdiction/method/
+  destination/credential/fee/payment-availability signals into
+  READY/NOT_READY, listing every blocker rather than a bare boolean --
+  same shape as buildDocumentChecklist()/evaluateClaimCompleteness().
+- [ ] P7-3 todo — Filing method config table (doc 08 §7): configurable
+  `FilingMethod` records (online portal, API, electronic provider,
+  email, secure upload, physical mail, other), each declaring
+  submission mechanism/required metadata/documents/authentication/fee
+  process/confirmation mechanism/retry behavior -- config table, not
+  hardcoded, same discipline as claimTypes.ts (P6-2).
+- [ ] P7-4 todo — Filing connector abstraction + registry (doc 08
+  §8-11): `FilingConnector` interface (validate/get_requirements/
+  calculate_fee/create_submission/upload_document/submit/get_status/
+  get_confirmation/cancel/retrieve_receipt/parse_rejection/
+  get_rejection_details -- each connector explicitly declares
+  unsupported operations) + a registry resolving jurisdiction+claimType+
+  authority+method to the best configured connector, with a versioned
+  in-memory reference implementation for testing -- same pattern as
+  CommunicationProvider (P0-9). Real per-jurisdiction provider
+  connectors are a separate, later concern needing actual provider
+  integration.
+- [ ] P7-5 blocked: needs credential — Provider credentials +
+  authentication-failure handling (doc 08 §12-13): no real filing
+  provider account/API key or secrets-manager integration exists yet.
+  The FILING_AUTHENTICATION_ERROR routing (never repeatedly resubmit on
+  auth failure, route to operator) is buildable now against a fake
+  credential-check result.
+- [ ] P7-6 todo — Filing data model + provenance (doc 08 §14-15):
+  structured, jurisdiction/claim-type-configurable FilingData shape
+  where every field traces back to its case-data source -- same
+  provenance discipline as formFieldMapping.ts (P6-8); the filing
+  system must never independently invent a filing value.
+- [ ] P7-7 todo — Filing validation engine (doc 08 §16-17):
+  required-field/format/date/cross-field validation before submission,
+  plus connector-declared requirements (max file size, allowed file
+  type, page limits, naming) checked by the readiness engine -- reuses
+  formValidation.ts's (P6-9) validation shape.
+- [ ] P7-8 todo — Document transmission + submission artifact model
+  (doc 08 §18-20): a `SubmissionArtifact` links every transmitted
+  document back to the approved package -- if a provider needs a
+  different format, generate a derived artifact rather than mutating
+  the approved package itself, same "plan now" split as claimPackage.ts
+  (P6-14). Live upload to a real provider stays blocked behind P7-5;
+  the artifact model + derivation logic is buildable now.
+- [ ] P7-9 todo — Fee calculation engine + fee rule versioning (doc 08
+  §21-23): configurable fee engine (base + additional + provider fee =
+  total), versioned fee rules never overwritten historically -- reuses
+  claimRules.ts's/complianceRules.ts's versioned-rule-table pattern.
+- [ ] P7-10 blocked: needs credential — Payment entity + payment-filing
+  coordination (doc 08 §24-27): no real payment provider account
+  exists. The Payment status model and payment/filing coordination
+  logic (payment status tracked separately from filing status, never
+  inferred from one another) is buildable now against a fake payment
+  result, same provider-abstraction discipline as P0-9.
+- [ ] P7-11 todo — Submission authorization + automation levels + human
+  override (doc 08 §28, 52-53): configurable authorization modes
+  (MANUAL_APPROVAL_REQUIRED / AUTOMATIC_SUBMISSION_AFTER_CONFIGURED_APPROVAL),
+  the doc's 4-level automation ladder, and a human-override model
+  requiring reason/operator/timestamp/affected-rule that can never
+  silently override a hard blocker.
+- [ ] P7-12 todo — Idempotent submission engine (doc 08 §29-30, 57):
+  pure state-check logic preventing duplicate submission on
+  double-click/job-retry/network-timeout; an UNKNOWN submission status
+  (timeout after send) never triggers an automatic resubmit -- must
+  reconcile first. Reuses the job queue's idempotency-key discipline
+  (P0-8).
+- [ ] P7-13 todo — Filing state machine (doc 08 §6): explicit state
+  machine over the doc's full Filing status list, mirrors
+  stateMachine.ts's/claimPreparationStateMachine.ts's
+  validated-transition discipline (P0-3/P6-16).
+- [ ] P7-14 todo — Provider response normalization + confirmation
+  verification (doc 08 §31-33): normalizes arbitrary provider statuses
+  into a fixed internal vocabulary while always preserving the raw
+  provider response too -- never discarded. A network response alone
+  is never sufficient proof of successful filing; an uncertain outcome
+  becomes FILING_STATUS = UNKNOWN + human review, per doc 08's own
+  instruction.
+- [ ] P7-15 todo — Filing tracking + reconciliation (doc 08 §34-36, 56,
+  58): scheduled status-polling job (configurable backoff intervals) as
+  the no-webhook fallback, plus a reconciliation engine comparing
+  internal vs. external state and creating a
+  FILING_RECONCILIATION_EXCEPTION on any mismatch rather than assuming
+  they agree.
+- [ ] P7-16 todo — Rejection handling + classification + severity (doc
+  08 §39-42): configurable rejection-category table +
+  LOW/MEDIUM/HIGH/CRITICAL severity (fails closed to CRITICAL for an
+  unconfigured category, same discipline as conflictDetection.ts/P5-6),
+  HIGH/CRITICAL always requiring human review. AI rejection-message
+  interpretation itself needs an AIProvider (blocked); the
+  classification/severity/decision-routing logic around it is not.
+- [ ] P7-17 todo — Correction + resubmission workflow + duplicate-filing
+  protection (doc 08 §43-48): `CorrectionCase` model (the doc's own
+  status list); a correction that changes the claim package creates a
+  new package version (never patches the approved one -- reuses
+  P6-14's diff/versioning) requiring fresh approval; resubmission is
+  always a new FilingAttempt, never an overwrite; duplicate-filing
+  protection pauses and requires operator review rather than silently
+  blocking or silently allowing a possible duplicate.
+- [ ] P7-18 todo — Filing deadlines + queue + decision-dashboard
+  integration + event log/audit trail + analytics (doc 08 §49-51, 54,
+  61-63): configured (never fabricated) filing deadlines with
+  escalating alerts; a centralized filing queue; exceptions wired into
+  the existing Decision Dashboard (P1-3) the same way as
+  claimPackageDecisionRouting.ts (P6-17); an append-only FilingEvent
+  log; pure-math filing analytics scoped to what's honestly measurable,
+  same discipline as documentProcessingMetrics.ts (P4-15).
+
+## Phase 8 — Post-filing Monitoring & Case Management (doc 09)
+Doc 09 (75 sections) read in full from Drive. Transforms a FILED claim
+into a continuously monitored case. The doc is explicit that automation
+handles monitoring/administrative work but must never make consequential
+legal judgments on its own -- ambiguous/consequential external events
+always route to an operator. Real court/agency monitoring APIs and an
+AIProvider don't exist yet; each task below notes what stays blocked
+versus what's buildable now (manual status entry, the classification/
+routing logic itself, synthetic-data testing).
+
+- [ ] P8-1 todo — PostFilingCase data model + state machine (doc 09
+  §1-2): the doc's full status list (FILED through ESCALATED/ON_HOLD)
+  and explicit state machine, mirrors stateMachine.ts's/
+  claimPreparationStateMachine.ts's/(P7-13's) validated-transition
+  discipline; every transition creates an event.
+- [ ] P8-2 todo — Post-filing dashboard + "what needs attention" queue
+  (doc 09 §3-4): centralized view so an operator never has to open
+  individual cases just to discover what needs attention -- same
+  exception-queue-first philosophy as exceptionQueue.ts (P1-3).
+- [ ] P8-3 blocked: needs credential — External status monitoring
+  connector (doc 09 §5-7): `PostFilingMonitoringConnector` interface
+  (check_status/get_events/get_deadlines/get_documents/get_requests/
+  get_hearings/get_decisions/download_available_documents/
+  acknowledge_event/submit_response, each explicitly declaring
+  unsupported capabilities) + a registry by jurisdiction/authority/
+  claim type/provider -- buildable now against an in-memory reference
+  connector and manual-status-entry fallback; real court/agency API
+  integrations need actual accounts/access that don't exist yet.
+- [ ] P8-4 todo — Monitoring schedule + jobs (doc 09 §8-9): configurable
+  polling cadence (frequent when newly filed, daily while processing,
+  weekly long-term, increased near a deadline/hearing) using the
+  existing background job system (P0-8), each job supporting retry/
+  timeout/failure-state/idempotency.
+- [ ] P8-5 todo — Status change detection + event normalization (doc 09
+  §10-13): compares previous vs. current external status, creates a
+  STATUS_CHANGE_EVENT only on an actual change; normalizes into a fixed
+  internal vocabulary while always preserving the raw external response
+  (same discipline as P7-14); an unrecognized event becomes
+  UNKNOWN_EXTERNAL_EVENT routed to human review, never silently
+  ignored.
+- [ ] P8-6 todo — Authority Event + Hearing tracking (doc 09 §14-19):
+  configurable Event types (hearing/status conference/deadline/
+  decision/etc.) and Hearing records (the doc's own status list);
+  a reschedule or cancellation always preserves the original record
+  rather than overwriting it -- same never-mutate-history discipline as
+  claimPackage.ts's diffing.
+- [ ] P8-7 todo — Deadline model + sources/calculation/confidence (doc
+  09 §20-23): every deadline identifies its source (never presents an
+  AI-inferred deadline as an official one); a deadline extracted from
+  ambiguous text is marked low-confidence + REQUIRES_REVIEW rather than
+  becoming a hard deadline automatically.
+- [ ] P8-8 todo — Deadline dashboard + escalation (doc 09 §24-25):
+  TODAY/NEXT 3/7/30 DAYS/OVERDUE views with configurable escalating
+  alert thresholds (normal -> high -> urgent -> critical).
+- [ ] P8-9 todo — Document request model + detection + validation (doc
+  09 §26-30): `DocumentRequest` (the doc's own status list) detected
+  from official API/correspondence/inbound email/manual entry; when a
+  claimant uploads a document, match/classify/validate it against the
+  open request and route ambiguous matches to review rather than
+  auto-marking a consequential request satisfied. AI classification of
+  incoming correspondence (§28) itself needs an AIProvider (blocked);
+  the request/validation/routing logic around it is not.
+- [ ] P8-10 todo — Claimant notification engine + preferences +
+  provenance + delivery tracking (doc 09 §31, 35-39): reuses P3's
+  Communication/preference infrastructure rather than building a
+  second one; messages generated from approved templates only (no
+  freely-invented legal instructions); SENT is never assumed to mean
+  DELIVERED.
+- [ ] P8-11 todo — Automated status follow-ups + idempotency + stop
+  conditions (doc 09 §32-34): same follow-up-sequence discipline as
+  followUpScheduler.ts (P3-7) -- every stop condition (claimant
+  responded, document received, request satisfied, opt-out, case
+  closed, etc.) checked before ever sending another automated message.
+- [ ] P8-12 todo — Claimant response routing (doc 09 §40): matches an
+  inbound claimant reply to its case (reuses matchConversationToCase.ts
+  /P3-2), classifies intent, and creates a decision/task only when
+  needed -- never assumes a bare "I uploaded it" claim satisfies a
+  request without independent validation.
+- [ ] P8-13 todo — Escalation engine (doc 09 §41-44): configurable
+  trigger table (deadline approaching/overdue, hearing proximity,
+  rejection, unknown event, missing response, provider outage, etc.),
+  5-level severity ladder, and an unacknowledged escalation
+  auto-escalating to the next level per configured rules -- same
+  fails-closed-on-unconfigured discipline as humanReviewTriggers.ts
+  (P5-9).
+- [ ] P8-14 todo — Operator tasks + decision-dashboard + AI case summary
+  integration (doc 09 §45-48): every actionable exception creates a
+  Task wired into the existing Decision Dashboard (P1-3), same pattern
+  as every other *DecisionRouting.ts module; AI case-summary generation
+  itself needs an AIProvider (blocked, same status as caseSummary.ts) --
+  the task/decision routing around it is not.
+- [ ] P8-15 todo — Court/agency document ingestion + event/deadline
+  conflict detection (doc 09 §49-52): every detected event/deadline
+  references its source document (page + extracted text) so an
+  operator can verify it; two sources implying different
+  hearings/deadlines never auto-resolve -- creates an
+  EVENT_CONFLICT/DEADLINE_CONFLICT requiring human review, reusing
+  conflictDetection.ts's (P5-6) never-pick-a-winner discipline.
+- [ ] P8-16 todo — Stale-case/no-update monitoring + prioritization +
+  calendar/timezone handling (doc 09 §53-58): configurable
+  no-update/stale-case thresholds (never implying delay means
+  rejection); automatic priority scoring (extends priority.ts/P1-4,
+  never lets a score override a hard deadline); every
+  event/deadline preserves its real timezone, business-day calculations
+  use a versioned holiday calendar rather than hardcoded assumptions.
+- [ ] P8-17 todo — Case closure + reopening (doc 09 §59-60): explicit
+  closure workflow verifying no outstanding deadline/document
+  request/escalation/active hearing before closing; REOPEN_CASE
+  requires a reason and preserves the prior closure record rather than
+  erasing it.
+- [ ] P8-18 todo — Monitoring reconciliation + failure/outage handling
+  (doc 09 §61-65): compares internal case state against external
+  authority state, creating a reconciliation exception on mismatch;
+  monitoring failures never silently stop monitoring -- they create a
+  MONITORING_FAILURE and escalate past a configurable threshold; a
+  provider outage never lets a case get silently marked "unchanged."
+- [ ] P8-19 todo — Post-filing analytics + automation analytics (doc 09
+  §68-69): pure-math metrics (time to acceptance, document-request
+  resolution time, escalation rate, automation vs. human-review rate)
+  scoped to what's honestly measurable, same discipline as
+  documentProcessingMetrics.ts (P4-15).
+
+## Phase 9 — Recovery, Distribution & Payment (doc 10)
+Doc 10 (79 sections) read in full from Drive. Begins when a claim is
+expected to produce a recovery and continues until every dollar is
+accounted for and the case is properly closed. The doc's central
+discipline, repeated throughout: EXPECTED ≠ ACTUAL, INVOICE ≠ PAYMENT,
+PAYMENT ≠ RECONCILIATION, CALCULATION ≠ APPROVAL, and FINANCIAL
+COMPLETION ≠ CASE CLOSURE until every configured condition is satisfied
+-- never collapse these into one field. A real payment provider account
+doesn't exist yet, so the payment-rail tasks split the same way as
+Phase 7/8: the entity/ledger/reconciliation logic is buildable now; the
+live provider call is blocked.
+
+- [ ] P9-1 todo — Recovery entity + ExpectedRecovery + estimate
+  versioning (doc 10 §1-4): the doc's own Recovery status list;
+  `RecoveryEstimateVersion` never overwrites a prior expected-amount
+  estimate -- a revised estimate is a new version, both stay visible,
+  same versioned-history discipline as every other *Version model in
+  this codebase.
+- [ ] P9-2 todo — ActualRecovery tracking + receipt ingestion +
+  verification (doc 10 §5-7): actual recovery ingested from
+  authority notifications/bank integration/uploaded receipts/manual
+  entry, each requiring a source; a conflicting verification check
+  creates a RECOVERY_RECONCILIATION_EXCEPTION routed to the decision
+  system rather than silently marking it verified.
+- [ ] P9-3 todo — Expected-vs-actual comparison + variance rules (doc
+  10 §8-9): configurable variance thresholds (never hardcoded dollar
+  amounts) determine when a recovery difference needs operator review
+  -- same config-table discipline as every threshold table in this
+  codebase.
+- [ ] P9-4 todo — Distribution model + deterministic engine + rules +
+  versioning (doc 10 §10-13): GROSS RECOVERY − deductions − fees −
+  expenses = NET DISTRIBUTABLE AMOUNT, allocated per configurable
+  (never hardcoded per-case) distribution rules; an approved
+  distribution calculation is never overwritten -- a correction creates
+  a new DistributionVersion.
+- [ ] P9-5 todo — Multiple beneficiaries + distribution approval +
+  statement (doc 10 §14-16): each beneficiary's share independently
+  trackable; funds are never distributed on AI output alone -- explicit
+  APPROVE/REVISE/REJECT/ESCALATE required, same discipline as
+  claimPackageDecisionRouting.ts (P6-17); a generated distribution
+  statement references its underlying recovery/calculation versions.
+- [ ] P9-6 todo — Fee engine (recovery-side) + fee rule versioning +
+  validation (doc 10 §17-20): configurable fee structures
+  (percentage/flat/tiered/fixed-admin/other), every calculation
+  preserving its rule/version/rate/base/result -- distinct from P7-9's
+  filing-fee engine (different fee, different trigger point), but
+  reusing the identical versioned-rule-table shape.
+- [ ] P9-7 todo — Invoice model + numbering + generation + delivery
+  (doc 10 §21-25): the doc's own Invoice status list; unique,
+  immutable, never-reused invoice numbers; auto-generated only once the
+  underlying recovery/fee/distribution data is sufficiently verified,
+  never before.
+- [ ] P9-8 blocked: needs credential — Payment entity + tracking +
+  partial/over/under-payments (doc 10 §26-30): no real payment provider
+  account exists for the live rail. The Payment status model,
+  multi-payment tracking (never overwriting payment #1 when payment #2
+  arrives), and outstanding-balance math is buildable now against a
+  fake payment result.
+- [ ] P9-9 todo — Payment reconciliation + matching + duplicate
+  detection (doc 10 §31-34): deterministic matching first (invoice ID,
+  reference, transaction ID, amount, date, payer); an unmatched payment
+  enters a reconciliation queue rather than being silently attached to
+  a case; a suspected duplicate payment creates a
+  DUPLICATE_PAYMENT_EXCEPTION requiring review.
+- [ ] P9-10 todo — Payment reversal + refunds (doc 10 §35-36): a
+  reversal or refund always preserves the original payment record --
+  never deletes it -- and recalculates the outstanding balance from the
+  full transaction history, not a hand-edited field.
+- [ ] P9-11 todo — Outstanding balance engine + payment reminders +
+  stop conditions (doc 10 §37-39): balance always reproducible from
+  underlying transactions, never a solely-manually-editable field;
+  configurable reminder cadence with every stop condition (paid, voided,
+  arrangement established, dispute opened, case closed) checked before
+  sending another reminder -- same discipline as followUpScheduler.ts
+  (P3-7)/P8-11.
+- [ ] P9-12 todo — Payment disputes + escalation + communications (doc
+  10 §40-42): `PaymentDispute` (the doc's own status list) stops
+  automated collection reminders on open; payment communications are
+  template-generated from the actual ledger balance -- an AI model must
+  never invent a financial amount.
+- [ ] P9-13 todo — Payment confirmation + financial ledger (doc 10
+  §43-45): append-only `FinancialTransaction` ledger (the doc's own
+  transaction-type list); an error is corrected with a new correcting
+  transaction, never a silent edit to a historical one -- same
+  immutable-ledger discipline as VerificationSnapshot (P5-11)/
+  claimPackage.ts (P6-14).
+- [ ] P9-14 todo — Case-level financial reconciliation + exceptions
+  (doc 10 §46-47): compares expected/actual/distributed/fees/invoiced/
+  paid/outstanding into one PASS/exception result; every exception type
+  (mismatch, duplicate, missing/over/under-payment, unsupported
+  currency, missing reference) wired into the existing Decision
+  Dashboard (P1-3).
+- [ ] P9-15 todo — Financial dashboard + case financial summary +
+  recovery timeline (doc 10 §48-50): totals across expected/actual/
+  fees/invoiced/paid/outstanding/distributed recoveries, a per-case
+  financial summary, and a chronological recovery timeline -- same
+  view-model-builder pattern as communicationTimeline.ts (P3-1).
+- [ ] P9-16 todo — Case closing rules + closure checker + reopening
+  (doc 10 §51-55): explicit pre-closure checklist (recovery verified,
+  distribution complete, invoice paid, zero outstanding, no open
+  dispute/reconciliation exception) -- a case never auto-closes with
+  any one unmet, same discipline as P8-17's post-filing closure;
+  REOPEN_CASE requires reason/actor/timestamp and preserves the prior
+  closure record.
+- [ ] P9-17 todo — Financial audit trail + permissions (doc 10 §56-57):
+  every financial action records who/what/when/why/source/affected
+  record; separate fine-grained permissions (VIEW_FINANCIAL_DATA,
+  CALCULATE_FEES, APPROVE_DISTRIBUTION, REFUND_PAYMENT, etc.) rather
+  than one blanket financial-access flag -- extends the auth/permission
+  primitives from P0-4/P0-6.
+- [ ] P9-18 todo — Currency + rounding + adjustments (doc 10 §59-62):
+  every amount carries an explicit currency (never assumes USD);
+  deterministic, versioned rounding rules so the same calculation
+  always produces the same result; an `Adjustment` model
+  (CREDIT/DEBIT/CORRECTION/REFUND/OTHER) requiring authorization for
+  every entry -- no silent fee/balance/payment/recovery/distribution
+  change is ever permitted. AI financial assistance (§63 -- explaining
+  variances, classifying references, drafting reminders) itself needs
+  an AIProvider (blocked); by design it must never independently change
+  a fee, approve a distribution, issue a refund, or move money --
+  those stay deterministic-rule-and/or-human-approval-only regardless
+  of whether AI assistance is ever wired in.
+- [ ] P9-19 todo — Financial analytics + case profitability + recovery
+  forecasting + reporting (doc 10 §68-71): pure-math metrics (average
+  days to payment, overdue rate, reconciliation rate) clearly labeling
+  FORECAST vs. EXPECTED vs. CONFIRMED vs. RECEIVED -- a forecast is
+  never represented as actual revenue, same discipline as every other
+  metrics module in this codebase.
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -856,3 +1228,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-16] `claimPreparationStateMachine.ts`: mirrors stateMachine.ts's (P0-3) validated-transition discipline over ClaimPreparationStatus -- forward path, REJECTED/CANCELLED/SUPERSEDED universal exits (SUPERSEDED terminal for a jurisdiction/rule/form-version change, correct response is a new preparation version, never a patch), COMPLETENESS_REVIEW -> REQUIRES_OPERATOR_REVIEW -> READY_FOR_APPROVAL. 9 new tests, full suite 489/489 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-17] Added `REVIEW_CLAIM_PACKAGE` to decisionTypes.ts (doc 07's literal action set, highConsequence: true); `claimPackageDecisionRouting.ts`'s `planClaimPackageReviewDecision()` wires P6-13/P6-15 outputs into it, `buildClaimPackageApprovalSnapshot()` is create-only like verificationSnapshot.ts. 9 new tests, full suite 496/496 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-18] `claimPreparationUpdateHandling.ts`: `detectJurisdictionChange()` (no KEEP_CURRENT -- the old jurisdiction's rules genuinely no longer apply) + `detectRuleVersionDrift()`/`detectFormVersionDrift()` (full KEEP_CURRENT/REGENERATE/REVIEW choice, never silently swaps in the newer version) + `requiresNewPreparationVersion()`. 8 new tests, full suite 504/504 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 6's currently-unblocked work (P6-1 through P6-18) is now done.** P6-12 (e-signature) stays blocked on a vendor account; P6-19/P6-20 stay deferred pending real prepared-claim data. Next unblocked work is decomposing Phases 7-9 (Filing, Post-filing, Recovery) into tasks, same as was done for Phases 3-6.
+- 2026-08-26 — Ethan asked for a full progress explanation + time estimate, then said to continue. Still queued behind the GitHub-login blocker (still away from his computer), so no push yet this entry either -- purely planning work, no code changed. Read docs 08 ("Filing & Submission," 69 sections), 09 ("Post-filing Monitoring & Case Management," 75 sections), and 10 ("Recovery, Distribution & Payment," 79 sections) in full from Drive and decomposed all three into P7-1 through P7-18, P8-1 through P8-19, and P9-1 through P9-19 in PLAN.md -- replacing the old "Phases 7-9: not started" stub. Followed the same split as Phases 4/6: connector/state-machine/decision/ledger logic is buildable now against in-memory reference implementations and synthetic data; live calls to a real filing provider, court/agency monitoring API, or payment provider are each flagged `blocked: needs credential` (P7-5, P7-10, P8-3, P9-8) since those accounts don't exist yet. AI-assisted pieces (rejection-message interpretation, case summaries, document-request classification, financial-variance explanations) are noted as needing an AIProvider without blocking the surrounding routing logic, same status as caseSummary.ts throughout this project. Next unblocked task is P7-1 (Filing + FilingAttempt data model).
