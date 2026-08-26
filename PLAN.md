@@ -1756,11 +1756,15 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   `computeSlaComplianceRate()` (divide-by-zero guarded to null). 7 new
   tests, full suite 1086/1086 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P10-25 todo — Control dashboard assembly (doc 11 §97-99): the
-  final AUTOMATION CONTROL CENTER view (active workflows/waiting
-  approvals/failed jobs/dead-letter/sync exceptions/stale workflows/
-  success rate) and the per-case automation panel, assembled from
-  P10-1 through P10-24's modules rather than new logic.
+- [x] P10-25 done — Control dashboard assembly (doc 11 §97-99):
+  `automationControlCenter.ts` -- `buildAutomationControlCenterSummary()`
+  (all eleven of the doc's own top-level metrics), `buildCaseAutomationPanel()`
+  (matches the doc's own worked example exactly), `OPERATOR_APPROVAL_FLOW`
+  (the doc's own 7-step one-click-YES sequence, exposed as a constant
+  so every caller wires the same order). Deliberately assembly-only --
+  no new business logic, just packaging what P10-1 through P10-24
+  already produce. 3 new tests, full suite 1089/1089 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P10-26 todo — Full end-to-end automation scenario test (doc 11
   §100): one integration test walking the doc's own 20-step scenario
   (trigger → rule → confidence → approval → execute → verify → event →
@@ -1896,3 +1900,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-22] `providerCircuitBreaker.ts`: nextCircuitStateOnFailure()/nextCircuitStateOnSuccess(), shouldMoveToHalfOpen(), canAttemptRequest(), computeProviderHealthStatus(). 13 new tests, full suite 1073/1073 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-23 (Automation dependencies + pre/post-flight checks).
 - 2026-08-26 — [P10-23] `workflowPreflight.ts`: evaluateWorkflowDependencies(), evaluatePreFlightCheck(), validatePostFlightOutcome(). 6 new tests, full suite 1079/1079 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-24 (State reconciliation + stale-workflow + SLA tracking).
 - 2026-08-26 — [P10-24] `workflowReconciliation.ts`: findReconciliationDiscrepancies() (reuses crossSystemSync.ts's detectSyncException()), evaluateWorkflowStaleness(), evaluateSlaCompliance()/computeSlaComplianceRate(). 7 new tests, full suite 1086/1086 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-25 (Control dashboard assembly).
+- 2026-08-26 — [P10-25] `automationControlCenter.ts`: buildAutomationControlCenterSummary(), buildCaseAutomationPanel(), OPERATOR_APPROVAL_FLOW. 3 new tests, full suite 1089/1089 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-26 (Full end-to-end automation scenario test) -- the last task in Phase 10.
