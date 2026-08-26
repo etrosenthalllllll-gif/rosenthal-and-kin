@@ -1831,11 +1831,16 @@ observability logic over data the platform already produces.
   (24h/7d/30d windows computed independently, divide-by-zero guarded).
   7 new tests, full suite 1117/1117 passing, `tsc --noEmit` clean,
   `next build` clean.
-- [ ] P11-5 todo — Workflow monitoring + failure/spike detection (doc
-  12 §10-13): per-workflow execution/success/failure/retry counts,
-  configurable failure-rate thresholds (WARNING/CRITICAL), and
-  baseline-vs-current spike detection that fires even when the
-  absolute percentage threshold isn't crossed.
+- [x] P11-5 done — Workflow monitoring + failure/spike detection (doc
+  12 §10-13): `workflowMonitoring.ts` --
+  `computeWorkflowFailureRatePercent()`/`classifyFailureRate()`
+  (configurable WARNING/CRITICAL thresholds, matches the doc's own
+  18%->CRITICAL example), `detectFailureSpike()` (doc's own 5/hour->
+  75/hour worked example; falls back to an absolute floor rather than
+  flagging on any nonzero count when there's no historical baseline),
+  `buildWorkflowExecutionMetrics()` (assembles the doc's full field
+  list). 9 new tests, full suite 1126/1126 passing, `tsc --noEmit`
+  clean, `next build` clean.
 - [ ] P11-6 todo — Stuck workflow + stuck case + case SLA monitoring
   (doc 12 §14-16): expected-vs-actual duration comparison producing
   STUCK_WORKFLOW/STUCK_CASE, configurable per-stage SLA tracking
@@ -2099,3 +2104,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-2] `databaseHealth.ts`: evaluateDatabaseHealthAlerts() (config-table checks, every abnormal signal collected). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-3 (API monitoring + error classification).
 - 2026-08-26 — [P11-3] `apiMonitoring.ts`: classifyApiError(), isOutageClassError(), computeApiCallMetrics(), groupApiMetricsBy(). 7 new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-4 (API latency + availability monitoring).
 - 2026-08-26 — [P11-4] `apiLatencyMonitoring.ts`: computeLatencyPercentile()/computeLatencyDistribution(), evaluateLatencyStatus(), computeAvailabilityReports(). 7 new tests, full suite 1117/1117 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-5 (Workflow monitoring + failure/spike detection).
+- 2026-08-26 — [P11-5] `workflowMonitoring.ts`: computeWorkflowFailureRatePercent()/classifyFailureRate(), detectFailureSpike(), buildWorkflowExecutionMetrics(). 9 new tests, full suite 1126/1126 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-6 (Stuck workflow + stuck case + case SLA monitoring).
