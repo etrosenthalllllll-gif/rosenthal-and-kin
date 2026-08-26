@@ -1293,12 +1293,17 @@ live provider call is blocked.
   `createNextEstimateVersion()` never overwrites a prior estimate --
   always a new version one past the current highest, regardless of what
   the prior estimate said. 4 new tests.
-- [ ] P9-2 todo — ActualRecovery tracking + receipt ingestion +
-  verification (doc 10 §5-7): actual recovery ingested from
-  authority notifications/bank integration/uploaded receipts/manual
-  entry, each requiring a source; a conflicting verification check
-  creates a RECOVERY_RECONCILIATION_EXCEPTION routed to the decision
-  system rather than silently marking it verified.
+- [x] P9-2 done — ActualRecovery tracking + receipt ingestion +
+  verification (doc 10 §5-7): added `ActualRecovery`/
+  `ActualRecoveryStatus` (the doc's own status list; a Recovery can
+  accumulate more than one reported receipt over time, so each report
+  is its own row rather than overwriting a prior one, same reasoning as
+  RecoveryEstimateVersion) to `schema.prisma`.
+  `recoveryVerification.ts`'s `evaluateRecoveryVerification()` -- the
+  doc's own 7-item checklist plus a conflict-with-expected-recovery
+  flag that forces REQUIRES_REVIEW regardless of how clean every other
+  field is, exactly the RECOVERY_RECONCILIATION_EXCEPTION case the doc
+  calls for, never silently marked VERIFIED. 4 new tests.
 - [ ] P9-3 todo — Expected-vs-actual comparison + variance rules (doc
   10 §8-9): configurable variance thresholds (never hardcoded dollar
   amounts) determine when a recovery difference needs operator review
@@ -1490,3 +1495,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-18] `postFilingMonitoringReconciliation.ts`: reconciliation/outage classification delegate to filingTrackingReconciliation.ts (P7-15); new `shouldEscalateMonitoringFailure()` + `computeBackoffDelayMinutes()` (exponential, capped). 8 new tests, full suite 748/748 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-19] `postFilingAnalytics.ts`: `computePostFilingCaseMetrics()`/`computeDocumentRequestMetrics()`, scoped to what's honestly measurable right now (no real post-filing case has ever run through the system, no automated-vs-manual distinction in the schema yet). 4 new tests, full suite 752/752 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 8's currently-unblocked work (P8-1 through P8-19, minus P8-3) is now done.** Next unblocked work is Phase 9 (Recovery, Distribution & Payment, doc 10) starting at P9-1.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 9 (Recovery, Distribution & Payment, doc 10). [P9-1] Added Recovery/RecoveryStatus/RecoverySource + append-only RecoveryEstimateVersion schema models; `recoveryEstimate.ts`: `getCurrentEstimate()` (highest version wins) + `createNextEstimateVersion()` (never overwrites, always a new version). 4 new tests, full suite 756/756 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9 per Ethan's request), still queued behind the GitHub-login blocker. [P9-2] Added ActualRecovery/ActualRecoveryStatus schema model; `recoveryVerification.ts`'s `evaluateRecoveryVerification()` -- 7-item checklist + conflict-with-expected-recovery always forces REQUIRES_REVIEW. 4 new tests, full suite 760/760 passing, `tsc --noEmit` clean, `next build` clean.

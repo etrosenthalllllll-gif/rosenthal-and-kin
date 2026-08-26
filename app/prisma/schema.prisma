@@ -1168,6 +1168,7 @@ model Recovery {
   estate           Estate                    @relation(fields: [estateId], references: [id])
   claimant         Claimant                  @relation(fields: [claimantId], references: [id])
   estimateVersions RecoveryEstimateVersion[]
+  actualRecoveries ActualRecovery[]
 
   @@index([estateId])
   @@index([claimantId])
@@ -1193,5 +1194,43 @@ model RecoveryEstimateVersion {
   recovery Recovery @relation(fields: [recoveryId], references: [id])
 
   @@unique([recoveryId, version])
+  @@index([recoveryId])
+}
+
+// doc 10 sections 5-7. A Recovery can accumulate more than one reported
+// receipt over time (e.g. partial receipts) -- each is its own row,
+// never overwriting a prior report, same reasoning as
+// RecoveryEstimateVersion.
+enum ActualRecoveryStatus {
+  REPORTED
+  PENDING_VERIFICATION
+  VERIFIED
+  DISPUTED
+  REVERSED
+  REFUNDED
+  CANCELLED
+}
+
+model ActualRecovery {
+  id                        String               @id @default(cuid())
+  recoveryId                String
+  grossAmountCents          Int
+  actualAmountReceivedCents Int
+  dateReceived              DateTime?
+  paymentMethod             String?
+  payerSource               String?
+  referenceNumber           String?
+  bankPaymentReference      String?
+  supportingDocumentId      String?
+  currency                  String               @default("USD")
+  status                    ActualRecoveryStatus @default(REPORTED)
+  source                    String? // doc 10 sec 6's own detection-source list
+  verifiedBy                String?
+  verificationTimestamp     DateTime?
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+
+  recovery Recovery @relation(fields: [recoveryId], references: [id])
+
   @@index([recoveryId])
 }
