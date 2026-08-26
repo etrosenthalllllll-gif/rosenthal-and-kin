@@ -93,6 +93,7 @@ model Estate {
   verificationSnapshots VerificationSnapshot[]
   claimPreparations     ClaimPreparation[]
   filings               Filing[]
+  postFilingCases       PostFilingCase[]
 
   @@index([status])
 }
@@ -141,6 +142,7 @@ model Claimant {
   verificationSnapshots VerificationSnapshot[]
   claimPreparations     ClaimPreparation[]
   filings               Filing[]
+  postFilingCases       PostFilingCase[]
 
   @@index([estateId])
   @@index([status])
@@ -859,9 +861,10 @@ model Filing {
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
-  estate   Estate          @relation(fields: [estateId], references: [id])
-  claimant Claimant        @relation(fields: [claimantId], references: [id])
-  attempts FilingAttempt[]
+  estate         Estate          @relation(fields: [estateId], references: [id])
+  claimant       Claimant        @relation(fields: [claimantId], references: [id])
+  attempts       FilingAttempt[]
+  postFilingCase PostFilingCase?
 
   @@index([estateId])
   @@index([claimantId])
@@ -918,4 +921,77 @@ model FilingEvent {
   createdAt      DateTime @default(now())
 
   @@index([filingId])
+}
+
+// ---------------------------------------------------------------------
+// Post-filing Monitoring & Case Management (doc 09) — PLAN.md P8-1.
+// Transforms a filed claim into a continuously monitored case. One
+// PostFilingCase per Filing (a filing either hasn't reached the
+// post-filing stage yet, or has exactly one) -- doc 09 doesn't describe
+// re-filing the same Filing under a second PostFilingCase.
+// ---------------------------------------------------------------------
+
+// doc 09 section 1's own status list, verbatim.
+enum PostFilingCaseStatus {
+  FILED
+  RECEIVED
+  PROCESSING
+  UNDER_REVIEW
+  ADDITIONAL_INFORMATION_REQUIRED
+  HEARING_SCHEDULED
+  COURT_EVENT_PENDING
+  DECISION_PENDING
+  APPROVED
+  DENIED
+  SETTLEMENT_PENDING
+  PAYMENT_PENDING
+  COMPLETED
+  CLOSED
+  ESCALATED
+  ON_HOLD
+}
+
+model PostFilingCase {
+  id                  String               @id @default(cuid())
+  filingId            String               @unique
+  estateId            String
+  claimantId          String
+  status              PostFilingCaseStatus @default(FILED)
+  currentStage        String?
+  nextAction          String?
+  nextDeadlineAt      DateTime?
+  priority            Int                  @default(0)
+  riskLevel           String?
+  assignedOperatorId  String?
+  monitoringStatus    String?
+  lastCheckedAt       DateTime?
+  nextCheckAt         DateTime?
+  lastExternalEventAt DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  filing   Filing   @relation(fields: [filingId], references: [id])
+  estate   Estate   @relation(fields: [estateId], references: [id])
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@index([estateId])
+  @@index([claimantId])
+  @@index([status])
+}
+
+// doc 09 section 2: "Every state transition must create an event."
+// Deliberately no `updatedAt` -- create-only, same discipline as
+// FilingEvent/ClaimantStateTransition.
+model PostFilingEvent {
+  id               String   @id @default(cuid())
+  postFilingCaseId String
+  eventType        String // e.g. STATUS_UPDATED, DOCUMENT_REQUESTED, HEARING_SCHEDULED -- doc 09's own normalized list (P8-5)
+  previousStatus   String?
+  newStatus        String?
+  source           String? // e.g. "authority-api", "operator", "status-poll"
+  rawResponse      Json?
+  humanActorId     String?
+  createdAt        DateTime @default(now())
+
+  @@index([postFilingCaseId])
 }
