@@ -895,10 +895,17 @@ provider call itself is `blocked: needs credential`.
   transmitted is never "fully transmitted." Live upload to a real
   provider stays blocked behind P7-5; the artifact model + ordering
   logic is buildable now. 6 new tests.
-- [ ] P7-9 todo — Fee calculation engine + fee rule versioning (doc 08
-  §21-23): configurable fee engine (base + additional + provider fee =
-  total), versioned fee rules never overwritten historically -- reuses
-  claimRules.ts's/complianceRules.ts's versioned-rule-table pattern.
+- [x] P7-9 done — Fee calculation engine + fee rule versioning (doc 08
+  §21-23): `filingFeeRules.ts`'s `FILING_FEE_RULES` -- versioned,
+  supersedes-linked fee rule table (same discipline as claimRules.ts/
+  P6-4), `getApplicableFeeRule()` preferring a method-specific current
+  rule over a general one, AMBIGUOUS (never auto-picked) when two
+  equally-specific rules both match. `calculateFilingFee()` returns
+  base + additional + provider = total, always naming the exact rule
+  id/version and caller-supplied timestamp used -- NO_RULE_FOUND/
+  AMBIGUOUS_RULE both return a zero total rather than guessing a fee,
+  since neither has a safe fallback number. Seed rule flagged
+  `EXAMPLE_PENDING_LEGAL_SOURCING`. 7 new tests.
 - [ ] P7-10 blocked: needs credential — Payment entity + payment-filing
   coordination (doc 08 §24-27): no real payment provider account
   exists. The Payment status model and payment/filing coordination
@@ -1271,3 +1278,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-4] `filingConnector.ts`: `FilingConnector` interface + `connectorSupportsOperation()` (reads only the explicit list, never infers) + `resolveConnector()` (AMBIGUOUS rather than a silent pick) + `createInMemoryFilingConnector()` reference implementation. Marked the pre-doc-08-read `FilingProvider` stub in `providers/types.ts` `@deprecated` with a pointer here rather than deleting it. 7 new tests, full suite 523/523 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-6] `filingData.ts`: `populateFilingData()`/`detectMissingRequiredFilingData()` delegate to formFieldMapping.ts (P6-8) rather than re-implementing the same priority/provenance logic. [P7-7] `filingValidation.ts`: `validateFilingFields()` delegates to formValidation.ts (P6-9); `checkDocumentRequirements()`/`validateFilingDocuments()` add connector-declared document-level checks (size/type/pages/naming), only checking what's declared. 12 new tests, full suite 535/535 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-8] `submissionArtifact.ts`: `buildSubmissionArtifacts()` maps over claimPackage.ts's already-ordered document list to preserve package order, never mutating the approved package; `markArtifactUploaded()`/`markArtifactFailed()` return new objects; `allArtifactsUploaded()` false on an empty list. 6 new tests, full suite 541/541 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-9] `filingFeeRules.ts`: versioned FILING_FEE_RULES table, `getApplicableFeeRule()` (method-specific beats general, AMBIGUOUS never auto-picked), `calculateFilingFee()` (base+additional+provider=total, always names the rule/version, zero total on NO_RULE_FOUND/AMBIGUOUS_RULE rather than guessing). 7 new tests, full suite 548/548 passing, `tsc --noEmit` clean, `next build` clean.
