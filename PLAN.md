@@ -862,16 +862,25 @@ provider call itself is `blocked: needs credential`.
   The FILING_AUTHENTICATION_ERROR routing (never repeatedly resubmit on
   auth failure, route to operator) is buildable now against a fake
   credential-check result.
-- [ ] P7-6 todo — Filing data model + provenance (doc 08 §14-15):
-  structured, jurisdiction/claim-type-configurable FilingData shape
-  where every field traces back to its case-data source -- same
-  provenance discipline as formFieldMapping.ts (P6-8); the filing
-  system must never independently invent a filing value.
-- [ ] P7-7 todo — Filing validation engine (doc 08 §16-17):
-  required-field/format/date/cross-field validation before submission,
-  plus connector-declared requirements (max file size, allowed file
-  type, page limits, naming) checked by the readiness engine -- reuses
-  formValidation.ts's (P6-9) validation shape.
+- [x] P7-6 done — Filing data model + provenance (doc 08 §14-15):
+  `filingData.ts` -- `FILING_DATA_FIELD_CATEGORIES` documents the doc's
+  own field-category list; `populateFilingData()`/
+  `detectMissingRequiredFilingData()` delegate directly to
+  formFieldMapping.ts's (P6-8) `populateFormFields()`/
+  `detectMissingRequiredFields()` rather than re-implementing identical
+  priority/provenance logic under a new name -- filing data and form
+  data are the same problem (map a field to a case-data path, apply the
+  same source-priority order, never invent a value) applied to two
+  different outputs. 4 new tests.
+- [x] P7-7 done — Filing validation engine (doc 08 §16-17):
+  `filingValidation.ts`'s `validateFilingFields()` delegates to
+  formValidation.ts's (P6-9) `validateFormFields()` for required/
+  format/date checks; `checkDocumentRequirements()`/
+  `validateFilingDocuments()` add the connector-declared,
+  document-level half doc 08 §17 calls for (max file size, allowed file
+  type, page limits, naming pattern) -- a requirement the connector
+  didn't declare is simply not checked, never assumed unlimited or
+  assumed to fail. 8 new tests.
 - [ ] P7-8 todo — Document transmission + submission artifact model
   (doc 08 §18-20): a `SubmissionArtifact` links every transmitted
   document back to the approved package -- if a provider needs a
@@ -1253,3 +1262,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-1] Added `Filing`/`FilingAttempt` models + `FilingStatus` enum to `schema.prisma` -- FilingAttempt is deliberately create-only (no updatedAt), a Filing's packageId+packageVersion pair is its immutable package reference since ClaimPackage isn't a Prisma model yet. `prisma validate`/`generate` clean, 504/504 tests passing (unchanged, schema-only), `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-2] `filingReadiness.ts`: `evaluateFilingReadiness()` -- config-table 14-item readiness checklist, READY/NOT_READY listing every specific blocker, paymentMethodAvailable conditional on a nonzero fee. [P7-3] `filingMethods.ts`: `FILING_METHODS` config table (7 methods) + `methodSupportsOperation()`. 12 new tests, full suite 516/516 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-4] `filingConnector.ts`: `FilingConnector` interface + `connectorSupportsOperation()` (reads only the explicit list, never infers) + `resolveConnector()` (AMBIGUOUS rather than a silent pick) + `createInMemoryFilingConnector()` reference implementation. Marked the pre-doc-08-read `FilingProvider` stub in `providers/types.ts` `@deprecated` with a pointer here rather than deleting it. 7 new tests, full suite 523/523 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-6] `filingData.ts`: `populateFilingData()`/`detectMissingRequiredFilingData()` delegate to formFieldMapping.ts (P6-8) rather than re-implementing the same priority/provenance logic. [P7-7] `filingValidation.ts`: `validateFilingFields()` delegates to formValidation.ts (P6-9); `checkDocumentRequirements()`/`validateFilingDocuments()` add connector-declared document-level checks (size/type/pages/naming), only checking what's declared. 12 new tests, full suite 535/535 passing, `tsc --noEmit` clean, `next build` clean.
