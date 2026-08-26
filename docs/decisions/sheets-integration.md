@@ -22,3 +22,12 @@ part of the Core Infrastructure build, not a lead-sourcing rewrite.
 Exact sync mechanism (one-way import via Sheets API, or a manual
 "promote to backend" action from the operator dashboard) is an
 implementation detail decided during Phase 0/1, not a blocking decision.
+
+## Which sheet, exactly (resolved 2026-08-26)
+Confirmed by searching Drive: the live tracker is titled exactly
+`heir-finder-tracker` —
+https://docs.google.com/spreadsheets/d/1LOwYvct2bISgeZjPbUIk6EaWsYpAbU4qrMB8zQopo88/edit
+(most recently modified of all candidates). Every other similarly-named
+sheet found in Drive is explicitly marked `SUPERSEDED` or
+`ARCHIVED-DO-NOT-USE` in its title, so this wasn't ambiguous once
+actually searched for -- no user input needed to resolve it.
