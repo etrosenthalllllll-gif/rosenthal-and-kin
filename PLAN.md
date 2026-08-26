@@ -1556,11 +1556,16 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   BLOCKED regardless of confidence, never overridden by a high AI
   score. 9 new tests, full suite 922/922 passing, `tsc --noEmit`
   clean, `next build` clean.
-- [ ] P10-6 todo — Approval gates + expiration + multi-approval
-  dependencies (doc 11 §21-25): `ApprovalRequest` wired into the
-  existing `Decision`/decision-dashboard machinery (no second queue),
-  approval expiry (a stale approval is never auto-executed), and
-  support for actions needing more than one satisfied approval.
+- [x] P10-6 done — Approval gates + expiration + multi-approval
+  dependencies (doc 11 §21-25): `approvalGate.ts` -- `planApprovalGate()`
+  wires into the existing `Decision`/`decisionTypes.ts` machinery (no
+  second queue; `availableActions` always sourced from the registry),
+  `isApprovalExpired()` (a still-open decision past its `deadline` is
+  expired, never implicitly APPROVE, and a decision already at a final
+  status is never expired), `evaluateApprovalDependencies()` (ALL
+  members must reach APPROVED/COMPLETED; a single REJECTED/CANCELLED/
+  EXPIRED member BLOCKS the whole group, never outvoted). 9 new tests,
+  full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-7 todo — Operator override + automation pause (doc 11
   §26-29): global kill switch (ACTIVE/PAUSED/EMERGENCY_STOP),
   workflow-level pause, and case-level pause -- an override always
@@ -1787,3 +1792,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-3] AutomationEvent schema (unique eventId dedup key) + `eventBus.ts` (event construction, idempotent-dedup check, in-memory pub/sub). 8 new tests, full suite 893/893 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-4 (Trigger conditions + rules engine).
 - 2026-08-26 — [P10-4] `rulesEngine.ts`: config-table rules, full comparison operator set (fail-closed on unrecognized), nested AND/OR/NOT, dotted-path fields, evaluateRule()/evaluateRuleTable() with full auditable condition-result tree. 20 new tests, full suite 913/913 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-5 (Confidence thresholds + rule/confidence combination).
 - 2026-08-26 — [P10-5] `confidenceGate.ts`: classifyConfidence() (configurable bands), actionForConfidenceBand(), combineRuleAndConfidence()/evaluateRuleAndConfidence() (rule FAIL always blocks, never overridden by confidence). 9 new tests, full suite 922/922 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-6 (Approval gates + expiration + multi-approval dependencies).
+- 2026-08-26 — [P10-6] `approvalGate.ts`: planApprovalGate() (reuses Decision/decisionTypes.ts, no second queue), isApprovalExpired(), evaluateApprovalDependencies() (one rejection blocks the whole group). 9 new tests, full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-7 (Operator override + automation pause).
