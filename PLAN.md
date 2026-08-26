@@ -203,12 +203,28 @@ idempotency, follow-up scheduling) is buildable now.
   classifier's output feeds straight into this function. Reads/writes
   the `Person` preference fields already added to the schema in P3-1. 9
   new tests, full suite 207/207, `next build` clean. Depends on P3-1.
-- [ ] P3-7 todo — Outbound send idempotency + follow-up sequence scheduler
-  (doc 04 §21, §34-35): configurable day-offset sequences (Day 0/7/14/30),
-  stop conditions (response, opt-out, case closed/inactive, operator
-  pause), rate limits/cooldowns, and a global emergency
-  pause-all-outbound switch (§36). Uses the existing job queue
-  (`app/src/lib/queue`). Depends on P3-1, P3-6.
+- [x] P3-7 done — Follow-up sequence scheduler (doc 04 §21); outbound
+  idempotency itself (§34-35) turned out to need no new code — it's
+  already enforced by `JobQueueProvider.enqueue()`'s required
+  `idempotencyKey` (P0-8) and `Communication.idempotencyKey`'s DB unique
+  constraint (P3-1); documented this explicitly in
+  `followUpScheduler.ts`'s header rather than duplicate that logic.
+  `planNextFollowUp()` — pure scheduling decision over a configurable
+  day-offset sequence (`DEFAULT_OUTREACH_SEQUENCE`: Day 0/7/14/30, doc
+  04's own example, verbatim) → `STOP` | `SEQUENCE_COMPLETE` | `WAIT` |
+  `SEND`. All seven of §21's named stop conditions
+  (hasResponded/hasOptedOut/caseClosed/personInactive/operatorPaused/
+  workflowChanged/anotherChannelTookOver) checked before scheduling
+  logic runs, each with its own reason string — "do not blindly send
+  follow-ups after meaningful responses" enforced as the first check,
+  not an afterthought. Global emergency pause-all-outbound (§36) and
+  rate limits/cooldowns (§35) are cross-cutting concerns for the actual
+  send path (not the sequence-scheduling decision this task scoped) —
+  left for whichever task wires a real outbound send loop to a live
+  provider, since building that control now with nothing to control
+  would be premature. 9 new tests, full suite 226/226, `next build`
+  clean. Depends on P3-1, P3-6 (used for opt-out state feeding
+  `hasOptedOut`, not called directly here).
 - [ ] P3-8 todo — Human handoff / takeover (doc 04 §10, §30-31): escalation
   triggers (low confidence, dispute, legal question, hostility, ambiguous
   match, repeated automation failure), `HUMAN_HANDLING` pause-then-resume,
@@ -274,3 +290,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-4] `communicationClassification.ts`: configurable category table covering doc 04 section 6's full list (20 categories), per-category confidence thresholds (section 28), and an `alwaysRequiresHumanReview` flag for the categories section 7/9 name explicitly (legal questions, payment questions, suspicious messages, deceased-person reports, unclear/escalate) -- no confidence level clears these. `routeClassifiedCommunication()` fails closed to human review on an unrecognized category. No live AI model call yet (no AIProvider account provisioned -- same gap as caseSummary.ts); this is the config-and-routing layer, fully tested against synthetic classification results. 9 new tests, full suite 199/199 passing, `next build` clean.
 - 2026-08-26 — [P3-6] `communicationPreferences.ts`: `canSendOnChannel()` (the single before-send check, centralized doNotContact always wins over per-channel flags) and `applyOptOutSignal()` (pure state transition -- DO_NOT_CONTACT is centralized/channel-independent, UNSUBSCRIBE only touches the one channel it arrived on, per doc 04's own SMS-opt-out example). Both signal keys map directly onto P3-4's DO_NOT_CONTACT/UNSUBSCRIBE classification categories. 9 new tests, full suite 207/207 passing, `next build` clean.
 - 2026-08-26 — [P3-5] `communicationAutomationRules.ts`: `decideAutomationAction()` composes P3-4's classification routing, P3-6's opt-out enforcement, and doc 04 section 30's humanHandling flag into one fixed-precedence evaluator (human-owned conversation > opt-out signal processed as an automated stop > classifier-requires-human > classifier-allows-but-channel-blocked escalates rather than silently dropping or wrongly sending > otherwise respond automatically). No new business rule invented -- this module is the evaluator over signals the earlier P3 tasks already produce. 10 new tests, full suite 217/217 passing, `next build` clean.
+- 2026-08-26 — [P3-7] `followUpScheduler.ts`: `planNextFollowUp()`, a pure decision over a configurable day-offset sequence (DEFAULT_OUTREACH_SEQUENCE: Day 0/7/14/30, doc 04's own example) and all seven of section 21's stop conditions, checked first so a mid-sequence response never triggers a blind follow-up. Outbound idempotency (sections 34-35) needed no new code -- already enforced by the job queue's required idempotencyKey (P0-8) and Communication.idempotencyKey's DB unique constraint (P3-1); documented rather than duplicated. Global pause-all-outbound and rate limiting deferred to whichever task wires a real send loop to a live provider. 9 new tests, full suite 226/226 passing, `next build` clean.
