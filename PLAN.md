@@ -1798,11 +1798,14 @@ detection from `crossSystemSync.ts`, escalation-ladder shape from
 name. No credential-blocked tasks -- this is entirely internal
 observability logic over data the platform already produces.
 
-- [ ] P11-1 todo — Health status model + health check system (doc 12
-  §2-4): HEALTHY/DEGRADED/DOWN/UNKNOWN/MAINTENANCE status model with
-  per-system fields (current status, last success/failure, failure
-  count/rate, response time, availability), and the 5 health-check
-  types (LIVENESS/READINESS/DEPENDENCY/FUNCTIONAL/INTEGRATION).
+- [x] P11-1 done — Health status model + health check system (doc 12
+  §2-4): `healthStatus.ts` -- `resolveHealthStatus()` (MAINTENANCE
+  always wins; UNKNOWN with zero observed checks, never guessed
+  HEALTHY; HEALTHY/DEGRADED/DOWN by configurable error-rate
+  thresholds), `buildSystemHealthRecord()` (doc's own per-system field
+  list, rates divide-by-zero guarded to null), the 5 health-check
+  types + `isFunctionalHealthCheck()`. 9 new tests, full suite
+  1099/1099 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-2 todo — Database health monitoring (doc 12 §5): connection
   failures, query latency, slow queries, pool utilization, transaction
   failures, backup status -- config-table alert triggers.
@@ -2078,3 +2081,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P10-25] `automationControlCenter.ts`: buildAutomationControlCenterSummary(), buildCaseAutomationPanel(), OPERATOR_APPROVAL_FLOW. 3 new tests, full suite 1089/1089 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-26 (Full end-to-end automation scenario test) -- the last task in Phase 10.
 - 2026-08-26 — [P10-26] `automationEndToEnd.test.ts`: one integration test walking doc 11's own 20-step end-to-end scenario across every Phase 10 module. 1 new test, full suite 1090/1090 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 10 (P10-1 through P10-26) is now done -- no credential blockers this phase.** Still queued locally behind the GitHub-login blocker; nothing from Phases 6-10 has been pushed yet.
 - 2026-08-26 — Ethan asked to complete Phases 11-17. Read doc 12 ("Monitoring," 92 sections) and doc 13 ("Analytics," 97 sections) in full from Drive; confirmed docs 14-16 ("System Improvement & Optimization Layer," "Enterprise Control, Data, Intelligence & Resilience Layer," "Compounding Intelligence Engine") are each individually large and explicitly marked "NEEDS RECONCILING" with each other, and docs 17/18 are the Build Order meta-doc and an architecture diagram, not additional buildable phases. Decomposed doc 12 into P11-1 through P11-28 in PLAN.md. Given the scope (each of docs 12/13 is on the same scale as doc 11's 26-task Phase 10, and docs 14-16 combined are larger still), this will span many sessions -- proceeding phase by phase with the same per-task test/build/commit rigor as every prior phase. Planning only, no code yet. Next: P11-1 (Health status model + health check system).
+- 2026-08-26 — [P11-1] `healthStatus.ts`: resolveHealthStatus(), buildSystemHealthRecord(), health-check-type vocabulary. 9 new tests, full suite 1099/1099 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-2 (Database health monitoring).
