@@ -1435,13 +1435,17 @@ live provider call is blocked.
   `buildRecoveryTimeline()` (pure chronological sort, no mutation) --
   same view-model-builder pattern as communicationTimeline.ts (P3-1).
   5 new tests.
-- [ ] P9-16 todo — Case closing rules + closure checker + reopening
-  (doc 10 §51-55): explicit pre-closure checklist (recovery verified,
-  distribution complete, invoice paid, zero outstanding, no open
-  dispute/reconciliation exception) -- a case never auto-closes with
-  any one unmet, same discipline as P8-17's post-filing closure;
-  REOPEN_CASE requires reason/actor/timestamp and preserves the prior
-  closure record.
+- [x] P9-16 done — Case closing rules + closure checker + reopening
+  (doc 10 §51-55): `financialClosure.ts`'s `evaluateFinancialClosureReadiness()`
+  -- the financial subset of pre-closure checks (recovery verified,
+  distribution complete, fees calculated, invoice paid, zero
+  outstanding, no open dispute, no unresolved reconciliation exception)
+  as a config table, never auto-closing with any one unmet, same
+  discipline as postFilingClosure.ts (P8-17) -- which owns the
+  post-filing-task/document-request/escalation half, not duplicated
+  here. `reopenFinancialCase()` requires a non-empty reason and
+  preserves the prior `FinancialClosureRecord` completely unchanged.
+  6 new tests.
 - [ ] P9-17 todo — Financial audit trail + permissions (doc 10 §56-57):
   every financial action records who/what/when/why/source/affected
   record; separate fine-grained permissions (VIEW_FINANCIAL_DATA,
@@ -1566,3 +1570,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-13] Added append-only FinancialTransaction/FinancialTransactionType schema model; `financialLedger.ts`: `createCorrectingTransaction()` + `sumLedgerTransactions()`. 3 new tests, full suite 824/824 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-14] `financialReconciliation.ts`'s `evaluateFinancialReconciliation()` (two algebraic invariants + merges in already-detected exceptions, PASSes on the doc's own worked example). Added REVIEW_FINANCIAL_EXCEPTION to decisionTypes.ts + `financialDecisionRouting.ts`. 7 new tests, full suite 831/831 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-15] `financialDashboard.ts`: `buildFinancialTotals()`, `buildCaseFinancialSummary()` (readyToClose requires both clean reconciliation AND zero outstanding), `buildRecoveryTimeline()`. 5 new tests, full suite 836/836 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-16] `financialClosure.ts`: `evaluateFinancialClosureReadiness()` (financial-subset config table, never auto-closes with a blocker present) + `reopenFinancialCase()` (reason required, prior closure preserved unchanged). 6 new tests, full suite 842/842 passing, `tsc --noEmit` clean, `next build` clean.
