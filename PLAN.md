@@ -281,11 +281,23 @@ idempotency, follow-up scheduling) is buildable now.
   claimant/estate header and the honest empty-communications state (no
   live inbound provider wired up yet). `next build` clean. Depends on
   P3-1.
-- [ ] P3-13 todo — Communication dashboard + analytics (doc 04 §26, §41):
-  metrics (pending responses, exceptions, opt-outs, follow-ups due,
-  automated vs. human-reviewed rate) linking into the existing `/ops`
-  decision dashboard rather than a separate surface. Depends on P3-1
-  through P3-8.
+- [x] P3-13 done — Communication dashboard + analytics (doc 04 §26, §41):
+  `communicationDashboardMetrics.ts` — `computeDashboardMetrics()` is
+  pure rate math (automated-response rate, human-intervention rate,
+  escalation rate, opt-out rate, bounce rate, delivery rate), every
+  divide-by-zero guarded to `null` rather than `NaN`/`Infinity` leaking
+  into a UI. `fetchDashboardMetrics()` is the thin, untested Prisma
+  wrapper (same split as `decisionQueue.ts`). Deliberately excludes
+  call-specific metrics (missed calls, call duration, voice-agent
+  completion) and follow-up-conversion/cost tracking — voice (P3-10)
+  was explicitly skipped and no follow-up sends or cost data exist yet,
+  so tracking those would be fabricated zeros dressed up as real
+  numbers. Wired into the existing `/ops` decision dashboard (not a
+  separate surface, per the doc's own instruction) as a stats bar above
+  the queue. **Verified for real:** 7 new tests for the rate math, full
+  suite 246/246, `next build` clean, and the live page correctly shows
+  real zero counts (no communications exist yet — same honest-empty-state
+  discipline as everywhere else this phase). Depends on P3-1.
 
 ## Phases 4-9 — Documents, Verification, Claim Prep, Filing, Post-filing, Recovery
 Not started. See the full spec docs (Drive: System Architecture folder,
@@ -323,3 +335,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-7] `followUpScheduler.ts`: `planNextFollowUp()`, a pure decision over a configurable day-offset sequence (DEFAULT_OUTREACH_SEQUENCE: Day 0/7/14/30, doc 04's own example) and all seven of section 21's stop conditions, checked first so a mid-sequence response never triggers a blind follow-up. Outbound idempotency (sections 34-35) needed no new code -- already enforced by the job queue's required idempotencyKey (P0-8) and Communication.idempotencyKey's DB unique constraint (P3-1); documented rather than duplicated. Global pause-all-outbound and rate limiting deferred to whichever task wires a real send loop to a live provider. 9 new tests, full suite 226/226 passing, `next build` clean.
 - 2026-08-26 — [P3-8] `humanHandoff.ts`: scoped to what P3-4/P3-5 didn't already cover. takeoverConversation()/resumeAutomation() (humanHandling state transition, deliberately doesn't clear attentionStatus on resume), availableOperatorActions() (doc 04 section 30's exact action set), checkRepeatedFailureEscalation() (section 10's own distinct "automation repeatedly fails" trigger, configurable threshold), createDraftHistory()/applyOperatorRevision()/recordFinalSend() (section 8's draft/revision/final-sent record, shaped so overwriting the original draft is structurally impossible). Full §31 decision-package UI deliberately not built -- needs upstream data that doesn't exist yet, same call as caseSummary.ts. 13 new tests, full suite 239/239 passing, `next build` clean.
 - 2026-08-26 — Ethan asked to skip SMS (P3-9) and voice (P3-10) for now -- marked skipped by explicit owner decision rather than blocked, both revisit-able later. [P3-12] Built the first real case workspace page (`/ops/cases/[claimantId]`): claimant/estate header + fetchCommunicationTimeline()'s unified view, filterable by channel via query params, linked from the decision queue. Verified for real against a live claimant queried from Postgres -- honest empty-communications state, not faked data. `next build` clean.
+- 2026-08-26 — [P3-13] `communicationDashboardMetrics.ts`: computeDashboardMetrics() -- pure rate math (automated-response, human-intervention, escalation, opt-out, bounce, delivery rates), divide-by-zero guarded to null. Deliberately excludes call-specific and follow-up-conversion/cost metrics since voice was skipped and no follow-up sends exist yet. Wired into `/ops` as a stats bar above the decision queue. 7 new tests, full suite 246/246 passing, `next build` clean. **Phase 3 (Communications) is now complete**: P3-1 through P3-8 and P3-12/P3-13 done, P3-9/P3-10 skipped by owner decision, P3-11 (PostGrid) blocked on a vendor account that doesn't exist yet. Explained to Ethan why PostGrid specifically is blocked (no account exists, and account creation itself is outside what I can do -- needs his signup + a test API key, same as R2/Sheets).

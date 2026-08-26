@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { fetchDecisionQueue, type DecisionQueueItem } from "@/lib/decisionQueue";
 import { requireSession } from "@/lib/requireSession";
 import { splitQueueByLane } from "@/lib/exceptionQueue";
+import { fetchDashboardMetrics } from "@/lib/communicationDashboardMetrics";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,15 @@ function QueueCard({ item, exception }: { item: DecisionQueueItem; exception?: b
   );
 }
 
+function MetricStat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div style={{ minWidth: 96 }}>
+      <div style={{ fontSize: "1.25rem", fontWeight: 700 }}>{value}</div>
+      <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>{label}</div>
+    </div>
+  );
+}
+
 export default async function OpsQueuePage() {
   const user = await requireSession();
   const items = await fetchDecisionQueue(prisma);
@@ -83,6 +93,9 @@ export default async function OpsQueuePage() {
   // decisions, not a separate query -- both lanes come from the same
   // ranked queue, split by decision-type category. See exceptionQueue.ts.
   const { decisions, exceptions } = splitQueueByLane(items);
+  // doc 04 section 26: communication dashboard metrics, linked into the
+  // existing decision dashboard rather than a separate surface (P3-13).
+  const metrics = await fetchDashboardMetrics(prisma);
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1rem", fontFamily: "system-ui, sans-serif" }}>
@@ -100,6 +113,33 @@ export default async function OpsQueuePage() {
       <p style={{ color: "#6b7280", marginTop: 0 }}>
         {items.length} pending decision{items.length === 1 ? "" : "s"}, ranked by priority.
       </p>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "1.5rem",
+          border: "1px solid #e5e7eb",
+          borderRadius: 8,
+          padding: "1rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <MetricStat label="Messages sent" value={metrics.messagesSent} />
+        <MetricStat label="Messages received" value={metrics.messagesReceived} />
+        <MetricStat label="Pending responses" value={metrics.pendingResponses} />
+        <MetricStat label="Exceptions" value={metrics.exceptions} />
+        <MetricStat label="Opt-outs" value={metrics.optOuts} />
+        <MetricStat label="Failed" value={metrics.failedCommunications} />
+        <MetricStat
+          label="Automated response rate"
+          value={metrics.automatedResponseRate == null ? "—" : `${metrics.automatedResponseRate}%`}
+        />
+        <MetricStat
+          label="Escalation rate"
+          value={metrics.escalationRate == null ? "—" : `${metrics.escalationRate}%`}
+        />
+      </div>
 
       {items.length === 0 ? (
         <p style={{ color: "#6b7280" }}>
