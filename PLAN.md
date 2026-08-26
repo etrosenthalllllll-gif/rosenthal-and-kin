@@ -1535,12 +1535,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   event-type worked examples (non-exhaustive, same "extensible, not a
   closed enum" reasoning as the step-type vocabulary). 8 new tests,
   full suite 893/893 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-4 todo — Trigger conditions + rules engine (doc 11 §11-16):
-  config-table rules (not scattered if/else) with the doc's operator
-  set (=, !=, >, <, IN, CONTAINS, EXISTS, AND/OR/NOT, BETWEEN,
-  MATCHES), nested conditions, and full rule auditability (inputs,
-  version, condition-by-condition result, final decision all
-  reproducible).
+- [x] P10-4 done — Trigger conditions + rules engine (doc 11 §11-16):
+  `rulesEngine.ts` -- config-table `Rule` (conditions/output/version/
+  priority/effective+expiration window/enabled/author/reason), the
+  doc's full comparison operator set (=, !=, >, <, >=, <=, IN, NOT IN,
+  CONTAINS, EXISTS, NOT EXISTS, BETWEEN, MATCHES; unrecognized operator
+  fails closed, never passes), nested AND/OR/NOT logical conditions,
+  dotted-path field access, `evaluateRule()`/`evaluateRuleTable()`
+  producing a full child-by-child `ConditionResult` tree for §16's
+  reproducibility requirement (a disabled or out-of-window rule never
+  passes regardless of data). 20 new tests, full suite 913/913
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-5 todo — Confidence thresholds + rule/confidence combination
   (doc 11 §17-20): configurable confidence bands (not hardcoded
   percentages) per workflow, and the doc's precedence rule --
@@ -1775,3 +1780,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-1] Workflow/WorkflowVersion schema + `workflowDefinition.ts` (status transitions, append-only versioning, structural definition validation). 12 new tests, full suite 876/876 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-2 (WorkflowExecution model + step types).
 - 2026-08-26 — [P10-2] WorkflowExecution/WorkflowExecutionStatus schema + `workflowExecution.ts` (execution status machine, new-execution planning pinned to a version, step-type vocabulary). 9 new tests, full suite 885/885 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-3 (Event model + event bus + idempotent dedup).
 - 2026-08-26 — [P10-3] AutomationEvent schema (unique eventId dedup key) + `eventBus.ts` (event construction, idempotent-dedup check, in-memory pub/sub). 8 new tests, full suite 893/893 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-4 (Trigger conditions + rules engine).
+- 2026-08-26 — [P10-4] `rulesEngine.ts`: config-table rules, full comparison operator set (fail-closed on unrecognized), nested AND/OR/NOT, dotted-path fields, evaluateRule()/evaluateRuleTable() with full auditable condition-result tree. 20 new tests, full suite 913/913 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-5 (Confidence thresholds + rule/confidence combination).
