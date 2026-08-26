@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  COMPLIANCE_RULES,
   getRulesForJurisdiction,
   getRulesByType,
   isRuleStale,
@@ -26,6 +25,14 @@ describe("getRulesByType", () => {
     const rules = getRulesByType("CA", "UPL_BOUNDARY");
     expect(rules.length).toBe(2);
     expect(rules.every((r) => r.ruleType === "UPL_BOUNDARY")).toBe(true);
+  });
+
+  it("finds both fee-cap rules (probate estate and unclaimed property are separate regimes)", () => {
+    const rules = getRulesByType("CA", "FEE_CAP");
+    expect(rules.length).toBe(2);
+    expect(rules.map((r) => r.assetSource).sort()).toEqual(
+      ["PROBATE_ESTATE", "STATE_CONTROLLER_UNCLAIMED_PROPERTY"].sort()
+    );
   });
 });
 
@@ -57,34 +64,58 @@ describe("isRuleStale", () => {
 });
 
 describe("checkFeeCompliance", () => {
-  it("blocks and escalates when no verified fee-cap rule exists for the jurisdiction", () => {
+  it("blocks and escalates when no rule exists for the jurisdiction at all", () => {
     const result = checkFeeCompliance({
       jurisdiction: "NY",
+      assetSource: "PROBATE_ESTATE",
       estimatedRecoveryCents: 10_000_00,
       proposedFeeCents: 1_000_00,
     });
     expect(result.action).toBe("BLOCK_AND_ESCALATE");
-    expect(result.reason).toMatch(/no attorney-verified fee-cap rule/i);
+    expect(result.reason).toMatch(/no verified fee-cap rule/i);
   });
 
-  it("blocks and escalates for CA too, since its fee-cap rule is not yet attorney-verified", () => {
+  it("blocks and escalates for CA probate estates, since CA has no fixed cap there (a confirmed conclusion, not a gap)", () => {
     const result = checkFeeCompliance({
       jurisdiction: "CA",
+      assetSource: "PROBATE_ESTATE",
       estimatedRecoveryCents: 10_000_00,
       proposedFeeCents: 1_000_00,
     });
     expect(result.action).toBe("BLOCK_AND_ESCALATE");
+    expect(result.reason).toMatch(/grossly unreasonable|case-by-case|court-review/i);
   });
 
-  it("never returns PROCEED against the real seed table (documents the intended fail-closed default)", () => {
-    for (const jurisdiction of new Set(COMPLIANCE_RULES.map((r) => r.jurisdiction))) {
-      const result = checkFeeCompliance({
-        jurisdiction,
-        estimatedRecoveryCents: 100_00,
-        proposedFeeCents: 10_00,
-      });
-      expect(result.action).toBe("BLOCK_AND_ESCALATE");
-    }
+  it("proceeds for CA unclaimed-property cases when the fee is within the verified 10% cap", () => {
+    const result = checkFeeCompliance({
+      jurisdiction: "CA",
+      assetSource: "STATE_CONTROLLER_UNCLAIMED_PROPERTY",
+      estimatedRecoveryCents: 10_000_00,
+      proposedFeeCents: 1_000_00, // exactly 10%
+    });
+    expect(result.action).toBe("PROCEED");
+  });
+
+  it("blocks and escalates for CA unclaimed-property cases when the fee exceeds the 10% cap", () => {
+    const result = checkFeeCompliance({
+      jurisdiction: "CA",
+      assetSource: "STATE_CONTROLLER_UNCLAIMED_PROPERTY",
+      estimatedRecoveryCents: 10_000_00,
+      proposedFeeCents: 1_500_00, // 15%
+    });
+    expect(result.action).toBe("BLOCK_AND_ESCALATE");
+    expect(result.reason).toMatch(/15\.0%/);
+    expect(result.reason).toMatch(/Civ\. Proc\. § 1582/);
+  });
+
+  it("blocks and escalates rather than dividing by zero when there's no estimated recovery", () => {
+    const result = checkFeeCompliance({
+      jurisdiction: "CA",
+      assetSource: "STATE_CONTROLLER_UNCLAIMED_PROPERTY",
+      estimatedRecoveryCents: 0,
+      proposedFeeCents: 0,
+    });
+    expect(result.action).toBe("BLOCK_AND_ESCALATE");
   });
 });
 

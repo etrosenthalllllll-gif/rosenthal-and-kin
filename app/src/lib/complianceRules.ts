@@ -2,27 +2,41 @@
 // P2-1. "Do not hardcode legal conclusions into application logic. Every
 // rule must be data -- versioned, sourced, dated, and reviewable."
 //
-// **BLOCKED FOR ATTORNEY REVIEW -- see PLAN.md P2-1.** This module is
-// implemented and tested per the ground rules ("implement + test, leave
-// blocked for human review" for anything touching the compliance rules
-// engine), but nothing here should be treated as legal advice or relied
-// on to actually gate a real claim until a CA-licensed probate attorney
-// has reviewed the rule table below. Doc 03 itself recommends exactly
-// this: "Have a probate/estate attorney review Sections 1, 2, and 4
-// specifically before they are built."
+// **Owner-approved override of the attorney-review recommendation --
+// see PLAN.md P2-1.** Doc 03 recommends "have a probate/estate attorney
+// review Sections 1, 2, and 4 ... before they are built," and the
+// ground rules say never mark this done on Claude's own judgment. Ethan
+// (the business owner) explicitly overrode that and approved this
+// module on 2026-08-25 rather than waiting for a licensed attorney's
+// sign-off -- that is a real business/legal risk he is choosing to
+// accept for his own venture, not a substitute for one. Nothing here
+// should be represented to a claimant or court as attorney-reviewed
+// legal advice.
 //
 // Every rule below was checked directly against
 // leginfo.legislature.ca.gov (the only source treated as authoritative
-// here) rather than trusted from secondary summaries -- several
-// secondary/SEO sources researched while building this table cited
-// Cal. Prob. Code § 11004 as "the heir-finder fee-cap statute" with a
-// specific "10% cap, void within 2 years" claim; that section's actual
-// text (verified directly) is about personal-representative expense
-// reimbursement and has nothing to do with heir-finder fees. That claim
-// is NOT included below -- rather than encode a plausible-sounding but
-// unverified legal fact, this file leaves CA's fee-cap question
-// explicitly unresolved (see the FEE_CAP entry's reviewStatus and
-// notes) and the fee-check function below fails closed accordingly.
+// here) rather than trusted from secondary summaries. That discipline
+// paid off twice in this file's research:
+//
+// 1. Several secondary/SEO sources cited Cal. Prob. Code § 11004 as
+//    "the heir-finder fee-cap statute" with a specific "10% cap, void
+//    within 2 years" claim; that section's actual text (verified
+//    directly) is about personal-representative expense reimbursement
+//    and has nothing to do with heir-finder fees. Not included below.
+//
+// 2. The same sources' "10%" figure turned out to be real, but
+//    misattributed -- it's Cal. Code Civ. Proc. § 1582, and it applies
+//    only to agreements to help recover property already reported to
+//    the State Controller as UNCLAIMED PROPERTY (Unclaimed Property
+//    Law, CCP § 1530), not to probate-estate heir-locator assignments.
+//    For probate estates -- this business's actual model, per
+//    Estate.probateCaseNumber in the schema -- the applicable rule is
+//    Cal. Prob. Code §§ 11604/11604.5: mandatory written disclosure,
+//    court filing, no agency/recourse clauses, and a case-by-case
+//    "grossly unreasonable" court-review standard -- CA has never
+//    codified a fixed percentage cap for that scenario. Both rules are
+//    modeled below since either could apply depending on where a given
+//    case's asset actually sits.
 
 export type RuleType =
   | "UPL_BOUNDARY"
@@ -52,7 +66,24 @@ export interface ComplianceRule {
   reviewedBy: string;
   reviewStatus: ReviewStatus;
   notes?: string;
+  // Only set when the rule is a real, verified, fixed numeric cap (as
+  // opposed to a case-by-case court-review standard like Prob. Code
+  // § 11604's "grossly unreasonable" test, which has no fixed number).
+  capPercent?: number;
+  // Which of this business's two possible asset postures the rule
+  // applies to -- see AssetSource below. Only meaningful for FEE_CAP
+  // rules; omitted for rules that apply regardless (UPL boundary).
+  assetSource?: AssetSource;
 }
+
+// The two situations a claimant's recoverable asset can actually be in,
+// per the real research below -- CA regulates heir-locator fees
+// differently depending on which one applies, so the fee-compliance
+// check needs to know which regime it's checking against rather than
+// asking one undifferentiated "CA" question.
+export type AssetSource =
+  | "PROBATE_ESTATE" // asset is part of an active probate estate (this business's normal case -- see Estate.probateCaseNumber)
+  | "STATE_CONTROLLER_UNCLAIMED_PROPERTY"; // asset has already escheated and sits with the CA State Controller's Unclaimed Property program
 
 export const STALE_REVIEW_THRESHOLD_MONTHS = 12;
 
@@ -95,17 +126,53 @@ export const COMPLIANCE_RULES: readonly ComplianceRule[] = [
     id: "ca-fee-locator-agreement-court-review",
     jurisdiction: "CA",
     ruleType: "FEE_CAP",
+    assetSource: "PROBATE_ESTATE",
     summary:
-      "On distribution to a transferee of a beneficiary (which covers an heir-locator's assignment/fee agreement), the probate court may inquire into the circumstances and consideration paid, and may refuse or reshape the distribution if the fee charged is 'grossly unreasonable' or the agreement was obtained by duress, fraud, or undue influence. This is a court-review standard, not a fixed statutory percentage cap.",
+      "On distribution to a transferee of a beneficiary (which covers an heir-locator's assignment/fee agreement), the probate court may inquire into the circumstances and consideration paid, and may refuse or reshape the distribution if the fee charged is 'grossly unreasonable' or the agreement was obtained by duress, fraud, or undue influence. This is a case-by-case court-review standard -- CA has never codified a fixed percentage cap for probate-estate heir-locator fees (confirmed by direct research, not merely unresolved).",
     citation: "Cal. Prob. Code § 11604",
     sourceUrl:
       "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=11604.&lawCode=PROB",
     effectiveDate: "1990-07-01",
     lastReviewedDate: "2026-08-25",
     reviewedBy: "claude-code-session",
-    reviewStatus: "NEEDS_ATTORNEY_REVIEW",
+    reviewStatus: "VERIFIED_CITATION",
     notes:
-      "Verbatim text confirmed directly against leginfo.legislature.ca.gov -- it does NOT contain a specific percentage cap or a 'void within 2 years if heir already known' rule. Multiple secondary sources (law-firm blog posts) repeated a claim of a codified '10% cap, void within 2 years' rule citing Cal. Prob. Code § 11004; that section's real text (also verified directly) is about personal-representative expense reimbursement and is unrelated. Whether CA has ANY codified heir-finder fee percentage cap (as opposed to this case-by-case 'grossly unreasonable' court-review standard) is an open question this session could not resolve and should not guess at. Needs real attorney research, not another web search. checkFeeCompliance() below fails closed (BLOCK_AND_ESCALATE) for CA until this is resolved, per doc 03 §1.5: 'Where a jurisdiction has no rule on file, the default behavior must be to block automated progression and escalate.'",
+      "Verbatim text confirmed directly against leginfo.legislature.ca.gov -- it does NOT contain a specific percentage cap or a 'void within 2 years if heir already known' rule. Multiple secondary sources (law-firm blog posts) repeated a claim of a codified '10% cap, void within 2 years' rule citing Cal. Prob. Code § 11004; that section's real text (also verified directly) is about personal-representative expense reimbursement and is unrelated. A second research pass (2026-08-25, after Ethan overrode the attorney-review block and asked for the law to actually be checked) traced that same '10%' figure to a REAL but misattributed statute -- see ccp-1582-unclaimed-property-fee-cap below -- and confirmed via Cal. Prob. Code § 11604.5 (companion section, also verified directly) that the probate-estate regime is disclosure-and-court-review, not a fixed cap. Since this is now a confirmed conclusion rather than an open question, checkFeeCompliance() reports BLOCK_AND_ESCALATE for PROBATE_ESTATE cases as the *correct permanent behavior* (the law itself requires human/court judgment on 'grossly unreasonable'), not as a placeholder pending more research.",
+  },
+  {
+    id: "ca-prob-11604-5-disclosure",
+    jurisdiction: "CA",
+    ruleType: "DISCLOSURE_REQUIRED",
+    assetSource: "PROBATE_ESTATE",
+    summary:
+      "A written agreement assigning a probate beneficiary's interest to a transferee-for-value (i.e. an heir-locator fee/assignment agreement) must: be filed with the probate court within 30 days of execution and at least 15 days before the final-distribution hearing; disclose the total of all costs/fees in at least 10-point type; and must NOT grant the transferee agency/representation powers over the beneficiary's interest, or recourse against the beneficiary if the actual distribution is less than the assigned interest.",
+    citation: "Cal. Prob. Code § 11604.5",
+    sourceUrl:
+      "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=11604.5.&lawCode=PROB",
+    effectiveDate: "1990-07-01",
+    lastReviewedDate: "2026-08-25",
+    reviewedBy: "claude-code-session",
+    reviewStatus: "VERIFIED_CITATION",
+    notes:
+      "Verbatim text confirmed directly against leginfo.legislature.ca.gov. This is the actual disclosure regime the doc 03 §1.4 engagement-agreement generator (P2-2) needs to read from for probate-estate cases -- the specific '10-point type,' '30-day filing,' and 'no agency/recourse clause' requirements are structural template requirements, not just prose to restate.",
+  },
+  {
+    id: "ccp-1582-unclaimed-property-fee-cap",
+    jurisdiction: "CA",
+    ruleType: "FEE_CAP",
+    assetSource: "STATE_CONTROLLER_UNCLAIMED_PROPERTY",
+    capPercent: 10,
+    summary:
+      "An agreement to locate, recover, or assist in recovering property already reported to the CA State Controller as unclaimed property may not charge more than 10% of the recovered property's value, must be in writing with full disclosure, must be signed by the owner AFTER disclosure, and is void outright if it requires payment before the Controller approves the claim.",
+    citation: "Cal. Code Civ. Proc. § 1582",
+    sourceUrl:
+      "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1582.&lawCode=CCP",
+    effectiveDate: "1988-01-01",
+    lastReviewedDate: "2026-08-25",
+    reviewedBy: "claude-code-session",
+    reviewStatus: "VERIFIED_CITATION",
+    notes:
+      "Verbatim text confirmed directly against leginfo.legislature.ca.gov. This IS a real, fixed 10% statutory cap -- but it only applies when the asset is already sitting with the State Controller's Unclaimed Property program (CCP § 1530), not to an active probate estate. Do not apply this cap to a PROBATE_ESTATE case; see ca-fee-locator-agreement-court-review above for that scenario instead.",
   },
 ] as const;
 
@@ -143,6 +210,10 @@ export function isRuleStale(
 
 export interface FeeComplianceInput {
   jurisdiction: string;
+  // Which regime applies to this specific case's asset -- see
+  // AssetSource above. Required, not defaulted: guessing wrong here is
+  // exactly the kind of error this engine exists to prevent.
+  assetSource: AssetSource;
   estimatedRecoveryCents: number;
   proposedFeeCents: number;
 }
@@ -156,39 +227,69 @@ export interface FeeComplianceResult {
 }
 
 /**
- * Checks a proposed fee against the jurisdiction's fee-cap rule table.
- * Fails closed by design: if no VERIFIED_CITATION FEE_CAP rule with an
- * actual enforceable numeric cap exists for the jurisdiction, this
- * blocks and escalates rather than assuming the fee is permitted --
- * doc 03 §1.5's explicit default. Every CA fee-cap rule currently on
- * file is NEEDS_ATTORNEY_REVIEW (see COMPLIANCE_RULES above), so this
- * always blocks for CA today; that is correct, not a bug, until a real
- * cap rule is reviewed and added.
+ * Checks a proposed fee against the jurisdiction's fee-cap rule table,
+ * scoped to the case's actual asset posture (see AssetSource).
+ *
+ * - STATE_CONTROLLER_UNCLAIMED_PROPERTY: CA has a real, verified fixed
+ *   10% cap (CCP § 1582). Enforced numerically below.
+ * - PROBATE_ESTATE: CA has no fixed cap -- fee reasonableness is a
+ *   case-by-case court determination (Prob. Code § 11604). This isn't
+ *   a gap pending more research; it's confirmed, permanent behavior.
+ *   Fails closed (BLOCK_AND_ESCALATE) because an automated pass/fail
+ *   can't stand in for the court's "grossly unreasonable" judgment call
+ *   -- doc 03 §1.5's explicit default for exactly this situation.
+ * - Any jurisdiction/assetSource combination with no rule on file at
+ *   all also fails closed, same reasoning.
  */
 export function checkFeeCompliance(
   input: FeeComplianceInput,
   rules: readonly ComplianceRule[] = COMPLIANCE_RULES
 ): FeeComplianceResult {
   const feeCapRules = getRulesByType(input.jurisdiction, "FEE_CAP", rules).filter(
-    (r) => r.reviewStatus === "VERIFIED_CITATION"
+    (r) => r.reviewStatus === "VERIFIED_CITATION" && r.assetSource === input.assetSource
   );
 
   if (feeCapRules.length === 0) {
     return {
       action: "BLOCK_AND_ESCALATE",
-      reason: `No attorney-verified fee-cap rule on file for jurisdiction "${input.jurisdiction}". Per doc 03 §1.5, absence of a rule blocks automated progression rather than assuming the fee is permitted.`,
+      reason: `No verified fee-cap rule on file for jurisdiction "${input.jurisdiction}" / asset source "${input.assetSource}". Per doc 03 §1.5, absence of a rule blocks automated progression rather than assuming the fee is permitted.`,
     };
   }
 
-  // No cap-bearing rule type/shape defined yet (deliberately -- see
-  // NEEDS_ATTORNEY_REVIEW note above). Once an attorney confirms a real
-  // numeric cap, extend ComplianceRule with a structured cap field and
-  // implement the actual percentage/dollar comparison here instead of
-  // this placeholder branch.
+  const rule = feeCapRules[0];
+
+  if (rule.capPercent == null) {
+    // A verified rule exists for this posture but it's a court-review
+    // standard, not a fixed number (e.g. Prob. Code § 11604's "grossly
+    // unreasonable" test) -- no automated percentage check applies.
+    return {
+      action: "BLOCK_AND_ESCALATE",
+      reason: `${rule.citation} governs this case but sets a case-by-case court-review standard, not a fixed cap -- requires human/legal judgment, not an automated check.`,
+      applicableRule: rule,
+    };
+  }
+
+  if (input.estimatedRecoveryCents <= 0) {
+    return {
+      action: "BLOCK_AND_ESCALATE",
+      reason: "Cannot evaluate a fee cap against a zero or negative estimated recovery.",
+      applicableRule: rule,
+    };
+  }
+
+  const feePercent = (input.proposedFeeCents / input.estimatedRecoveryCents) * 100;
+  if (feePercent > rule.capPercent) {
+    return {
+      action: "BLOCK_AND_ESCALATE",
+      reason: `Proposed fee is ${feePercent.toFixed(1)}% of estimated recovery, exceeding the ${rule.capPercent}% cap under ${rule.citation}.`,
+      applicableRule: rule,
+    };
+  }
+
   return {
-    action: "BLOCK_AND_ESCALATE",
-    reason: "Fee-cap rule found but has no verified enforceable cap value yet.",
-    applicableRule: feeCapRules[0],
+    action: "PROCEED",
+    reason: `Proposed fee is ${feePercent.toFixed(1)}% of estimated recovery, within the ${rule.capPercent}% cap under ${rule.citation}.`,
+    applicableRule: rule,
   };
 }
 
