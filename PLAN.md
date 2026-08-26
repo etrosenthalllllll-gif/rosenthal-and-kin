@@ -732,10 +732,14 @@ content goes in, same as P2-1.
   document id -- a same-id document with a changed content hash is
   `changed`, never remove+add, so an operator re-reviewing a
   regenerated package sees exactly what's new. 7 new tests.
-- [ ] P6-15 todo — Package integrity checker (doc 07 §41): verifies
-  every referenced document/exhibit exists, no duplicates, form
-  versions correct, signatures present where required, manifest
-  matches actual contents -- any mismatch blocks READY_FOR_FILING.
+- [x] P6-15 done — Package integrity checker (doc 07 §41):
+  `claimPackageIntegrity.ts`'s `checkPackageIntegrity()` -- verifies
+  every referenced document exists, no duplicate manifest entries, no
+  superseded form versions, required signatures present, and the
+  manifest exactly matches the package's own document list; `passed` is
+  true only when every check clears, and every failure is reported as a
+  specific typed issue (never a bare fail) for the caller to act on
+  before READY_FOR_FILING. 6 new tests.
 - [ ] P6-16 todo — Claim preparation state machine (doc 07 §49-53):
   explicit state machine (CASE_VERIFIED through READY_FOR_FILING),
   mirrors stateMachine.ts's (P0-3) validated-transition discipline;
@@ -823,3 +827,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-11] `exhibitAssembly.ts`: `checkExhibitEligibility()` (correct case, validated, not a confirmed duplicate, not superseded) + `buildExhibitAssembly()`, deterministic ordering + auto-generated index/page map over the eligible subset only, CUSTOM scheme without an order fails closed rather than falling back silently. Verified regeneration-equality directly (same input -> byte-identical output). 11 new tests, full suite 462/462 passing, `tsc --noEmit` clean, `next build` clean. **Phase 6's currently-unblocked-and-buildable tasks (P6-1 through P6-11) are now all done**; P6-12 is blocked on an e-signature vendor account, and P6-13 through P6-18 remain todo.
 - 2026-08-26 — Ethan asked for a progress percentage + time estimate (answered ~55-60% by rough phase-weighting, flagged that Phases 7-9 aren't decomposed yet and involve the heaviest remaining vendor-account blockers) and said to keep going. Still queued behind the GitHub-login blocker (still away from his computer). [P6-13] `claimCompletenessEngine.ts`: `evaluateClaimCompleteness()` composes CompletenessSignal entries from earlier P6 modules into COMPLETE/INCOMPLETE/REQUIRES_REVIEW -- any unsatisfied hard blocker forces INCOMPLETE un-overridably, an unsatisfied soft signal alone only reaches REQUIRES_REVIEW, every result carries a specific human-readable explanation. 5 new tests, full suite 467/467 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-14] `claimPackage.ts`: `assembleClaimPackage()` (deterministic document ordering + manifest, always a new object per version) + `diffClaimPackages()` (same-id-different-hash is `changed`, never remove+add). 7 new tests, full suite 474/474 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-15] `claimPackageIntegrity.ts`: `checkPackageIntegrity()` -- missing documents, duplicate manifest entries, superseded form versions, missing required signatures, manifest/document-list mismatches; `passed` only true once every check clears, every failure a specific typed issue. 6 new tests, full suite 480/480 passing, `tsc --noEmit` clean, `next build` clean.
