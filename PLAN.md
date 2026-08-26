@@ -1682,12 +1682,18 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   (current step/pending actions/completed external actions shown
   before cancelling). 13 new tests, full suite 1031/1031 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P10-18 todo — Orchestration safety: risk levels + high-risk gates
-  (doc 11 §76-78): LOW/MEDIUM/HIGH/CRITICAL risk per action type
-  (matches the doc's own examples -- draft email LOW, submit claim
-  HIGH, distribute funds CRITICAL), extending the existing
-  `highConsequence` pattern; high confidence never bypasses a required
-  human-approval gate on a HIGH/CRITICAL action.
+- [x] P10-18 done — Orchestration safety: risk levels + high-risk gates
+  (doc 11 §76-78): `orchestrationRisk.ts` -- `DEFAULT_ACTION_RISK_TABLE`
+  (doc's own examples verbatim: draft email LOW, send email MEDIUM,
+  submit claim HIGH, distribute funds CRITICAL, close case HIGH),
+  `getActionRiskLevel()` (an unrecognized action type fails closed to
+  CRITICAL, never LOW), `requiresHumanApprovalRegardlessOfConfidence()`,
+  `evaluateOrchestrationSafety()` (a HIGH/CRITICAL action is downgraded
+  to human approval even when confidence alone would allow it; a rule
+  failure always stays BLOCKED regardless of risk level) -- extends
+  the existing `highConsequence` boolean on `decisionTypes.ts` into a
+  full four-level scale. 8 new tests, full suite 1039/1039 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-19 todo — Security + audit trail for automation actions (doc
   11 §79-80): every automated action runs under an authenticated
   actor (never anonymous), mapped onto the existing generic `audit.ts`
@@ -1856,3 +1862,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-15] `automationAnalytics.ts`: computeAutomationHealthScore(), computeWorkflowInterventionMetrics(), buildAutomationOutcomeRecord()/computeOutcomeAgreementRate() (never auto-applied to change rules). 8 new tests, full suite 1013/1013 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-16 (Configuration management).
 - 2026-08-26 — [P10-16] `automationConfig.ts`: planNextConfigVersion() (never in-place edit), recordConfigChange() (reason+actor required). 5 new tests, full suite 1018/1018 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-17 (Dry-run/test mode + manual controls).
 - 2026-08-26 — [P10-17] `workflowManualControls.ts`: buildDryRunReport(), canPerformRealAction(), buildManualExecutionPreview(), evaluateSkipStep(), resolveRestartStepIndex(), buildCancellationConsequences(). 13 new tests, full suite 1031/1031 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-18 (Orchestration safety: risk levels + high-risk gates).
+- 2026-08-26 — [P10-18] `orchestrationRisk.ts`: DEFAULT_ACTION_RISK_TABLE, getActionRiskLevel() (fails closed to CRITICAL), requiresHumanApprovalRegardlessOfConfidence(), evaluateOrchestrationSafety(). 8 new tests, full suite 1039/1039 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-19 (Security + audit trail for automation actions).
