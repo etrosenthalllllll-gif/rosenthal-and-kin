@@ -1076,11 +1076,18 @@ routing logic itself, synthetic-data testing).
   claim type/provider -- buildable now against an in-memory reference
   connector and manual-status-entry fallback; real court/agency API
   integrations need actual accounts/access that don't exist yet.
-- [ ] P8-4 todo — Monitoring schedule + jobs (doc 09 §8-9): configurable
-  polling cadence (frequent when newly filed, daily while processing,
-  weekly long-term, increased near a deadline/hearing) using the
-  existing background job system (P0-8), each job supporting retry/
-  timeout/failure-state/idempotency.
+- [x] P8-4 done — Monitoring schedule + jobs (doc 09 §8-9):
+  `postFilingMonitoringSchedule.ts`'s `determineMonitoringIntervalMinutes()`
+  -- the doc's own cadence config table (newly filed frequent,
+  processing daily, long-term-pending weekly); "increase frequency"
+  near a deadline/hearing is implemented as taking whichever interval
+  is shorter, so an approaching event never gets checked *less* often
+  than its base tier already implies. `planNextMonitoringCheck()`
+  computes the next check timestamp from a caller-supplied
+  `lastCheckedAt`. `PostFilingJobType` names the doc's own 8-job list
+  as the single source of truth for whatever wires these onto the
+  existing background job system (P0-8) -- retry/timeout/idempotency
+  mechanics are reused from there, not rebuilt. 6 new tests.
 - [ ] P8-5 todo — Status change detection + event normalization (doc 09
   §10-13): compares previous vs. current external status, creates a
   STATUS_CHANGE_EVENT only on an actual change; normalizes into a fixed
@@ -1370,3 +1377,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-17] `filingCorrection.ts`: `createCorrectionCase()` (OPEN/unassigned/unresolved), `evaluateResubmissionReadiness()` (7-check readiness list, every failure named), `checkDuplicateFilingProtection()` (pauses + requires review, never silently blocks or allows). 6 new tests, full suite 608/608 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-18] `filingDeadlineAlerts.ts` (escalation ladder, source required, never fabricated), `filingQueue.ts` (next-action-per-status view model), `REVIEW_FILING_EXCEPTION` decision type + `filingDecisionRouting.ts` (wires rejection/duplicate/reconciliation into it), append-only `FilingEvent` schema model, `filingAnalytics.ts` (acceptance/rejection/resubmission rate + average acceptance days, honestly scoped). 34 new tests, full suite 629/629 passing, `tsc --noEmit` clean, `next build` clean. **Every currently-unblocked Phase 7 task (P7-1 through P7-18) is now done.** P7-5/P7-10 remain blocked on real filing-provider/payment-provider accounts. Next unblocked work is Phase 8 (Post-filing Monitoring, doc 09) starting at P8-1.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 8 (Post-filing Monitoring, doc 09). [P8-1] `PostFilingCase`/`PostFilingCaseStatus`/append-only `PostFilingEvent` schema + `postFilingStateMachine.ts` (validated-transition discipline, ESCALATED/ON_HOLD universal exits, only CLOSED terminal). [P8-2] `postFilingAttentionQueue.ts`: `categorizeAttention()` (every triggered category, doc's own priority order) + `buildAttentionQueue()` + `buildPostFilingDashboard()`. 20 new tests, full suite 649/649 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-4] `postFilingMonitoringSchedule.ts`: `determineMonitoringIntervalMinutes()` (doc's cadence table, "increase frequency" = shorter interval, never lengthens past the base tier) + `planNextMonitoringCheck()` + `PostFilingJobType` naming the doc's 8-job list. 6 new tests, full suite 655/655 passing, `tsc --noEmit` clean, `next build` clean.
