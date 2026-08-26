@@ -1609,12 +1609,18 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   `followUpScheduler.ts`/`postFilingFollowUp.ts`/`paymentReminder.ts`.
   8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P10-11 todo — Cross-system synchronization + sync exceptions (doc
-  11 §44-49): named source-of-truth ownership per data object, a
-  `SYNC_EXCEPTION` (never a silent overwrite) when two systems
-  disagree, external-API sync tracking, and the polling/webhook
-  patterns -- generalizes the same shape already built per-domain in
-  `filingTrackingReconciliation.ts`/`postFilingMonitoringReconciliation.ts`.
+- [x] P10-11 done — Cross-system synchronization + sync exceptions (doc
+  11 §44-49): `crossSystemSync.ts` -- `SOURCE_OF_TRUTH` table (named
+  ownership per data object; the automation layer only ever reads it),
+  `detectSyncException()` (a disagreement is flagged for review, never
+  silently overwritten in either direction -- same discipline as
+  `conflictDetection.ts`/`financialReconciliation.ts`),
+  `buildExternalApiSyncRecord()` (provider/endpoint/request id/
+  idempotency key/retry count), `evaluatePollResult()` (idempotent by
+  construction -- same status pair always yields the same outcome),
+  `evaluateWebhookIntake()` (duplicate webhook id ignored, never
+  reprocessed). 10 new tests, full suite 979/979 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P10-12 todo — Event ordering + state-transition + concurrency
   protection (doc 11 §50-53): an out-of-order event (e.g. ACCEPTED
   before SUBMITTED) produces an `EVENT_ORDER_EXCEPTION` rather than
@@ -1819,3 +1825,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-8] `retryEngine.ts`: isRetryableFailure(), computeRetryDelayMs() (deterministic exponential backoff), planRetry(), buildDeadLetterEntry(). 9 new tests, full suite 948/948 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-9 (Timeouts + idempotency keys + duplicate-action protection).
 - 2026-08-26 — [P10-9] `idempotentAction.ts`: buildIdempotencyKey(), checkIdempotentAction(), buildDuplicateEmailKey()/checkDuplicateFiling()/isDuplicatePayment(), evaluateStepTimeout() (timeout = status-unknown, not FAILED). 13 new tests, full suite 961/961 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-10 (Scheduled job system + deadline-aware scheduling).
 - 2026-08-26 — [P10-10] `scheduledJob.ts`: computeNextRunAt(), isJobDue(), planDeadlineReminders(), formatTimezoneAwareTimestamp(). 8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-11 (Cross-system synchronization + sync exceptions).
+- 2026-08-26 — [P10-11] `crossSystemSync.ts`: SOURCE_OF_TRUTH table, detectSyncException(), buildExternalApiSyncRecord(), evaluatePollResult(), evaluateWebhookIntake(). 10 new tests, full suite 979/979 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-12 (Event ordering + state-transition + concurrency protection).
