@@ -1115,14 +1115,28 @@ routing logic itself, synthetic-data testing).
   there's no valid scheduled date at all -- "do not fabricate missing
   times" per the doc's own instruction, a distinct outcome from "zero
   reminders configured." 6 new tests.
-- [ ] P8-7 todo — Deadline model + sources/calculation/confidence (doc
-  09 §20-23): every deadline identifies its source (never presents an
-  AI-inferred deadline as an official one); a deadline extracted from
-  ambiguous text is marked low-confidence + REQUIRES_REVIEW rather than
-  becoming a hard deadline automatically.
-- [ ] P8-8 todo — Deadline dashboard + escalation (doc 09 §24-25):
-  TODAY/NEXT 3/7/30 DAYS/OVERDUE views with configurable escalating
-  alert thresholds (normal -> high -> urgent -> critical).
+- [x] P8-7 done — Deadline model + sources/calculation/confidence (doc
+  09 §20-23): `postFilingDeadline.ts`'s `classifyDeadlineStatus()`
+  (UPCOMING/DUE_SOON/DUE_TODAY/OVERDUE, configurable due-soon
+  threshold) + `buildDeadlineRecord()` -- every deadline requires an
+  explicit `source` (no silent fallback), preserves the calculation
+  inputs (rule id/version/trigger date/description) verbatim, and any
+  ambiguous extraction forces `confidence: REQUIRES_REVIEW` regardless
+  of source, never auto-creating a hard deadline from uncertain
+  information. 8 new tests.
+- [x] P8-8 done — Deadline dashboard + escalation (doc 09 §24-25):
+  `postFilingDeadlineDashboard.ts`'s `classifyPostFilingDeadlineEscalation()`
+  reuses filingDeadlineAlerts.ts's (P7-18) escalation-ladder shape
+  directly rather than re-implementing the identical
+  normal/high/urgent/critical threshold logic under a new name.
+  `groupDeadline()`/`buildDeadlineDashboard()` implement the doc's own
+  TODAY/NEXT_3_DAYS/NEXT_7_DAYS/NEXT_30_DAYS/OVERDUE/COMPLETED
+  groupings -- a resolved deadline (completed/waived/cancelled) always
+  groups as COMPLETED regardless of its date. Caught and fixed a
+  latent shared-array-reference bug in `emptyDeadlineDashboard()`
+  before it shipped (a module-level constant spread would have let one
+  caller's mutation leak into every other caller's "empty" dashboard).
+  6 new tests.
 - [ ] P8-9 todo — Document request model + detection + validation (doc
   09 §26-30): `DocumentRequest` (the doc's own status list) detected
   from official API/correspondence/inbound email/manual entry; when a
@@ -1394,3 +1408,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-4] `postFilingMonitoringSchedule.ts`: `determineMonitoringIntervalMinutes()` (doc's cadence table, "increase frequency" = shorter interval, never lengthens past the base tier) + `planNextMonitoringCheck()` + `PostFilingJobType` naming the doc's 8-job list. 6 new tests, full suite 655/655 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-5] `postFilingEventNormalization.ts`: `detectStatusChange()`/`shouldCreateStatusChangeEvent()` (event only on an actual change) + `normalizeExternalEvent()` (fails closed to UNKNOWN_EVENT, raw wording always preserved, requiresHumanReview flagged rather than silently ignored). 6 new tests, full suite 661/661 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-6] Added CourtEvent/CourtEventType + Hearing/HearingStatus schema models; `hearingLifecycle.ts`: `rescheduleHearing()` (preserves the original, links forward to a new row), `cancelHearing()`, `planHearingReminders()` (null, not empty array, when no valid date exists). 6 new tests, full suite 667/667 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-7] `postFilingDeadline.ts`: `classifyDeadlineStatus()` + `buildDeadlineRecord()` (source required, calculation inputs preserved, ambiguity forces REQUIRES_REVIEW). [P8-8] `postFilingDeadlineDashboard.ts`: reuses filingDeadlineAlerts.ts's escalation ladder, `groupDeadline()`/`buildDeadlineDashboard()` (doc's own groupings), caught and fixed a shared-array-reference bug in `emptyDeadlineDashboard()` before shipping. 14 new tests, full suite 681/681 passing, `tsc --noEmit` clean, `next build` clean.
