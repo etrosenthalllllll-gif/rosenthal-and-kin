@@ -1088,13 +1088,17 @@ routing logic itself, synthetic-data testing).
   as the single source of truth for whatever wires these onto the
   existing background job system (P0-8) -- retry/timeout/idempotency
   mechanics are reused from there, not rebuilt. 6 new tests.
-- [ ] P8-5 todo — Status change detection + event normalization (doc 09
-  §10-13): compares previous vs. current external status, creates a
-  STATUS_CHANGE_EVENT only on an actual change; normalizes into a fixed
-  internal vocabulary while always preserving the raw external response
-  (same discipline as P7-14); an unrecognized event becomes
-  UNKNOWN_EXTERNAL_EVENT routed to human review, never silently
-  ignored.
+- [x] P8-5 done — Status change detection + event normalization (doc 09
+  §10-13): `postFilingEventNormalization.ts`'s `detectStatusChange()`/
+  `shouldCreateStatusChangeEvent()` -- a STATUS_CHANGE_EVENT only when
+  the status actually differs, an unchanged status is just a recorded
+  check. `normalizeExternalEvent()` -- the doc's own 12-type normalized
+  vocabulary, failing closed to UNKNOWN_EVENT for an unrecognized
+  (connector, rawEventType) pair rather than guessing (same discipline
+  as filingProviderNormalization.ts's/P7-14 normalizeProviderStatus()),
+  always preserving the raw event type and wording regardless of
+  recognition, and flagging `requiresHumanReview` whenever the event
+  wasn't recognized -- never silently ignored. 6 new tests.
 - [ ] P8-6 todo — Authority Event + Hearing tracking (doc 09 §14-19):
   configurable Event types (hearing/status conference/deadline/
   decision/etc.) and Hearing records (the doc's own status list);
@@ -1378,3 +1382,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-18] `filingDeadlineAlerts.ts` (escalation ladder, source required, never fabricated), `filingQueue.ts` (next-action-per-status view model), `REVIEW_FILING_EXCEPTION` decision type + `filingDecisionRouting.ts` (wires rejection/duplicate/reconciliation into it), append-only `FilingEvent` schema model, `filingAnalytics.ts` (acceptance/rejection/resubmission rate + average acceptance days, honestly scoped). 34 new tests, full suite 629/629 passing, `tsc --noEmit` clean, `next build` clean. **Every currently-unblocked Phase 7 task (P7-1 through P7-18) is now done.** P7-5/P7-10 remain blocked on real filing-provider/payment-provider accounts. Next unblocked work is Phase 8 (Post-filing Monitoring, doc 09) starting at P8-1.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 8 (Post-filing Monitoring, doc 09). [P8-1] `PostFilingCase`/`PostFilingCaseStatus`/append-only `PostFilingEvent` schema + `postFilingStateMachine.ts` (validated-transition discipline, ESCALATED/ON_HOLD universal exits, only CLOSED terminal). [P8-2] `postFilingAttentionQueue.ts`: `categorizeAttention()` (every triggered category, doc's own priority order) + `buildAttentionQueue()` + `buildPostFilingDashboard()`. 20 new tests, full suite 649/649 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-4] `postFilingMonitoringSchedule.ts`: `determineMonitoringIntervalMinutes()` (doc's cadence table, "increase frequency" = shorter interval, never lengthens past the base tier) + `planNextMonitoringCheck()` + `PostFilingJobType` naming the doc's 8-job list. 6 new tests, full suite 655/655 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-5] `postFilingEventNormalization.ts`: `detectStatusChange()`/`shouldCreateStatusChangeEvent()` (event only on an actual change) + `normalizeExternalEvent()` (fails closed to UNKNOWN_EVENT, raw wording always preserved, requiresHumanReview flagged rather than silently ignored). 6 new tests, full suite 661/661 passing, `tsc --noEmit` clean, `next build` clean.
