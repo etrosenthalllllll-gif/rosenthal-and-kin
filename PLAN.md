@@ -1785,6 +1785,168 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   purely as internal coordination logic wrapping the systems built in
   Phases 0-9.
 
+## Phase 11 — Monitoring & Observability (doc 12)
+Doc 12 (92 sections) read in full from Drive. "Do NOT build this as a
+collection of unrelated dashboards. Build one unified observability
+system" connecting SYSTEM → COMPONENT → WORKFLOW → JOB → EVENT → CASE →
+EXTERNAL PROVIDER → ALERT → INCIDENT → RESOLUTION. Pure-math/config-
+table logic throughout, same discipline as every prior phase; several
+pieces explicitly reuse Phase 10 modules (event/correlation-ID
+plumbing from `eventBus.ts`/`dataConsistency.ts`, sync-exception
+detection from `crossSystemSync.ts`, escalation-ladder shape from
+`automationNotification.ts`) rather than rebuilding them under a new
+name. No credential-blocked tasks -- this is entirely internal
+observability logic over data the platform already produces.
+
+- [ ] P11-1 todo — Health status model + health check system (doc 12
+  §2-4): HEALTHY/DEGRADED/DOWN/UNKNOWN/MAINTENANCE status model with
+  per-system fields (current status, last success/failure, failure
+  count/rate, response time, availability), and the 5 health-check
+  types (LIVENESS/READINESS/DEPENDENCY/FUNCTIONAL/INTEGRATION).
+- [ ] P11-2 todo — Database health monitoring (doc 12 §5): connection
+  failures, query latency, slow queries, pool utilization, transaction
+  failures, backup status -- config-table alert triggers.
+- [ ] P11-3 todo — API monitoring + error classification (doc 12
+  §6-7): per-API/endpoint/provider request-count and error-rate
+  tracking, the doc's 400/401/403/404/409/429/500/502/503/504/
+  NETWORK_ERROR/UNKNOWN classification (never treat every 4xx as an
+  outage).
+- [ ] P11-4 todo — API latency + availability monitoring (doc 12
+  §8-9): P50/P90/P95/P99 latency-threshold classification, rolling
+  availability percentage over 24h/7d/30d windows.
+- [ ] P11-5 todo — Workflow monitoring + failure/spike detection (doc
+  12 §10-13): per-workflow execution/success/failure/retry counts,
+  configurable failure-rate thresholds (WARNING/CRITICAL), and
+  baseline-vs-current spike detection that fires even when the
+  absolute percentage threshold isn't crossed.
+- [ ] P11-6 todo — Stuck workflow + stuck case + case SLA monitoring
+  (doc 12 §14-16): expected-vs-actual duration comparison producing
+  STUCK_WORKFLOW/STUCK_CASE, configurable per-stage SLA tracking
+  (time remaining/exceeded).
+- [ ] P11-7 todo — Queue monitoring: backlog/starvation/stall + worker
+  monitoring (doc 12 §17-21): queue depth/processing-rate/oldest-job
+  tracking, abnormal-growth backlog detection, the
+  jobs-exist-but-no-workers starvation case, oldest-job-age stall
+  detection, worker heartbeat/failure tracking.
+- [ ] P11-8 todo — Scheduler monitoring (doc 12 §22): missed/delayed/
+  duplicate scheduled-job detection against expected run times.
+- [ ] P11-9 todo — AI monitoring + failure detection + quality
+  validation (doc 12 §23-25): request/success/failure/timeout/cost
+  tracking, the doc's named failure list (provider unavailable,
+  invalid JSON, missing fields, malformed response), and structured-
+  output validation -- a successful API response is never assumed to
+  mean valid AI output.
+- [ ] P11-10 todo — AI confidence + model-version + cost monitoring
+  (doc 12 §26-28): confidence-distribution anomaly detection (average
+  confidence drop flagged), per-model-version comparison, cost
+  tracking by request/case/workflow/model/day with configurable budget
+  alerts.
+- [ ] P11-11 todo — Email/SMS/voice monitoring + communication failure
+  detection (doc 12 §29-33): per-channel queued/sent/delivered/failed/
+  bounce/opt-out tracking, abnormal-bounce-rate and
+  repeated-same-provider-failure detection.
+- [ ] P11-12 todo — Filing integration monitoring + failure alerts +
+  status reconciliation (doc 12 §34-36): submissions/rejections/
+  pending/API-error tracking per provider, stuck-pending and
+  no-status-update-in-24h detection, filing-status reconciliation
+  against the provider (reusing `crossSystemSync.ts`'s
+  `detectSyncException()` rather than a new mechanism).
+- [ ] P11-13 todo — Document/OCR + payment monitoring (doc 12 §37-38):
+  OCR processing time/failure/backlog tracking, payment attempt/
+  success/failure/reconciliation-discrepancy tracking.
+- [ ] P11-14 todo — DB/storage + synchronization + stale-data
+  detection (doc 12 §39-41): storage utilization/backup-health
+  tracking, cross-system sync attempt/conflict tracking, and
+  stale-data detection (hasn't synced within its expected interval).
+- [ ] P11-15 todo — Alert engine + severity + alert model (doc 12
+  §42-44): INFO/WARNING/ERROR/CRITICAL/EMERGENCY severity (config-
+  urable per source), the `Alert` shape (type/severity/source/
+  component/case/workflow/message/occurrence-count/status), OPEN/
+  ACKNOWLEDGED/INVESTIGATING/RESOLVED/SUPPRESSED statuses.
+- [ ] P11-16 todo — Alert dedup + correlation + incident model +
+  root-cause grouping (doc 12 §45-48): repeated identical alerts
+  collapse into one incident with an occurrence count (never 10,000
+  duplicate rows), a correlated-failure-chain example (filing API down
+  → submissions fail → workflow failures → queue grows → cases stuck)
+  groups under one parent `Incident` rather than five unrelated
+  crises.
+- [ ] P11-17 todo — Alert thresholds + escalation + notifications (doc
+  12 §49-51): configurable per-alert-type thresholds (never
+  hardcoded), created→notified→acknowledged→escalated-if-unresolved
+  ladder (reusing `automationNotification.ts`'s escalation-ladder
+  shape), and the rule that a failing provider is never the sole
+  channel used to notify about its own failure.
+- [ ] P11-18 todo — Alert acknowledgment + suppression + maintenance
+  mode (doc 12 §52-54): operator ACKNOWLEDGE/INVESTIGATE/RESOLVE/
+  SUPPRESS/ESCALATE actions (recorded, never silent), authorized
+  time-boxed suppression (reason+duration+operator required, never an
+  accidental permanent suppress), and a MAINTENANCE status distinct
+  from an unexpected outage.
+- [ ] P11-19 todo — Operator dashboard assembly: health summary +
+  prioritized queue + alert detail (doc 12 §55-58): top-level
+  HEALTHY/DEGRADED/DOWN summary with critical/warning/stuck-case/
+  queue-backlog counts, the doc's 8-level issue-priority sort
+  (safety/financial risk first), and the alert-detail-page shape
+  (what/when/why/affected/likely-root-cause/recommended-action).
+- [ ] P11-20 todo — Case-level monitoring + stuck-case detection (doc
+  12 §59-60): per-case automation-health panel (current workflow/step/
+  last success/failure/pending approval/SLA status), and the
+  CASE_ATTENTION_REQUIRED trigger list (no state change, waiting too
+  long, missing document, missed scheduled action, etc.).
+- [ ] P11-21 todo — Workflow trace + system timeline (doc 12 §61-62):
+  extends P10-14's `buildWorkflowTrace()`/`buildCaseTimeline()` with
+  the trigger→workflow→step→API→result→retry→next-step shape and a
+  system-wide (not just per-case) event timeline for incident
+  diagnosis.
+- [ ] P11-22 todo — Metrics retention + performance/throughput/
+  reliability dashboards (doc 12 §63-66): 24h/7d/30d retention
+  windows, average/P95 duration tracking across workflow/queue/API/AI/
+  document/filing/communication stages, per-period throughput counts,
+  and the automation-reliability rollup (success/intervention/retry/
+  failure/exception rate, SLA compliance).
+- [ ] P11-23 todo — Mean-time-to-detection + mean-time-to-resolution
+  (doc 12 §67-68): MTTD (incident-start to detection) and MTTR
+  (incident-start to resolution), both derived from stored timestamps,
+  never estimated.
+- [ ] P11-24 todo — Alert fatigue protection + automated remediation
+  (doc 12 §69-74): debounce/cooldown-gated alerting (one failure ≠
+  alert; sustained failure escalates), a config-table of safe
+  automated remediations (worker restart, circuit-breaker pause) that
+  explicitly excludes high-risk business actions, remediation logging,
+  and a remediation-attempt cap that escalates to a human rather than
+  looping forever.
+- [ ] P11-25 todo — Dependency graph + blast-radius + system-wide
+  alert grouping (doc 12 §75-77): a declared workflow→system
+  dependency map, blast-radius calculation (which workflows/queues/
+  cases a failed component could affect), and one system-wide incident
+  instead of one alert per affected case.
+- [ ] P11-26 todo — Monitoring API + permissions + security monitoring
+  (doc 12 §78-80): authenticated/authorized monitoring endpoints
+  (health/metrics/alerts/incidents), role-scoped permissions
+  (operator/manager/administrator, extending `auth.ts`'s existing
+  `Permission` union rather than a parallel system), and
+  security-relevant event monitoring (repeated auth failures,
+  unauthorized requests) integrated with the existing audit trail.
+- [ ] P11-27 todo — Logging strategy: structured logs + correlation
+  IDs + error codes (doc 12 §81-84): a structured log-entry shape
+  (timestamp/service/severity/case/workflow/execution/request/
+  correlation/event/error-code/message, never unstructured text-only),
+  consistent correlation IDs reused from Phase 10's
+  `attachCorrelationId()`, and a standardized internal error-code
+  catalog (AI_001, EMAIL_001, etc.) mapped to human-readable
+  explanations.
+- [ ] P11-28 todo — Final Monitoring Center assembly + end-to-end
+  incident test (doc 12 §85-91): the finished MONITORING CENTER
+  dashboard shape (system health / active incidents / attention-
+  required / queues / system metrics, per the doc's own mockup), plus
+  one integration test walking the doc's own end-to-end incident
+  scenario (provider begins failing → errors increase → retries →
+  queue grows → cases stuck → monitoring detects → incident created →
+  alerts grouped → provider marked DEGRADED → circuit breaker opens →
+  workflows paused → operator alerted → provider recovers → circuit
+  closes → workflows resume → incident resolved) across the modules
+  built in this phase.
+
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
 - Scale/triage, batch decisions, multi-operator — only when real volume forces it.
@@ -1915,3 +2077,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-24] `workflowReconciliation.ts`: findReconciliationDiscrepancies() (reuses crossSystemSync.ts's detectSyncException()), evaluateWorkflowStaleness(), evaluateSlaCompliance()/computeSlaComplianceRate(). 7 new tests, full suite 1086/1086 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-25 (Control dashboard assembly).
 - 2026-08-26 — [P10-25] `automationControlCenter.ts`: buildAutomationControlCenterSummary(), buildCaseAutomationPanel(), OPERATOR_APPROVAL_FLOW. 3 new tests, full suite 1089/1089 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-26 (Full end-to-end automation scenario test) -- the last task in Phase 10.
 - 2026-08-26 — [P10-26] `automationEndToEnd.test.ts`: one integration test walking doc 11's own 20-step end-to-end scenario across every Phase 10 module. 1 new test, full suite 1090/1090 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 10 (P10-1 through P10-26) is now done -- no credential blockers this phase.** Still queued locally behind the GitHub-login blocker; nothing from Phases 6-10 has been pushed yet.
+- 2026-08-26 — Ethan asked to complete Phases 11-17. Read doc 12 ("Monitoring," 92 sections) and doc 13 ("Analytics," 97 sections) in full from Drive; confirmed docs 14-16 ("System Improvement & Optimization Layer," "Enterprise Control, Data, Intelligence & Resilience Layer," "Compounding Intelligence Engine") are each individually large and explicitly marked "NEEDS RECONCILING" with each other, and docs 17/18 are the Build Order meta-doc and an architecture diagram, not additional buildable phases. Decomposed doc 12 into P11-1 through P11-28 in PLAN.md. Given the scope (each of docs 12/13 is on the same scale as doc 11's 26-task Phase 10, and docs 14-16 combined are larger still), this will span many sessions -- proceeding phase by phase with the same per-task test/build/commit rigor as every prior phase. Planning only, no code yet. Next: P11-1 (Health status model + health check system).
