@@ -1806,9 +1806,13 @@ observability logic over data the platform already produces.
   list, rates divide-by-zero guarded to null), the 5 health-check
   types + `isFunctionalHealthCheck()`. 9 new tests, full suite
   1099/1099 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-2 todo — Database health monitoring (doc 12 §5): connection
-  failures, query latency, slow queries, pool utilization, transaction
-  failures, backup status -- config-table alert triggers.
+- [x] P11-2 done — Database health monitoring (doc 12 §5):
+  `databaseHealth.ts` -- `evaluateDatabaseHealthAlerts()` (config-table
+  checks across connection-failure rate, slow-query rate, pool
+  utilization, transaction-failure rate, storage capacity, and
+  backup staleness; every abnormal signal collected, not just the
+  first). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit`
+  clean, `next build` clean.
 - [ ] P11-3 todo — API monitoring + error classification (doc 12
   §6-7): per-API/endpoint/provider request-count and error-rate
   tracking, the doc's 400/401/403/404/409/429/500/502/503/504/
@@ -2082,3 +2086,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P10-26] `automationEndToEnd.test.ts`: one integration test walking doc 11's own 20-step end-to-end scenario across every Phase 10 module. 1 new test, full suite 1090/1090 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 10 (P10-1 through P10-26) is now done -- no credential blockers this phase.** Still queued locally behind the GitHub-login blocker; nothing from Phases 6-10 has been pushed yet.
 - 2026-08-26 — Ethan asked to complete Phases 11-17. Read doc 12 ("Monitoring," 92 sections) and doc 13 ("Analytics," 97 sections) in full from Drive; confirmed docs 14-16 ("System Improvement & Optimization Layer," "Enterprise Control, Data, Intelligence & Resilience Layer," "Compounding Intelligence Engine") are each individually large and explicitly marked "NEEDS RECONCILING" with each other, and docs 17/18 are the Build Order meta-doc and an architecture diagram, not additional buildable phases. Decomposed doc 12 into P11-1 through P11-28 in PLAN.md. Given the scope (each of docs 12/13 is on the same scale as doc 11's 26-task Phase 10, and docs 14-16 combined are larger still), this will span many sessions -- proceeding phase by phase with the same per-task test/build/commit rigor as every prior phase. Planning only, no code yet. Next: P11-1 (Health status model + health check system).
 - 2026-08-26 — [P11-1] `healthStatus.ts`: resolveHealthStatus(), buildSystemHealthRecord(), health-check-type vocabulary. 9 new tests, full suite 1099/1099 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-2 (Database health monitoring).
+- 2026-08-26 — [P11-2] `databaseHealth.ts`: evaluateDatabaseHealthAlerts() (config-table checks, every abnormal signal collected). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-3 (API monitoring + error classification).
