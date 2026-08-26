@@ -1171,18 +1171,25 @@ routing logic itself, synthetic-data testing).
   pattern as P3-7, not re-derived) checked after stop conditions but
   before SEND, so a retried job never produces a duplicate. 5 new
   tests.
-- [ ] P8-12 todo — Claimant response routing (doc 09 §40): matches an
-  inbound claimant reply to its case (reuses matchConversationToCase.ts
-  /P3-2), classifies intent, and creates a decision/task only when
-  needed -- never assumes a bare "I uploaded it" claim satisfies a
-  request without independent validation.
-- [ ] P8-13 todo — Escalation engine (doc 09 §41-44): configurable
-  trigger table (deadline approaching/overdue, hearing proximity,
-  rejection, unknown event, missing response, provider outage, etc.),
-  5-level severity ladder, and an unacknowledged escalation
-  auto-escalating to the next level per configured rules -- same
-  fails-closed-on-unconfigured discipline as humanReviewTriggers.ts
-  (P5-9).
+- [x] P8-12 done — Claimant response routing (doc 09 §40):
+  `postFilingClaimantResponse.ts`'s `planClaimantResponseAction()` --
+  the doc's own worked examples as a config table (CLAIMS_DOCUMENT_UPLOADED
+  -> CHECK_PORTAL, never straight to "satisfied"; CANNOT_PROVIDE_DOCUMENT
+  -> CREATE_OPERATOR_DECISION; REQUESTS_EXPLANATION ->
+  ROUTE_TO_HUMAN_RESPONSE_WORKFLOW), OTHER failing closed to a generic
+  operator decision rather than silently dropping an unclassifiable
+  reply. Matching the inbound reply to its case reuses
+  matchConversationToCase.ts (P3-2) directly, not re-derived. 4 new
+  tests.
+- [x] P8-13 done — Escalation engine (doc 09 §41-44):
+  `postFilingEscalation.ts`'s `ESCALATION_TRIGGER_LEVEL` config table
+  (the doc's own 15-trigger list) + `getTriggerEscalationLevel()`
+  (fails closed to level 4/CRITICAL for an unconfigured trigger, same
+  discipline as humanReviewTriggers.ts's/P5-9 getTriggerRisk()) +
+  `evaluateEscalation()` (single highest level among everything fired).
+  `nextEscalationLevelIfUnacknowledged()` climbs one level (capped at
+  4) only while UNACKNOWLEDGED -- any other acknowledgment status
+  leaves the level unchanged. 6 new tests.
 - [ ] P8-14 todo — Operator tasks + decision-dashboard + AI case summary
   integration (doc 09 §45-48): every actionable exception creates a
   Task wired into the existing Decision Dashboard (P1-3), same pattern
@@ -1427,3 +1434,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-9] Added DocumentRequest/DocumentRequestStatus schema model; `postFilingDocumentRequest.ts`'s `evaluateDocumentRequestSatisfaction()` -- ACCEPTED only on type match + clean validation + unambiguous match, never auto-accepts on upload alone. 6 new tests, full suite 687/687 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-10] `postFilingNotification.ts`: `canSendPostFilingNotification()` delegates to communicationPreferences.ts's canSendOnChannel(); `createPostFilingNotification()` requires templateId/templateVersion (approved-templates-only enforced by the type); SENT/DELIVERED kept as distinct explicit transitions. 5 new tests, full suite 692/692 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-11] `postFilingFollowUp.ts`: `planPostFilingFollowUp()` -- all 9 stop conditions checked first (win even over an already-sent follow-up), alreadySent idempotency flag checked before SEND. 5 new tests, full suite 697/697 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-12] `postFilingClaimantResponse.ts`: `planClaimantResponseAction()` -- doc's worked examples as config table, OTHER fails closed to a generic operator decision. [P8-13] `postFilingEscalation.ts`: `ESCALATION_TRIGGER_LEVEL` (fails closed to level 4), `evaluateEscalation()`, `nextEscalationLevelIfUnacknowledged()` (climbs only while UNACKNOWLEDGED, caps at 4). 10 new tests, full suite 707/707 passing, `tsc --noEmit` clean, `next build` clean.
