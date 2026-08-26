@@ -1304,11 +1304,13 @@ live provider call is blocked.
   flag that forces REQUIRES_REVIEW regardless of how clean every other
   field is, exactly the RECOVERY_RECONCILIATION_EXCEPTION case the doc
   calls for, never silently marked VERIFIED. 4 new tests.
-- [ ] P9-3 todo — Expected-vs-actual comparison + variance rules (doc
-  10 §8-9): configurable variance thresholds (never hardcoded dollar
-  amounts) determine when a recovery difference needs operator review
-  -- same config-table discipline as every threshold table in this
-  codebase.
+- [x] P9-3 done — Expected-vs-actual comparison + variance rules (doc
+  10 §8-9): `recoveryVariance.ts`'s `evaluateRecoveryVariance()` --
+  the doc's own worked-example thresholds (≤$25 NORMAL, ≤1%
+  REVIEW_OPTIONAL, >1% OPERATOR_REVIEW, ≥ a configured critical percent
+  MANDATORY_REVIEW) as caller-overridable defaults, never hardcoded.
+  `percentDifference` is null (not a divide-by-zero) when nothing was
+  expected. 6 new tests.
 - [ ] P9-4 todo — Distribution model + deterministic engine + rules +
   versioning (doc 10 §10-13): GROSS RECOVERY − deductions − fees −
   expenses = NET DISTRIBUTABLE AMOUNT, allocated per configurable
@@ -1496,3 +1498,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-19] `postFilingAnalytics.ts`: `computePostFilingCaseMetrics()`/`computeDocumentRequestMetrics()`, scoped to what's honestly measurable right now (no real post-filing case has ever run through the system, no automated-vs-manual distinction in the schema yet). 4 new tests, full suite 752/752 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 8's currently-unblocked work (P8-1 through P8-19, minus P8-3) is now done.** Next unblocked work is Phase 9 (Recovery, Distribution & Payment, doc 10) starting at P9-1.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 9 (Recovery, Distribution & Payment, doc 10). [P9-1] Added Recovery/RecoveryStatus/RecoverySource + append-only RecoveryEstimateVersion schema models; `recoveryEstimate.ts`: `getCurrentEstimate()` (highest version wins) + `createNextEstimateVersion()` (never overwrites, always a new version). 4 new tests, full suite 756/756 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9 per Ethan's request), still queued behind the GitHub-login blocker. [P9-2] Added ActualRecovery/ActualRecoveryStatus schema model; `recoveryVerification.ts`'s `evaluateRecoveryVerification()` -- 7-item checklist + conflict-with-expected-recovery always forces REQUIRES_REVIEW. 4 new tests, full suite 760/760 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-3] `recoveryVariance.ts`'s `evaluateRecoveryVariance()` -- config-default thresholds (NORMAL/REVIEW_OPTIONAL/OPERATOR_REVIEW/MANDATORY_REVIEW), percentDifference null rather than divide-by-zero. 6 new tests, full suite 766/766 passing, `tsc --noEmit` clean, `next build` clean.
