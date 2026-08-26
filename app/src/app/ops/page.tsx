@@ -58,7 +58,9 @@ function QueueCard({ item, exception }: { item: DecisionQueueItem; exception?: b
       <div>
         <div style={{ fontWeight: 600 }}>{item.decisionTypeDisplayName}</div>
         <div style={{ color: "#374151" }}>
-          {item.claimantName} &middot; {item.decedentName} ({item.caseNumber})
+          <a href={`/ops/cases/${item.claimantId}`} style={{ color: "inherit" }}>
+            {item.claimantName} &middot; {item.decedentName} ({item.caseNumber})
+          </a>
         </div>
         <div style={{ color: "#6b7280", fontSize: "0.875rem", marginTop: "0.25rem" }}>
           {formatDeadline(item.deadline)} &middot; Est. value {formatMoney(item.estimatedValueCents)}

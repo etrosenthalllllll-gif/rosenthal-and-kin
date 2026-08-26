@@ -248,26 +248,39 @@ idempotency, follow-up scheduling) is buildable now.
   same "don't fake data nothing upstream produces yet" call as
   `caseSummary.ts` (P1-3). 13 new tests, full suite 239/239, `next build`
   clean. Depends on P3-4, P3-5.
-- [ ] P3-9 todo — SMS integration (doc 04 §11-12): same pipeline as P3-3
-  but for SMS, against `CommunicationProvider`. Live send/receive is
-  `blocked: needs credential — SMS provider (e.g. Twilio) account not yet
-  provisioned`; the channel-agnostic pipeline logic itself is not
-  blocked. Depends on P3-1 through P3-6.
-- [ ] P3-10 todo — Voice/phone architecture + AI phone agent state machine
-  (doc 04 §13-17): `VoiceProvider` interface (doc 04 already anticipates
-  this fits inside `CommunicationProvider`'s channel abstraction) and the
-  explicit call-state machine (§15) bounding what the AI agent may do in
-  each state. Live calls/transcription are
-  `blocked: needs credential — voice/telephony provider account not yet
-  provisioned`; the state machine and transcript-processing logic are not
-  blocked. Depends on P3-1, P3-4.
+- [ ] P3-9 skipped (owner decision, 2026-08-26) — SMS integration (doc 04
+  §11-12). Ethan explicitly asked to skip SMS and voice for now rather
+  than build the credential-independent pipeline logic ahead of an
+  actual provider account existing. Not blocked in the ground-rules
+  sense (this is a deliberate scope choice, not a missing credential) —
+  revisit once there's a real reason to prioritize SMS over the
+  remaining Phase 3 UI/dashboard work. Depends on P3-1 through P3-6.
+- [ ] P3-10 skipped (owner decision, 2026-08-26) — Voice/phone
+  architecture + AI phone agent state machine (doc 04 §13-17). Same call
+  as P3-9: skipped by explicit request, not blocked on a credential.
+  Depends on P3-1, P3-4.
 - [ ] P3-11 todo — Physical mail integration (doc 04 §23): PostGrid
   provider adapter satisfying `CommunicationProvider`.
   `blocked: needs credential — PostGrid API key (test/sandbox) not yet
   provisioned`.
-- [ ] P3-12 todo — Communication history timeline + search UI in the case
-  workspace (doc 04 §24-25, §45): unified chronological view across all
-  channels, filterable. Depends on P3-1 (data exists to render).
+- [x] P3-12 done — Communication history timeline UI in the case
+  workspace (doc 04 §24-25, §45): `app/src/app/ops/cases/[claimantId]/page.tsx`
+  — the first real "case workspace" page this project has (everything
+  before lived in the flat `/ops` queue). Requires a session, reads the
+  real `Claimant`/`Person`/`Estate` and calls
+  `fetchCommunicationTimeline()` (P3-1) for a unified chronological view,
+  filterable by channel via `?channel=` query params (§45's "allow
+  filtering by channel"). Flags each row that needs attention
+  (`requiresAttention`, from the row's conversation state) and shows
+  human-handling status inline. Linked from the decision queue's case
+  name in `/ops/page.tsx`. Full-text search (§25) not built — nothing to
+  search yet with zero live communications; revisit once inbound
+  ingestion is actually wired to a provider. **Verified for real, not
+  just compiled:** queried a live claimant from the real Postgres DB,
+  loaded the deployed page against it, confirmed it renders the
+  claimant/estate header and the honest empty-communications state (no
+  live inbound provider wired up yet). `next build` clean. Depends on
+  P3-1.
 - [ ] P3-13 todo — Communication dashboard + analytics (doc 04 §26, §41):
   metrics (pending responses, exceptions, opt-outs, follow-ups due,
   automated vs. human-reviewed rate) linking into the existing `/ops`
@@ -309,3 +322,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-5] `communicationAutomationRules.ts`: `decideAutomationAction()` composes P3-4's classification routing, P3-6's opt-out enforcement, and doc 04 section 30's humanHandling flag into one fixed-precedence evaluator (human-owned conversation > opt-out signal processed as an automated stop > classifier-requires-human > classifier-allows-but-channel-blocked escalates rather than silently dropping or wrongly sending > otherwise respond automatically). No new business rule invented -- this module is the evaluator over signals the earlier P3 tasks already produce. 10 new tests, full suite 217/217 passing, `next build` clean.
 - 2026-08-26 — [P3-7] `followUpScheduler.ts`: `planNextFollowUp()`, a pure decision over a configurable day-offset sequence (DEFAULT_OUTREACH_SEQUENCE: Day 0/7/14/30, doc 04's own example) and all seven of section 21's stop conditions, checked first so a mid-sequence response never triggers a blind follow-up. Outbound idempotency (sections 34-35) needed no new code -- already enforced by the job queue's required idempotencyKey (P0-8) and Communication.idempotencyKey's DB unique constraint (P3-1); documented rather than duplicated. Global pause-all-outbound and rate limiting deferred to whichever task wires a real send loop to a live provider. 9 new tests, full suite 226/226 passing, `next build` clean.
 - 2026-08-26 — [P3-8] `humanHandoff.ts`: scoped to what P3-4/P3-5 didn't already cover. takeoverConversation()/resumeAutomation() (humanHandling state transition, deliberately doesn't clear attentionStatus on resume), availableOperatorActions() (doc 04 section 30's exact action set), checkRepeatedFailureEscalation() (section 10's own distinct "automation repeatedly fails" trigger, configurable threshold), createDraftHistory()/applyOperatorRevision()/recordFinalSend() (section 8's draft/revision/final-sent record, shaped so overwriting the original draft is structurally impossible). Full §31 decision-package UI deliberately not built -- needs upstream data that doesn't exist yet, same call as caseSummary.ts. 13 new tests, full suite 239/239 passing, `next build` clean.
+- 2026-08-26 — Ethan asked to skip SMS (P3-9) and voice (P3-10) for now -- marked skipped by explicit owner decision rather than blocked, both revisit-able later. [P3-12] Built the first real case workspace page (`/ops/cases/[claimantId]`): claimant/estate header + fetchCommunicationTimeline()'s unified view, filterable by channel via query params, linked from the decision queue. Verified for real against a live claimant queried from Postgres -- honest empty-communications state, not faked data. `next build` clean.
