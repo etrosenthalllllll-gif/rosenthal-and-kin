@@ -1072,3 +1072,38 @@ model Hearing {
 
   @@index([postFilingCaseId])
 }
+
+// doc 09 section 26's own status list, verbatim.
+enum DocumentRequestStatus {
+  REQUESTED
+  NOTIFIED
+  AWAITING_CLAIMANT
+  RECEIVED
+  VALIDATING
+  ACCEPTED
+  REJECTED
+  RESUBMISSION_REQUIRED
+  CLOSED
+  EXPIRED
+}
+
+model DocumentRequest {
+  id                    String                @id @default(cuid())
+  postFilingCaseId      String
+  externalRequestId     String?
+  requestedDocumentType String
+  description           String?
+  requestSource         String? // doc 09 sec 27's own detection-source list
+  dateRequested         DateTime              @default(now())
+  deadline              DateTime?
+  status                DocumentRequestStatus @default(REQUESTED)
+  priority              String?
+  recipientId           String?
+  assignedOperatorId    String?
+  resolution            String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([postFilingCaseId])
+  @@index([status])
+}

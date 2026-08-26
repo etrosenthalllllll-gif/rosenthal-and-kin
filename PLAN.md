@@ -1137,14 +1137,18 @@ routing logic itself, synthetic-data testing).
   before it shipped (a module-level constant spread would have let one
   caller's mutation leak into every other caller's "empty" dashboard).
   6 new tests.
-- [ ] P8-9 todo — Document request model + detection + validation (doc
-  09 §26-30): `DocumentRequest` (the doc's own status list) detected
-  from official API/correspondence/inbound email/manual entry; when a
-  claimant uploads a document, match/classify/validate it against the
-  open request and route ambiguous matches to review rather than
-  auto-marking a consequential request satisfied. AI classification of
-  incoming correspondence (§28) itself needs an AIProvider (blocked);
-  the request/validation/routing logic around it is not.
+- [x] P8-9 done — Document request model + detection + validation (doc
+  09 §26-30): added `DocumentRequest`/`DocumentRequestStatus` (the
+  doc's own status list) to `schema.prisma`.
+  `postFilingDocumentRequest.ts`'s `evaluateDocumentRequestSatisfaction()`
+  -- ACCEPTED only when the uploaded document's type matches the
+  request, validation is clean, and the match itself is unambiguous;
+  anything short of all three is REQUIRES_REVIEW (or REJECTED for a
+  document validation already flagged INVALID outright) -- never a
+  silent auto-accept "because a document was uploaded." AI
+  classification of incoming correspondence (§28) itself needs an
+  AIProvider (blocked); this satisfaction logic works over whatever
+  match/validation result a caller already produced. 6 new tests.
 - [ ] P8-10 todo — Claimant notification engine + preferences +
   provenance + delivery tracking (doc 09 §31, 35-39): reuses P3's
   Communication/preference infrastructure rather than building a
@@ -1409,3 +1413,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-5] `postFilingEventNormalization.ts`: `detectStatusChange()`/`shouldCreateStatusChangeEvent()` (event only on an actual change) + `normalizeExternalEvent()` (fails closed to UNKNOWN_EVENT, raw wording always preserved, requiresHumanReview flagged rather than silently ignored). 6 new tests, full suite 661/661 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-6] Added CourtEvent/CourtEventType + Hearing/HearingStatus schema models; `hearingLifecycle.ts`: `rescheduleHearing()` (preserves the original, links forward to a new row), `cancelHearing()`, `planHearingReminders()` (null, not empty array, when no valid date exists). 6 new tests, full suite 667/667 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-7] `postFilingDeadline.ts`: `classifyDeadlineStatus()` + `buildDeadlineRecord()` (source required, calculation inputs preserved, ambiguity forces REQUIRES_REVIEW). [P8-8] `postFilingDeadlineDashboard.ts`: reuses filingDeadlineAlerts.ts's escalation ladder, `groupDeadline()`/`buildDeadlineDashboard()` (doc's own groupings), caught and fixed a shared-array-reference bug in `emptyDeadlineDashboard()` before shipping. 14 new tests, full suite 681/681 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-9] Added DocumentRequest/DocumentRequestStatus schema model; `postFilingDocumentRequest.ts`'s `evaluateDocumentRequestSatisfaction()` -- ACCEPTED only on type match + clean validation + unambiguous match, never auto-accepts on upload alone. 6 new tests, full suite 687/687 passing, `tsc --noEmit` clean, `next build` clean.
