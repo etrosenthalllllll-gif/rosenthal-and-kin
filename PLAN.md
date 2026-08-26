@@ -1632,11 +1632,16 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   workflow-type pairs, symmetric), `isRaceProtected()`
   (optimistic-lock check by claim key). 10 new tests, full suite
   989/989 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-13 todo — Automation priority + resource/rate/cost limits (doc
-  11 §54-58): CRITICAL/HIGH/NORMAL/LOW priority affecting queue order
-  and escalation; per-provider/workflow/case rate limits; per-case AI/
-  communication/research budgets that pause and request review when
-  exceeded, never silently overspend.
+- [x] P10-13 done — Automation priority + resource/rate/cost limits (doc
+  11 §54-58): `automationLimits.ts` -- `sortByAutomationPriority()`
+  (CRITICAL/HIGH/NORMAL/LOW queue ordering), `isWithinResourceLimit()`
+  (per-resource-kind ceilings, unconfigured kinds unlimited),
+  `evaluateRateLimit()` (sliding window, stale timestamps excluded),
+  `evaluateCostLimit()` (pause + request review on breach, never
+  silent overspend), `evaluateAutomationBudget()` (AI/communication/
+  research budgets checked independently, every over-budget category
+  reported, not just the first). 12 new tests, full suite 1001/1001
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-14 todo — Observability: workflow trace + execution log +
   error dashboard (doc 11 §59-63): a visible step-by-step trace per
   case, a per-step execution log (referencing stored objects, not
@@ -1832,3 +1837,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-10] `scheduledJob.ts`: computeNextRunAt(), isJobDue(), planDeadlineReminders(), formatTimezoneAwareTimestamp(). 8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-11 (Cross-system synchronization + sync exceptions).
 - 2026-08-26 — [P10-11] `crossSystemSync.ts`: SOURCE_OF_TRUTH table, detectSyncException(), buildExternalApiSyncRecord(), evaluatePollResult(), evaluateWebhookIntake(). 10 new tests, full suite 979/979 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-12 (Event ordering + state-transition + concurrency protection).
 - 2026-08-26 — [P10-12] `concurrencyGuard.ts`: detectEventOrderException(), validateAutomatedTransition() (delegates to existing domain state machines), detectWorkflowConflicts() (config-table), isRaceProtected(). 10 new tests, full suite 989/989 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-13 (Automation priority + resource/rate/cost limits).
+- 2026-08-26 — [P10-13] `automationLimits.ts`: sortByAutomationPriority(), isWithinResourceLimit(), evaluateRateLimit(), evaluateCostLimit(), evaluateAutomationBudget(). 12 new tests, full suite 1001/1001 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-14 (Observability: workflow trace + execution log + error dashboard).
