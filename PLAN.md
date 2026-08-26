@@ -1149,12 +1149,18 @@ routing logic itself, synthetic-data testing).
   classification of incoming correspondence (§28) itself needs an
   AIProvider (blocked); this satisfaction logic works over whatever
   match/validation result a caller already produced. 6 new tests.
-- [ ] P8-10 todo — Claimant notification engine + preferences +
-  provenance + delivery tracking (doc 09 §31, 35-39): reuses P3's
-  Communication/preference infrastructure rather than building a
-  second one; messages generated from approved templates only (no
-  freely-invented legal instructions); SENT is never assumed to mean
-  DELIVERED.
+- [x] P8-10 done — Claimant notification engine + preferences +
+  provenance + delivery tracking (doc 09 §31, 35-39):
+  `postFilingNotification.ts`'s `canSendPostFilingNotification()`
+  delegates directly to communicationPreferences.ts's (P3-6)
+  `canSendOnChannel()` rather than rebuilding the opt-out/preference
+  check under a new name. `createPostFilingNotification()` requires
+  `templateId`/`templateVersion` as non-optional fields -- the type
+  system itself enforces "generated from approved templates only,"
+  since there's no shape for a message with no named template.
+  `markNotificationSent()`/`markNotificationDelivered()` keep SENT and
+  DELIVERED as distinct, separately-triggered transitions -- SENT is
+  never assumed to mean DELIVERED. 5 new tests.
 - [ ] P8-11 todo — Automated status follow-ups + idempotency + stop
   conditions (doc 09 §32-34): same follow-up-sequence discipline as
   followUpScheduler.ts (P3-7) -- every stop condition (claimant
@@ -1414,3 +1420,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-6] Added CourtEvent/CourtEventType + Hearing/HearingStatus schema models; `hearingLifecycle.ts`: `rescheduleHearing()` (preserves the original, links forward to a new row), `cancelHearing()`, `planHearingReminders()` (null, not empty array, when no valid date exists). 6 new tests, full suite 667/667 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-7] `postFilingDeadline.ts`: `classifyDeadlineStatus()` + `buildDeadlineRecord()` (source required, calculation inputs preserved, ambiguity forces REQUIRES_REVIEW). [P8-8] `postFilingDeadlineDashboard.ts`: reuses filingDeadlineAlerts.ts's escalation ladder, `groupDeadline()`/`buildDeadlineDashboard()` (doc's own groupings), caught and fixed a shared-array-reference bug in `emptyDeadlineDashboard()` before shipping. 14 new tests, full suite 681/681 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-9] Added DocumentRequest/DocumentRequestStatus schema model; `postFilingDocumentRequest.ts`'s `evaluateDocumentRequestSatisfaction()` -- ACCEPTED only on type match + clean validation + unambiguous match, never auto-accepts on upload alone. 6 new tests, full suite 687/687 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-10] `postFilingNotification.ts`: `canSendPostFilingNotification()` delegates to communicationPreferences.ts's canSendOnChannel(); `createPostFilingNotification()` requires templateId/templateVersion (approved-templates-only enforced by the type); SENT/DELIVERED kept as distinct explicit transitions. 5 new tests, full suite 692/692 passing, `tsc --noEmit` clean, `next build` clean.
