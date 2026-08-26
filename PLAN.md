@@ -1363,12 +1363,20 @@ live provider call is blocked.
   multi-payment tracking (never overwriting payment #1 when payment #2
   arrives), and outstanding-balance math is buildable now against a
   fake payment result.
-- [ ] P9-9 todo — Payment reconciliation + matching + duplicate
-  detection (doc 10 §31-34): deterministic matching first (invoice ID,
-  reference, transaction ID, amount, date, payer); an unmatched payment
-  enters a reconciliation queue rather than being silently attached to
-  a case; a suspected duplicate payment creates a
-  DUPLICATE_PAYMENT_EXCEPTION requiring review.
+- [x] P9-9 done — Payment reconciliation + matching + duplicate
+  detection (doc 10 §31-34): `paymentMatching.ts`'s
+  `matchPaymentToInvoice()` -- deterministic invoice-id/number matching
+  first, UNMATCHED (never guessed by amount alone) with no hint;
+  MATCHED/PARTIALLY_MATCHED/OVERPAYMENT/UNDERPAYMENT derived from
+  comparing amount to outstanding balance. `requiresReconciliationQueue()`
+  -- anything but a clean match/partial-match needs a human, never
+  silently attached to a case. `checkDuplicatePayment()` -- an exact
+  transaction id/provider reference match, or amount+date+payer all
+  agreeing, is a suspected duplicate requiring review. `IncomingPayment`/
+  `OpenInvoiceReference` mirror the eventual Payment entity (P9-8,
+  blocked) without requiring it -- this matching logic is genuinely
+  independent of which provider eventually supplies the real payment
+  feed. 10 new tests.
 - [ ] P9-10 todo — Payment reversal + refunds (doc 10 §35-36): a
   reversal or refund always preserves the original payment record --
   never deletes it -- and recalculates the outstanding balance from the
@@ -1526,3 +1534,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-5] Added APPROVE_DISTRIBUTION to decisionTypes.ts; `distributionApproval.ts`'s `planDistributionApprovalDecision()` (unconditional, no auto-approve path) + `buildDistributionStatement()` (names exact recovery/distribution versions). 3 new tests, full suite 777/777 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-6] `recoveryFeeRules.ts`: versioned RECOVERY_FEE_RULES table + `getApplicableRecoveryFeeRule()` + `calculateRecoveryFee()` (4 structures, OTHER fails to UNSUPPORTED_STRUCTURE) + `validateBeforeInvoice()` (5-item pre-invoice checklist). 9 new tests, full suite 786/786 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-7] Added Invoice/InvoiceStatus schema model; `invoiceGeneration.ts`: `generateNextInvoiceNumber()`, `evaluateInvoiceGenerationReadiness()` (recovery-verified/fee-calculated/distribution-approved all required), `isInvoiceConfirmedDelivered()`. 7 new tests, full suite 793/793 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-9] `paymentMatching.ts`: `matchPaymentToInvoice()` (deterministic matching, UNMATCHED with no hint), `requiresReconciliationQueue()`, `checkDuplicatePayment()`. Uses plain interfaces mirroring the still-blocked Payment entity (P9-8) rather than depending on it. 10 new tests, full suite 803/803 passing, `tsc --noEmit` clean, `next build` clean.
