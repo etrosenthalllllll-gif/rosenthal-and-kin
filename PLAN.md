@@ -1377,10 +1377,14 @@ live provider call is blocked.
   blocked) without requiring it -- this matching logic is genuinely
   independent of which provider eventually supplies the real payment
   feed. 10 new tests.
-- [ ] P9-10 todo — Payment reversal + refunds (doc 10 §35-36): a
-  reversal or refund always preserves the original payment record --
-  never deletes it -- and recalculates the outstanding balance from the
-  full transaction history, not a hand-edited field.
+- [x] P9-10 done — Payment reversal + refunds (doc 10 §35-36):
+  `paymentReversal.ts`'s `createPaymentReversal()`/`createRefund()` --
+  each always returns a new record referencing the original payment by
+  id, never mutating or removing it (a refund's `reason`/`approvedBy`
+  are non-optional -- always carries its own authorization).
+  `recalculateOutstandingBalance()` reproduces the balance from the
+  full transaction history every time (payments − reversals − refunds
+  − credits), never a hand-edited field. 6 new tests.
 - [ ] P9-11 todo — Outstanding balance engine + payment reminders +
   stop conditions (doc 10 §37-39): balance always reproducible from
   underlying transactions, never a solely-manually-editable field;
@@ -1535,3 +1539,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-6] `recoveryFeeRules.ts`: versioned RECOVERY_FEE_RULES table + `getApplicableRecoveryFeeRule()` + `calculateRecoveryFee()` (4 structures, OTHER fails to UNSUPPORTED_STRUCTURE) + `validateBeforeInvoice()` (5-item pre-invoice checklist). 9 new tests, full suite 786/786 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-7] Added Invoice/InvoiceStatus schema model; `invoiceGeneration.ts`: `generateNextInvoiceNumber()`, `evaluateInvoiceGenerationReadiness()` (recovery-verified/fee-calculated/distribution-approved all required), `isInvoiceConfirmedDelivered()`. 7 new tests, full suite 793/793 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-9] `paymentMatching.ts`: `matchPaymentToInvoice()` (deterministic matching, UNMATCHED with no hint), `requiresReconciliationQueue()`, `checkDuplicatePayment()`. Uses plain interfaces mirroring the still-blocked Payment entity (P9-8) rather than depending on it. 10 new tests, full suite 803/803 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-10] `paymentReversal.ts`: `createPaymentReversal()`/`createRefund()` (never mutate the original, refund requires reason+approvedBy) + `recalculateOutstandingBalance()` (always reproduced from full transaction history). 6 new tests, full suite 809/809 passing, `tsc --noEmit` clean, `next build` clean.
