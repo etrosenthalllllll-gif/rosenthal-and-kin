@@ -881,13 +881,20 @@ provider call itself is `blocked: needs credential`.
   type, page limits, naming pattern) -- a requirement the connector
   didn't declare is simply not checked, never assumed unlimited or
   assumed to fail. 8 new tests.
-- [ ] P7-8 todo — Document transmission + submission artifact model
-  (doc 08 §18-20): a `SubmissionArtifact` links every transmitted
-  document back to the approved package -- if a provider needs a
-  different format, generate a derived artifact rather than mutating
-  the approved package itself, same "plan now" split as claimPackage.ts
-  (P6-14). Live upload to a real provider stays blocked behind P7-5;
-  the artifact model + derivation logic is buildable now.
+- [x] P7-8 done — Document transmission + submission artifact model
+  (doc 08 §18-20): `submissionArtifact.ts`'s `buildSubmissionArtifacts()`
+  maps straight over `assembleClaimPackage()`'s (P6-14) already
+  deterministically-ordered document list, so package order is
+  preserved without re-deriving it; each artifact links back to
+  filing/attempt/package/document ids without ever mutating the
+  approved package itself -- if a provider needs a different format,
+  `deriveArtifact()` is the caller's hook to produce a derived file
+  without touching the source. `markArtifactUploaded()`/
+  `markArtifactFailed()` return new objects (never mutate in place);
+  `allArtifactsUploaded()` is false for an empty list -- nothing
+  transmitted is never "fully transmitted." Live upload to a real
+  provider stays blocked behind P7-5; the artifact model + ordering
+  logic is buildable now. 6 new tests.
 - [ ] P7-9 todo — Fee calculation engine + fee rule versioning (doc 08
   §21-23): configurable fee engine (base + additional + provider fee =
   total), versioned fee rules never overwritten historically -- reuses
@@ -1263,3 +1270,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-2] `filingReadiness.ts`: `evaluateFilingReadiness()` -- config-table 14-item readiness checklist, READY/NOT_READY listing every specific blocker, paymentMethodAvailable conditional on a nonzero fee. [P7-3] `filingMethods.ts`: `FILING_METHODS` config table (7 methods) + `methodSupportsOperation()`. 12 new tests, full suite 516/516 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-4] `filingConnector.ts`: `FilingConnector` interface + `connectorSupportsOperation()` (reads only the explicit list, never infers) + `resolveConnector()` (AMBIGUOUS rather than a silent pick) + `createInMemoryFilingConnector()` reference implementation. Marked the pre-doc-08-read `FilingProvider` stub in `providers/types.ts` `@deprecated` with a pointer here rather than deleting it. 7 new tests, full suite 523/523 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-6] `filingData.ts`: `populateFilingData()`/`detectMissingRequiredFilingData()` delegate to formFieldMapping.ts (P6-8) rather than re-implementing the same priority/provenance logic. [P7-7] `filingValidation.ts`: `validateFilingFields()` delegates to formValidation.ts (P6-9); `checkDocumentRequirements()`/`validateFilingDocuments()` add connector-declared document-level checks (size/type/pages/naming), only checking what's declared. 12 new tests, full suite 535/535 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-8] `submissionArtifact.ts`: `buildSubmissionArtifacts()` maps over claimPackage.ts's already-ordered document list to preserve package order, never mutating the approved package; `markArtifactUploaded()`/`markArtifactFailed()` return new objects; `allArtifactsUploaded()` false on an empty list. 6 new tests, full suite 541/541 passing, `tsc --noEmit` clean, `next build` clean.
