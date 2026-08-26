@@ -665,12 +665,16 @@ content goes in, same as P2-1.
   says otherwise -- never a silent fallback. `detectMissingRequiredFields()`
   flags rather than guesses. Every populated field carries its
   `source`/`verificationStatus` for the review UI. 6 new tests.
-- [ ] P6-9 todo — Form validation + cross-form consistency (doc 07
-  §18-19): required-field/format/date/cross-field validation before a
-  form can proceed; cross-form value comparison generalizing
-  crossSourceComparison.ts (P5-5) to compare values across generated
-  forms rather than sources, same CONFLICT-never-picks-a-winner
-  discipline.
+- [x] P6-9 done — Form validation + cross-form consistency (doc 07
+  §18-19): `formValidation.ts`'s `validateFormField()`/`validateFormFields()`
+  -- a missing required field fails MISSING_REQUIRED regardless of
+  format rules; format/date rules (`isDate`/`format` regex) only apply
+  once a value is actually present. `compareValuesAcrossForms()`
+  generalizes crossSourceComparison.ts's (P5-5) `compareAcrossSources()`
+  again -- one generated form's field is just another "source" of a
+  fact, so two forms disagreeing on the same case-data path gets the
+  identical CONFLICT-never-picks-a-winner treatment as two external
+  sources disagreeing. 9 new tests.
 - [ ] P6-10 todo — Declaration/document generation (doc 07 §20-22):
   versioned-template-based generation (declarations, cover letters,
   exhibit indexes, claim summaries); every factual statement traces
@@ -792,3 +796,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to keep going even though he's away from his computer and can't sign into GitHub right now, so this task-pair is committed locally only; push is queued behind him logging in (see session log above about the browser losing its GitHub session -- I don't log in myself, that means entering a password, a hard rule regardless of prior authorization). [P6-4] `claimRules.ts`: versioned IF/THEN `ClaimRule` table (jurisdiction + claim type + claimant type -> required documents/forms/signatures/declarations/exhibits), `supersedes`-linked versioning so an old rule is never overwritten in place. [P6-5] `claimRuleConflict.ts`: `detectRuleConflicts()` flags two current rules sharing the exact same scope as an unresolved conflict, while correctly treating a general rule plus a claimant-type-specific rule as additive/conditional rather than conflicting. [P6-6] `claimRequirementChecklist.ts`: `buildClaimRequirementChecklist()` sources requirements from P6-4's rules engine (so conditional requirements like "estate representative needs estate documentation" fall out of the rules engine rather than being special-cased), exposes doc 07 §8's full status vocabulary, CONFLICTED always wins over a same-key VERIFIED/VALIDATED candidate, every item traces back to its source rule(s). 19 new tests, full suite 426/426 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan still away from his computer; continuing to work locally, committed but not pushed (same GitHub-login blocker as the prior entry). [P6-7] `formCatalog.ts`: `FORM_CATALOG` config table (versioned, each entry keyed by its own `id` distinct from the shared `formId` so a new version can `supersede` an old entry cleanly) + `selectFormsForClaim()`, pure selection sourced from P6-4's required-form-ids -- MISSING_CATALOG_ENTRY / AMBIGUOUS_SELECTION (two current entries both match) never auto-resolve, every selection records the rule that caused it. 5 new tests, full suite 431/431 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-8] `formFieldMapping.ts`: `populateFormFields()` -- explicit formId+fieldKey -> case-data-path mappings, doc 07 §15's exact source-priority order (human-verified > source-supported > validated document data > other case data > AI inference), AI_INFERENCE excluded outright unless a mapping's `aiInferenceAllowed` flag explicitly permits it, `detectMissingRequiredFields()` flags rather than guesses. 6 new tests, full suite 437/437 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-9] `formValidation.ts`: `validateFormField()`/`validateFormFields()` (required/format/date checks, format only applies once a value exists) + `compareValuesAcrossForms()`, reusing crossSourceComparison.ts's compareAcrossSources() to treat two generated forms disagreeing on the same case-data path exactly like two external sources disagreeing -- never picks a winner. 9 new tests, full suite 446/446 passing, `tsc --noEmit` clean, `next build` clean.
