@@ -351,6 +351,17 @@ export const DECISION_TYPES = {
     highConsequence: true, // money movement -- doc 02 section 19's confirmation-step trigger
     category: "DECISION",
   },
+  REVIEW_FINANCIAL_EXCEPTION: {
+    key: "REVIEW_FINANCIAL_EXCEPTION",
+    displayName: "Review Financial Exception",
+    description:
+      "A case-level financial reconciliation exception needs operator attention -- a distribution/payment mismatch, duplicate payment, over/underpayment, or unsupported currency (doc 10 sections 46-47).",
+    availableActions: ["APPROVE", "REVISE", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: true, // money movement -- doc 02 section 19's confirmation-step trigger
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

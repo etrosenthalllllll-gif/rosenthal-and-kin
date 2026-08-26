@@ -1412,12 +1412,19 @@ live provider call is blocked.
   overwriting) the original row's own fields. `sumLedgerTransactions()`
   sums whatever subset the caller supplies, respecting caller-assigned
   sign rather than re-deriving it from transaction type. 3 new tests.
-- [ ] P9-14 todo — Case-level financial reconciliation + exceptions
-  (doc 10 §46-47): compares expected/actual/distributed/fees/invoiced/
-  paid/outstanding into one PASS/exception result; every exception type
-  (mismatch, duplicate, missing/over/under-payment, unsupported
-  currency, missing reference) wired into the existing Decision
-  Dashboard (P1-3).
+- [x] P9-14 done — Case-level financial reconciliation + exceptions
+  (doc 10 §46-47): `financialReconciliation.ts`'s
+  `evaluateFinancialReconciliation()` -- verifies the two algebraic
+  invariants that must hold (ACTUAL − FEES = DISTRIBUTED, INVOICED −
+  PAID = OUTSTANDING) and merges in exceptions already detected by
+  other modules (duplicate payments from paymentMatching.ts/P9-9, etc.)
+  rather than re-deriving them; correctly PASSes on the doc's own
+  worked example even though EXPECTED ≠ ACTUAL there (that variance is
+  P9-3's job, not re-checked here). Added `REVIEW_FINANCIAL_EXCEPTION`
+  to `decisionTypes.ts`; `financialDecisionRouting.ts`'s
+  `planFinancialReconciliationDecision()` wires any non-PASS result
+  into it, naming every exception that fired. 6 new tests (plus 1
+  decisionTypes.ts test).
 - [ ] P9-15 todo — Financial dashboard + case financial summary +
   recovery timeline (doc 10 §48-50): totals across expected/actual/
   fees/invoiced/paid/outstanding/distributed recoveries, a per-case
@@ -1552,3 +1559,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-11] `paymentReminder.ts`: `determinePaymentReminderStage()` (BEFORE_DUE/DUE_TODAY/OVERDUE_7/14/30_DAYS) + `planPaymentReminder()` (stop conditions first, idempotency next). Outstanding-balance math already covered by P9-10. 8 new tests, full suite 817/817 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-12] Added PaymentDispute/PaymentDisputeStatus schema model; `paymentDispute.ts`: `shouldStopCollectionReminders()` + `buildPaymentCommunicationContent()` (ledger balance required, never invented). 4 new tests, full suite 821/821 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-13] Added append-only FinancialTransaction/FinancialTransactionType schema model; `financialLedger.ts`: `createCorrectingTransaction()` + `sumLedgerTransactions()`. 3 new tests, full suite 824/824 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-14] `financialReconciliation.ts`'s `evaluateFinancialReconciliation()` (two algebraic invariants + merges in already-detected exceptions, PASSes on the doc's own worked example). Added REVIEW_FINANCIAL_EXCEPTION to decisionTypes.ts + `financialDecisionRouting.ts`. 7 new tests, full suite 831/831 passing, `tsc --noEmit` clean, `next build` clean.

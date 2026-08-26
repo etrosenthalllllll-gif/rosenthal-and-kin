@@ -134,4 +134,13 @@ describe("decision type registry", () => {
     ]);
     expect(DECISION_TYPES.APPROVE_DISTRIBUTION.highConsequence).toBe(true);
   });
+
+  it("registers the doc 10 financial reconciliation exception type (P9-14)", () => {
+    expect(DECISION_TYPES.REVIEW_FINANCIAL_EXCEPTION.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.REVIEW_FINANCIAL_EXCEPTION.availableActions).toEqual([
+      "APPROVE",
+      "REVISE",
+      "ESCALATE",
+    ]);
+  });
 });
