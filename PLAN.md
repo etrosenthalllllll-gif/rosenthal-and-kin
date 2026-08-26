@@ -1585,11 +1585,18 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   `buildDeadLetterEntry()` (a failure the retry engine gives up on is
   always visible, never silently dropped). 9 new tests, full suite
   948/948 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-9 todo — Timeouts + idempotency keys + duplicate-action
-  protection (doc 11 §35-39): every externally-impactful action (send
-  email/SMS, file a claim, create an invoice, record a payment) gets an
-  idempotency key and a check-before-execute guard, covering the doc's
-  three named cases (duplicate email/filing/payment).
+- [x] P10-9 done — Timeouts + idempotency keys + duplicate-action
+  protection (doc 11 §35-39): `idempotentAction.ts` --
+  `buildIdempotencyKey()` (doc's own CASE_ID:ACTION_TYPE:
+  ACTION_VERSION:OPERATION_ID shape), `checkIdempotentAction()`
+  (check-before-execute, returns the existing result rather than
+  re-running), the three named duplicate-protection cases
+  (`buildDuplicateEmailKey()`, `checkDuplicateFiling()` -- never
+  resubmit blindly on a timeout, `isDuplicatePayment()` -- reference
+  match or invoice+amount+date fallback), and `evaluateStepTimeout()`
+  (a timed-out step is status-unknown, never assumed FAILED). 13 new
+  tests, full suite 961/961 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P10-10 todo — Scheduled job system + deadline-aware scheduling
   (doc 11 §40-43): centralized `ScheduledJob` model (one-time/
   recurring/delayed/polling/reminder/reconciliation), deriving
@@ -1805,3 +1812,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-6] `approvalGate.ts`: planApprovalGate() (reuses Decision/decisionTypes.ts, no second queue), isApprovalExpired(), evaluateApprovalDependencies() (one rejection blocks the whole group). 9 new tests, full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-7 (Operator override + automation pause).
 - 2026-08-26 — [P10-7] `automationPause.ts`: recordOperatorOverride() (reason+operator required), canStartNewAutomatedAction() (global kill switch), isAutomationBlocked() (global+workflow+case pause combined). 8 new tests, full suite 939/939 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-8 (Retry engine + failure classification + dead-letter queue).
 - 2026-08-26 — [P10-8] `retryEngine.ts`: isRetryableFailure(), computeRetryDelayMs() (deterministic exponential backoff), planRetry(), buildDeadLetterEntry(). 9 new tests, full suite 948/948 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-9 (Timeouts + idempotency keys + duplicate-action protection).
+- 2026-08-26 — [P10-9] `idempotentAction.ts`: buildIdempotencyKey(), checkIdempotentAction(), buildDuplicateEmailKey()/checkDuplicateFiling()/isDuplicatePayment(), evaluateStepTimeout() (timeout = status-unknown, not FAILED). 13 new tests, full suite 961/961 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-10 (Scheduled job system + deadline-aware scheduling).
