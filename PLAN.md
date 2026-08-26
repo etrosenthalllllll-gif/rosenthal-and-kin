@@ -687,12 +687,19 @@ content goes in, same as P2-1.
   explicitly approved. Template bodies are placeholder/example content
   pending attorney review, same owner-approved-override status as
   engagementAgreement.ts (P2-2). 5 new tests.
-- [ ] P6-11 todo — Exhibit assembly, eligibility, indexing, numbering,
-  page tracking (doc 07 §23-28): deterministic ordered-exhibit builder
-  from verified/eligible documents (correct type, correct case,
-  validated, not superseded/duplicate); auto-generated exhibit index +
-  page map; deterministic numbering (alphabetical/numerical/custom)
-  that never collides on regeneration.
+- [x] P6-11 done — Exhibit assembly, eligibility, indexing, numbering,
+  page tracking (doc 07 §23-28): `exhibitAssembly.ts`'s
+  `checkExhibitEligibility()` (correct case, validated, not a confirmed
+  duplicate, not superseded -- fails closed on any one failing) +
+  `buildExhibitAssembly()`, a deterministic ordered-exhibit builder over
+  only the eligible subset with an auto-generated index + running page
+  map. Alphabetical labeling extends past Z the same way spreadsheet
+  columns do (AA, AB, ...) so it never runs out; CUSTOM ordering without
+  a supplied order fails closed (`MISSING_CUSTOM_ORDER`) rather than
+  silently falling back to another scheme. Pure function of its inputs,
+  so regenerating from the same documents always reproduces the
+  identical numbering/page map -- verified directly with a
+  regeneration-equality test. 11 new tests.
 - [ ] P6-12 blocked: needs credential — Signature integration (doc 07
   §29-32): `SignatureProvider` interface (create request/send/status/
   webhook/retrieve/expiration/decline) can be built and tested against
@@ -802,3 +809,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-8] `formFieldMapping.ts`: `populateFormFields()` -- explicit formId+fieldKey -> case-data-path mappings, doc 07 §15's exact source-priority order (human-verified > source-supported > validated document data > other case data > AI inference), AI_INFERENCE excluded outright unless a mapping's `aiInferenceAllowed` flag explicitly permits it, `detectMissingRequiredFields()` flags rather than guesses. 6 new tests, full suite 437/437 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-9] `formValidation.ts`: `validateFormField()`/`validateFormFields()` (required/format/date checks, format only applies once a value exists) + `compareValuesAcrossForms()`, reusing crossSourceComparison.ts's compareAcrossSources() to treat two generated forms disagreeing on the same case-data path exactly like two external sources disagreeing -- never picks a winner. 9 new tests, full suite 446/446 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-10] `claimDocumentGeneration.ts`: `generateDocumentFromTemplate()` -- missing OR unverified required facts both block generation (fails closed rather than asserting unconfirmed facts); draft/revision/approval history mirrors humanHandoff.ts's MessageRevisionHistory shape exactly. Template content flagged EXAMPLE_PENDING_LEGAL_SOURCING, same status as engagementAgreement.ts. 5 new tests, full suite 451/451 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-11] `exhibitAssembly.ts`: `checkExhibitEligibility()` (correct case, validated, not a confirmed duplicate, not superseded) + `buildExhibitAssembly()`, deterministic ordering + auto-generated index/page map over the eligible subset only, CUSTOM scheme without an order fails closed rather than falling back silently. Verified regeneration-equality directly (same input -> byte-identical output). 11 new tests, full suite 462/462 passing, `tsc --noEmit` clean, `next build` clean. **Phase 6's currently-unblocked-and-buildable tasks (P6-1 through P6-11) are now all done**; P6-12 is blocked on an e-signature vendor account, and P6-13 through P6-18 remain todo.
