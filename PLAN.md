@@ -1245,12 +1245,18 @@ routing logic itself, synthetic-data testing).
   returns the prior `ClosureRecord` completely unchanged alongside the
   new reopen details -- a caller writes both as separate rows, never
   overwriting the original closure. 8 new tests.
-- [ ] P8-18 todo — Monitoring reconciliation + failure/outage handling
-  (doc 09 §61-65): compares internal case state against external
-  authority state, creating a reconciliation exception on mismatch;
-  monitoring failures never silently stop monitoring -- they create a
-  MONITORING_FAILURE and escalate past a configurable threshold; a
-  provider outage never lets a case get silently marked "unchanged."
+- [x] P8-18 done — Monitoring reconciliation + failure/outage handling
+  (doc 09 §61-65): `postFilingMonitoringReconciliation.ts`'s
+  `reconcilePostFilingCaseStatus()`/`classifyMonitoringCheckOutcome()`
+  delegate directly to filingTrackingReconciliation.ts's (P7-15)
+  `reconcileFilingStatus()`/`classifyProviderCheckOutcome()` -- the
+  identical state-comparison/outage-classification problem, reused
+  rather than reimplemented for post-filing cases.
+  `shouldEscalateMonitoringFailure()` is new: monitoring never silently
+  stops, every failure is counted, and reaching the configured
+  threshold reports an escalation is due. `computeBackoffDelayMinutes()`
+  doubles the delay per attempt, capped at a configured maximum --
+  "do not hammer external systems." 8 new tests.
 - [ ] P8-19 todo — Post-filing analytics + automation analytics (doc 09
   §68-69): pure-math metrics (time to acceptance, document-request
   resolution time, escalation rate, automation vs. human-review rate)
@@ -1469,3 +1475,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-15] `postFilingDocumentConflict.ts`: `isValidEventSourceReference()` (fails closed on empty doc id/text) + `detectDateConflict()` (never picks a winner between two disagreeing sources, always requires review). 7 new tests, full suite 718/718 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-16] `postFilingStaleness.ts`: `checkNoUpdate()`, `checkStaleCaseThreshold()` (config table, no threshold configured means never stale), `isValidTimestampWithTimezone()`, `isBusinessDay()`/`addBusinessDays()` (versioned holiday calendar, never hardcoded). Extended `priority.ts` with optional `escalationLevel` (P8-13's own vocabulary), ranking-only, never overrides hard-deadline blocking. Fixed the exceptionQueue.test.ts fixture. 14 new tests, full suite 732/732 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-17] `postFilingClosure.ts`: `evaluateClosureReadiness()` (6-item config table, every blocker named) + `reopenCase()` (empty reason rejected outright, prior closure record always preserved unchanged). 8 new tests, full suite 740/740 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-18] `postFilingMonitoringReconciliation.ts`: reconciliation/outage classification delegate to filingTrackingReconciliation.ts (P7-15); new `shouldEscalateMonitoringFailure()` + `computeBackoffDelayMinutes()` (exponential, capped). 8 new tests, full suite 748/748 passing, `tsc --noEmit` clean, `next build` clean.
