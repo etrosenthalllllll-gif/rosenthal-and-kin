@@ -721,11 +721,17 @@ content goes in, same as P2-1.
   ever produces REQUIRES_REVIEW; every result carries a human-readable,
   multi-line explanation listing each specific blocker/warning by its
   own explanation text -- never a bare status code. 5 new tests.
-- [ ] P6-14 todo — Claim package generator + versioning + manifest +
-  diff (doc 07 §38-40, 54): deterministic package assembly from
-  forms/declarations/documents/exhibits; every version preserved (never
-  mutates a historical package version); machine-readable manifest;
-  package-to-package diff for fast operator re-review.
+- [x] P6-14 done — Claim package generator + versioning + manifest +
+  diff (doc 07 §38-40, 54): `claimPackage.ts`'s `assembleClaimPackage()`
+  -- deterministic package assembly (documents ordered by role then id,
+  same regeneration-stability discipline as exhibitAssembly.ts/P6-11)
+  with a machine-readable manifest built directly from the assembled
+  documents; every call returns a brand-new object rather than mutating
+  a prior version, same create-only discipline as
+  verificationSnapshot.ts (P5-11). `diffClaimPackages()` compares by
+  document id -- a same-id document with a changed content hash is
+  `changed`, never remove+add, so an operator re-reviewing a
+  regenerated package sees exactly what's new. 7 new tests.
 - [ ] P6-15 todo — Package integrity checker (doc 07 §41): verifies
   every referenced document/exhibit exists, no duplicates, form
   versions correct, signatures present where required, manifest
@@ -816,3 +822,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-10] `claimDocumentGeneration.ts`: `generateDocumentFromTemplate()` -- missing OR unverified required facts both block generation (fails closed rather than asserting unconfirmed facts); draft/revision/approval history mirrors humanHandoff.ts's MessageRevisionHistory shape exactly. Template content flagged EXAMPLE_PENDING_LEGAL_SOURCING, same status as engagementAgreement.ts. 5 new tests, full suite 451/451 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-11] `exhibitAssembly.ts`: `checkExhibitEligibility()` (correct case, validated, not a confirmed duplicate, not superseded) + `buildExhibitAssembly()`, deterministic ordering + auto-generated index/page map over the eligible subset only, CUSTOM scheme without an order fails closed rather than falling back silently. Verified regeneration-equality directly (same input -> byte-identical output). 11 new tests, full suite 462/462 passing, `tsc --noEmit` clean, `next build` clean. **Phase 6's currently-unblocked-and-buildable tasks (P6-1 through P6-11) are now all done**; P6-12 is blocked on an e-signature vendor account, and P6-13 through P6-18 remain todo.
 - 2026-08-26 — Ethan asked for a progress percentage + time estimate (answered ~55-60% by rough phase-weighting, flagged that Phases 7-9 aren't decomposed yet and involve the heaviest remaining vendor-account blockers) and said to keep going. Still queued behind the GitHub-login blocker (still away from his computer). [P6-13] `claimCompletenessEngine.ts`: `evaluateClaimCompleteness()` composes CompletenessSignal entries from earlier P6 modules into COMPLETE/INCOMPLETE/REQUIRES_REVIEW -- any unsatisfied hard blocker forces INCOMPLETE un-overridably, an unsatisfied soft signal alone only reaches REQUIRES_REVIEW, every result carries a specific human-readable explanation. 5 new tests, full suite 467/467 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-14] `claimPackage.ts`: `assembleClaimPackage()` (deterministic document ordering + manifest, always a new object per version) + `diffClaimPackages()` (same-id-different-hash is `changed`, never remove+add). 7 new tests, full suite 474/474 passing, `tsc --noEmit` clean, `next build` clean.
