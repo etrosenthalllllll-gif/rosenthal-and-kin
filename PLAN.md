@@ -126,15 +126,29 @@ idempotency, follow-up scheduling) is buildable now.
   build` clean. Wiring this into the real inbound pipeline (calling it
   with live Prisma candidate rows, actually creating the Decision row)
   is P3-3.
-- [ ] P3-3 todo — Inbound email ingestion pipeline, minus the live inbox
-  connection (doc 04 §4-5): validate/store/dedupe a `RawInboundEmail`-shaped
-  payload end to end (idempotent on provider message ID / Message-ID +
-  In-Reply-To threading), calling P3-2's matcher. The actual webhook
-  endpoint that receives real provider payloads is
+- [x] P3-3 done — Inbound email ingestion pipeline, minus the live inbox
+  connection (doc 04 §4-5): `planInboundEmailIngestion.ts` —
+  `planInboundEmailIngestion(email, context)` validates the payload,
+  checks idempotency against already-seen provider message IDs (the
+  real enforcement is `Communication.providerMessageId`'s DB unique
+  constraint from P3-1; this is the decision layer in front of it),
+  then calls P3-2's matcher using the email's `In-Reply-To` header as
+  the thread signal and subject+body as the case-number-reference
+  signal. Four outcomes: `REJECT_INVALID`, `SKIP_DUPLICATE`,
+  `ATTACH_TO_CASE` (auto-match), `CREATE_MATCH_EXCEPTION` (ambiguous —
+  or genuinely no match at all, which this pipeline deliberately treats
+  the same way rather than silently dropping the message, per doc 04
+  §44's "never silently disappear"). The original message body is
+  carried through completely untouched into the communication draft, no
+  AI transformation applied (§4: "do not rely only on an
+  AI-transformed version" — there's no AI step in this pipeline yet
+  regardless, see P3-4). The actual webhook endpoint that would receive
+  real provider payloads is still
   `blocked: needs credential — inbound email provider account (e.g.
-  Postmark/SendGrid inbound parse) not yet provisioned`; the pipeline
-  logic itself is not blocked and should be built + tested against
-  synthetic payloads. Depends on P3-1, P3-2.
+  Postmark/SendGrid inbound parse) not yet provisioned`; this decision
+  logic has no such dependency and is fully tested against synthetic
+  payloads. 8 new tests, full suite 189/189, `next build` clean. Depends
+  on P3-1, P3-2.
 - [ ] P3-4 todo — Communication classification engine (doc 04 §6):
   configurable category table (INTERESTED, QUESTION, LEGAL_QUESTION,
   DOCUMENT_ATTACHED, SUSPICIOUS, DO_NOT_CONTACT, UNCLEAR, etc., per §6's
@@ -218,3 +232,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-25 — [P2-2] Engagement/fee agreement generator (`engagementAgreement.ts`), now unblocked since P2-1 has real disclosure content to read from. Drafts agreement text from `complianceRules.ts`'s verified rules, records which rule versions backed each draft, and gates `canAdvanceToEngaged` on `checkFeeCompliance()` rather than duplicating that logic. Deliberately still drafts a document for CA probate estates even though the fee can never auto-clear (doc 03 blocks advancing the claimant, not producing something for a human to review), and deliberately does NOT invent a rescission right neither verified statute contains. 8 new tests, full suite 160/160 passing, `next build` clean. Same owner-approved-override status as P2-1.
 - 2026-08-25 — Phase 2 fully done; started Phase 3 (Communications). Read doc 04 ("Communications," 48 sections) in full from Drive and decomposed it into P3-1 through P3-13 in PLAN.md, flagging every task that needs a real vendor account (SMS/voice/mail providers, live inbound-email webhook) as `blocked: needs credential` per the ground rules rather than self-approving around the gap — only the provider-agnostic logic is buildable right now. [P3-1] Built the unified `Communication`/`Conversation` Prisma model (doc 04 §1-2), reusing the existing channel-unified `CommunicationProvider` interface from `providers/types.ts` instead of inventing separate per-channel provider types (already satisfies doc 04 §32). Keyed to both `claimantId` and `personId` independently per §2's "don't assume 1:1." `providerMessageId`/`idempotencyKey` are unique DB constraints, the real backing for §34's idempotency requirement. Added centralized per-Person communication preferences (§19) as pure schema now, enforcement logic deferred to P3-6. Pushed to the live Render DB via `prisma db push`. Built `communicationTimeline.ts` (pure chronological view-model builder, doc 04 §24, + a thin Prisma fetch wrapper). 7 new tests, full suite 167/167 passing, `next build` clean.
 - 2026-08-26 — [P3-2] `matchConversationToCase.ts`: pure, confidence-scored conversation-to-case matcher over doc 04 §3's signal list (thread ID, case-number reference, email, phone, name), weighted so no single weak signal (name alone) can cross even the ambiguous floor. Never guesses: two candidates both clearing the auto-attach threshold resolve to `AMBIGUOUS`, exactly matching doc 04's own "Cases RK-1842 and RK-1917" example rather than picking one arbitrarily. Added `RESOLVE_AMBIGUOUS_CASE_MATCH` to the EXCEPTION set in `decisionTypes.ts` (reuses P1-3's Decision/exception-queue machinery, no new model) with an explicit `CREATE_NEW_CASE` action. 13 new tests, full suite 180/180 passing, `next build` clean.
+- 2026-08-26 — [P3-3] `planInboundEmailIngestion.ts`: pure inbound-email ingestion decision layer, sitting on top of P3-2's matcher. Validates the payload, dedupes on provider message ID (idempotency), matches via P3-2 using In-Reply-To as the thread signal, and produces one of REJECT_INVALID/SKIP_DUPLICATE/ATTACH_TO_CASE/CREATE_MATCH_EXCEPTION. Treats a genuine no-match the same as an ambiguous match (raise for human review) rather than silently dropping the message, per doc 04's "never silently disappear." The live webhook endpoint stays blocked (no inbound email provider account provisioned yet); this decision logic has no such dependency. 8 new tests, full suite 189/189 passing, `next build` clean.
