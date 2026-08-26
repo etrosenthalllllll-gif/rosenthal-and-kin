@@ -1236,11 +1236,15 @@ routing logic itself, synthetic-data testing).
   in priority.ts) -- caught and corrected an off-by-one in my own
   business-day test expectation (not the implementation) before it
   shipped, by reasoning through the calendar by hand.
-- [ ] P8-17 todo — Case closure + reopening (doc 09 §59-60): explicit
-  closure workflow verifying no outstanding deadline/document
-  request/escalation/active hearing before closing; REOPEN_CASE
-  requires a reason and preserves the prior closure record rather than
-  erasing it.
+- [x] P8-17 done — Case closure + reopening (doc 09 §59-60):
+  `postFilingClosure.ts`'s `evaluateClosureReadiness()` -- the doc's own
+  6-item checklist (config table, never an inline if/else), a case
+  never auto-closes with any one blocker present, every failing check
+  named. `reopenCase()` rejects an empty/whitespace-only reason outright
+  ("reason required" enforced, not just documented) and, on success,
+  returns the prior `ClosureRecord` completely unchanged alongside the
+  new reopen details -- a caller writes both as separate rows, never
+  overwriting the original closure. 8 new tests.
 - [ ] P8-18 todo — Monitoring reconciliation + failure/outage handling
   (doc 09 §61-65): compares internal case state against external
   authority state, creating a reconciliation exception on mismatch;
@@ -1464,3 +1468,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-14] Added REVIEW_POST_FILING_EXCEPTION to decisionTypes.ts; `postFilingDecisionRouting.ts`'s `planPostFilingEscalationDecision()` wires P8-13's escalation result into it, no decision below level 1. No separate Operator Task entity built -- reuses Decision machinery per doc's own §46 instruction. 4 new tests, full suite 711/711 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-15] `postFilingDocumentConflict.ts`: `isValidEventSourceReference()` (fails closed on empty doc id/text) + `detectDateConflict()` (never picks a winner between two disagreeing sources, always requires review). 7 new tests, full suite 718/718 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-16] `postFilingStaleness.ts`: `checkNoUpdate()`, `checkStaleCaseThreshold()` (config table, no threshold configured means never stale), `isValidTimestampWithTimezone()`, `isBusinessDay()`/`addBusinessDays()` (versioned holiday calendar, never hardcoded). Extended `priority.ts` with optional `escalationLevel` (P8-13's own vocabulary), ranking-only, never overrides hard-deadline blocking. Fixed the exceptionQueue.test.ts fixture. 14 new tests, full suite 732/732 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-17] `postFilingClosure.ts`: `evaluateClosureReadiness()` (6-item config table, every blocker named) + `reopenCase()` (empty reason rejected outright, prior closure record always preserved unchanged). 8 new tests, full suite 740/740 passing, `tsc --noEmit` clean, `next build` clean.
