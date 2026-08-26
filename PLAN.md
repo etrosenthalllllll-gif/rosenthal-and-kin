@@ -1841,10 +1841,14 @@ observability logic over data the platform already produces.
   `buildWorkflowExecutionMetrics()` (assembles the doc's full field
   list). 9 new tests, full suite 1126/1126 passing, `tsc --noEmit`
   clean, `next build` clean.
-- [ ] P11-6 todo — Stuck workflow + stuck case + case SLA monitoring
-  (doc 12 §14-16): expected-vs-actual duration comparison producing
-  STUCK_WORKFLOW/STUCK_CASE, configurable per-stage SLA tracking
-  (time remaining/exceeded).
+- [x] P11-6 done — Stuck workflow + stuck case + case SLA monitoring
+  (doc 12 §14-16): `stuckDetection.ts` -- `detectStuckWorkflow()`/
+  `detectStuckCase()` (both reuse P10-24's `evaluateWorkflowStaleness()`
+  rather than a second elapsed-vs-expected check, wrapping it in the
+  doc's fuller event/alert shape), `evaluateCaseSla()` (WITHIN_SLA with
+  time remaining, or SLA_EXCEEDED with time exceeded -- never both).
+  5 new tests, full suite 1131/1131 passing, `tsc --noEmit` clean,
+  `next build` clean.
 - [ ] P11-7 todo — Queue monitoring: backlog/starvation/stall + worker
   monitoring (doc 12 §17-21): queue depth/processing-rate/oldest-job
   tracking, abnormal-growth backlog detection, the
@@ -2105,3 +2109,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-3] `apiMonitoring.ts`: classifyApiError(), isOutageClassError(), computeApiCallMetrics(), groupApiMetricsBy(). 7 new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-4 (API latency + availability monitoring).
 - 2026-08-26 — [P11-4] `apiLatencyMonitoring.ts`: computeLatencyPercentile()/computeLatencyDistribution(), evaluateLatencyStatus(), computeAvailabilityReports(). 7 new tests, full suite 1117/1117 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-5 (Workflow monitoring + failure/spike detection).
 - 2026-08-26 — [P11-5] `workflowMonitoring.ts`: computeWorkflowFailureRatePercent()/classifyFailureRate(), detectFailureSpike(), buildWorkflowExecutionMetrics(). 9 new tests, full suite 1126/1126 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-6 (Stuck workflow + stuck case + case SLA monitoring).
+- 2026-08-26 — [P11-6] `stuckDetection.ts`: detectStuckWorkflow()/detectStuckCase() (reuse P10-24's evaluateWorkflowStaleness()), evaluateCaseSla(). 5 new tests, full suite 1131/1131 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-7 (Queue monitoring: backlog/starvation/stall + worker monitoring).
