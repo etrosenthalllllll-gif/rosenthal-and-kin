@@ -1474,12 +1474,18 @@ live provider call is blocked.
   design it must never independently move money -- `createAdjustment()`'s
   authorization requirement holds regardless of whether AI assistance
   is ever wired in. 9 new tests.
-- [ ] P9-19 todo — Financial analytics + case profitability + recovery
-  forecasting + reporting (doc 10 §68-71): pure-math metrics (average
-  days to payment, overdue rate, reconciliation rate) clearly labeling
-  FORECAST vs. EXPECTED vs. CONFIRMED vs. RECEIVED -- a forecast is
-  never represented as actual revenue, same discipline as every other
-  metrics module in this codebase.
+- [x] P9-19 done — Financial analytics + case profitability + recovery
+  forecasting + reporting (doc 10 §68-71): `financialAnalytics.ts` —
+  `computeFinancialAnalyticsMetrics()` (payment success/overdue/
+  reconciliation rates, divide-by-zero guarded to null, not zero),
+  `computeAverageDaysToPayment()` (null when nothing's been paid yet),
+  `buildRecoveryPipeline()` (FORECAST/EXPECTED/CONFIRMED/RECEIVED summed
+  independently — a forecast is never represented as actual revenue).
+  Distribution-completion-time and case-closure-time metrics
+  deliberately left out: no real case has produced the per-stage
+  timestamp history needed to compute them honestly. Same pure-math /
+  honesty-scoping discipline as documentProcessingMetrics.ts/
+  filingAnalytics.ts/postFilingAnalytics.ts. 7 new tests.
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -1583,3 +1589,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-16] `financialClosure.ts`: `evaluateFinancialClosureReadiness()` (financial-subset config table, never auto-closes with a blocker present) + `reopenFinancialCase()` (reason required, prior closure preserved unchanged). 6 new tests, full suite 842/842 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-17] Extended auth.ts's Permission union with 10 fine-grained financial permissions (OPERATOR gets routine work, REVIEWER/ADMIN get approve/refund/close); `financialAudit.ts`'s `buildFinancialAuditEntry()` maps onto audit.ts's existing AuditEventInput shape. 8 new tests, full suite 848/848 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-18] Added Adjustment/AdjustmentType schema model (reason/approvedBy required); `financialAdjustments.ts`: `convertCurrency()` (never overwrites original), `applyRounding()` (deterministic UP/DOWN/HALF_UP/HALF_EVEN), `createAdjustment()` (authorization structurally required, no exceptions). 9 new tests, full suite 857/857 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P9-19] `financialAnalytics.ts`: `computeFinancialAnalyticsMetrics()`, `computeAverageDaysToPayment()`, `buildRecoveryPipeline()` (FORECAST/EXPECTED/CONFIRMED/RECEIVED kept independent, never merged into one revenue figure). 7 new tests, full suite 864/864 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 9's currently-unblocked work (P9-1 through P9-19, minus P9-8, which stays blocked on a payment-provider credential) is now done.** Still queued locally behind the GitHub-login blocker — nothing from this segment has been pushed yet.
