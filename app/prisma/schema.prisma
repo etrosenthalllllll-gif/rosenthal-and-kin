@@ -995,3 +995,80 @@ model PostFilingEvent {
 
   @@index([postFilingCaseId])
 }
+
+// doc 09 section 14: a calendar-like court/authority event -- distinct
+// from PostFilingEvent above, which is the append-only audit trail of
+// this system's own status transitions. CourtEvent instead represents
+// a real-world scheduled item (a hearing, a deadline, a decision) that
+// itself has a mutable status as it's prepared for and completed.
+enum CourtEventType {
+  HEARING
+  STATUS_CONFERENCE
+  DEADLINE
+  FILING_DEADLINE
+  DOCUMENT_DEADLINE
+  RESPONSE_DEADLINE
+  DECISION
+  MEDIATION
+  CONFERENCE
+  COURT_ORDER
+  OTHER
+}
+
+model CourtEvent {
+  id                 String         @id @default(cuid())
+  postFilingCaseId   String
+  eventType          CourtEventType
+  externalEventId    String?
+  eventDate          DateTime?
+  location           String?
+  authority          String?
+  description        String?
+  source             String?
+  status             String?
+  requiredAction     String?
+  assignedOperatorId String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([postFilingCaseId])
+}
+
+// doc 09 section 15's own status list, verbatim.
+enum HearingStatus {
+  SCHEDULED
+  RESCHEDULED
+  CANCELLED
+  COMPLETED
+  MISSED
+  UNKNOWN
+}
+
+// doc 09 sections 18-19: a reschedule or cancellation must never
+// overwrite the original record. A reschedule marks this row
+// RESCHEDULED and points `rescheduledToHearingId` at a brand-new row --
+// it never mutates scheduledAt/location/etc. in place.
+model Hearing {
+  id                      String        @id @default(cuid())
+  postFilingCaseId        String
+  authority               String?
+  hearingType             String?
+  scheduledAt             DateTime?
+  timeZone                String?
+  location                String?
+  isVirtual               Boolean?
+  meetingInfo             String?
+  judgeOrOfficial         String?
+  requiredParticipants    Json?
+  status                  HearingStatus @default(SCHEDULED)
+  preparationRequirements String?
+  documentsRequired       Json?
+  assignedOperatorId      String?
+  notes                   String?
+  cancellationReason      String?
+  rescheduledToHearingId  String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([postFilingCaseId])
+}

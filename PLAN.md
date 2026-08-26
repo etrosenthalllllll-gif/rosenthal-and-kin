@@ -1099,12 +1099,22 @@ routing logic itself, synthetic-data testing).
   always preserving the raw event type and wording regardless of
   recognition, and flagging `requiresHumanReview` whenever the event
   wasn't recognized -- never silently ignored. 6 new tests.
-- [ ] P8-6 todo — Authority Event + Hearing tracking (doc 09 §14-19):
-  configurable Event types (hearing/status conference/deadline/
-  decision/etc.) and Hearing records (the doc's own status list);
-  a reschedule or cancellation always preserves the original record
-  rather than overwriting it -- same never-mutate-history discipline as
-  claimPackage.ts's diffing.
+- [x] P8-6 done — Authority Event + Hearing tracking (doc 09 §14-19):
+  added `CourtEvent`/`CourtEventType` (the doc's configurable event-type
+  list; deliberately separate from `PostFilingEvent`, which is this
+  system's own append-only audit trail, not a calendar item) and
+  `Hearing`/`HearingStatus` (the doc's own status list, plus
+  `cancellationReason` and a forward-linking `rescheduledToHearingId`)
+  to `schema.prisma`. `hearingLifecycle.ts`'s `rescheduleHearing()`
+  never mutates the original hearing's own date/location/etc. -- it
+  only flips status to RESCHEDULED and links forward to a brand-new
+  SCHEDULED row, same never-mutate-history discipline as claimPackage.ts's
+  (P6-14) diffing. `cancelHearing()` marks CANCELLED with an optional
+  reason and reports reminders must be disabled.
+  `planHearingReminders()` returns null (not an empty array) when
+  there's no valid scheduled date at all -- "do not fabricate missing
+  times" per the doc's own instruction, a distinct outcome from "zero
+  reminders configured." 6 new tests.
 - [ ] P8-7 todo — Deadline model + sources/calculation/confidence (doc
   09 §20-23): every deadline identifies its source (never presents an
   AI-inferred deadline as an official one); a deadline extracted from
@@ -1383,3 +1393,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 8 (Post-filing Monitoring, doc 09). [P8-1] `PostFilingCase`/`PostFilingCaseStatus`/append-only `PostFilingEvent` schema + `postFilingStateMachine.ts` (validated-transition discipline, ESCALATED/ON_HOLD universal exits, only CLOSED terminal). [P8-2] `postFilingAttentionQueue.ts`: `categorizeAttention()` (every triggered category, doc's own priority order) + `buildAttentionQueue()` + `buildPostFilingDashboard()`. 20 new tests, full suite 649/649 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-4] `postFilingMonitoringSchedule.ts`: `determineMonitoringIntervalMinutes()` (doc's cadence table, "increase frequency" = shorter interval, never lengthens past the base tier) + `planNextMonitoringCheck()` + `PostFilingJobType` naming the doc's 8-job list. 6 new tests, full suite 655/655 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-5] `postFilingEventNormalization.ts`: `detectStatusChange()`/`shouldCreateStatusChangeEvent()` (event only on an actual change) + `normalizeExternalEvent()` (fails closed to UNKNOWN_EVENT, raw wording always preserved, requiresHumanReview flagged rather than silently ignored). 6 new tests, full suite 661/661 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-6] Added CourtEvent/CourtEventType + Hearing/HearingStatus schema models; `hearingLifecycle.ts`: `rescheduleHearing()` (preserves the original, links forward to a new row), `cancelHearing()`, `planHearingReminders()` (null, not empty array, when no valid date exists). 6 new tests, full suite 667/667 passing, `tsc --noEmit` clean, `next build` clean.
