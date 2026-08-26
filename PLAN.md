@@ -1425,11 +1425,16 @@ live provider call is blocked.
   `planFinancialReconciliationDecision()` wires any non-PASS result
   into it, naming every exception that fired. 6 new tests (plus 1
   decisionTypes.ts test).
-- [ ] P9-15 todo — Financial dashboard + case financial summary +
-  recovery timeline (doc 10 §48-50): totals across expected/actual/
-  fees/invoiced/paid/outstanding/distributed recoveries, a per-case
-  financial summary, and a chronological recovery timeline -- same
-  view-model-builder pattern as communicationTimeline.ts (P3-1).
+- [x] P9-15 done — Financial dashboard + case financial summary +
+  recovery timeline (doc 10 §48-50): `financialDashboard.ts`'s
+  `buildFinancialTotals()` (sums across every recovery plus
+  caller-supplied exception/readiness counts) + `buildCaseFinancialSummary()`
+  (`readyToClose` requires BOTH a clean reconciliation AND zero
+  outstanding balance -- neither alone suffices, matching the doc's own
+  "financial completion != case closure" discipline) +
+  `buildRecoveryTimeline()` (pure chronological sort, no mutation) --
+  same view-model-builder pattern as communicationTimeline.ts (P3-1).
+  5 new tests.
 - [ ] P9-16 todo — Case closing rules + closure checker + reopening
   (doc 10 §51-55): explicit pre-closure checklist (recovery verified,
   distribution complete, invoice paid, zero outstanding, no open
@@ -1560,3 +1565,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-12] Added PaymentDispute/PaymentDisputeStatus schema model; `paymentDispute.ts`: `shouldStopCollectionReminders()` + `buildPaymentCommunicationContent()` (ledger balance required, never invented). 4 new tests, full suite 821/821 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-13] Added append-only FinancialTransaction/FinancialTransactionType schema model; `financialLedger.ts`: `createCorrectingTransaction()` + `sumLedgerTransactions()`. 3 new tests, full suite 824/824 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-14] `financialReconciliation.ts`'s `evaluateFinancialReconciliation()` (two algebraic invariants + merges in already-detected exceptions, PASSes on the doc's own worked example). Added REVIEW_FINANCIAL_EXCEPTION to decisionTypes.ts + `financialDecisionRouting.ts`. 7 new tests, full suite 831/831 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-15] `financialDashboard.ts`: `buildFinancialTotals()`, `buildCaseFinancialSummary()` (readyToClose requires both clean reconciliation AND zero outstanding), `buildRecoveryTimeline()`. 5 new tests, full suite 836/836 passing, `tsc --noEmit` clean, `next build` clean.
