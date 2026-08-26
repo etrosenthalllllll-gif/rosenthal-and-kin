@@ -1597,13 +1597,18 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   (a timed-out step is status-unknown, never assumed FAILED). 13 new
   tests, full suite 961/961 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P10-10 todo — Scheduled job system + deadline-aware scheduling
-  (doc 11 §40-43): centralized `ScheduledJob` model (one-time/
-  recurring/delayed/polling/reminder/reconciliation), deriving
-  schedules from structured case dates, explicit timezone handling
-  (UTC storage + local display, never assume server timezone) --
-  reuses the scheduling shape already proven in `followUpScheduler.ts`/
-  `postFilingFollowUp.ts`/`paymentReminder.ts`.
+- [x] P10-10 done — Scheduled job system + deadline-aware scheduling
+  (doc 11 §40-43): `scheduledJob.ts` -- `computeNextRunAt()`
+  (one-time/delayed/reminder use their stored runAt; recurring/
+  polling/reconciliation add their interval to the last run, or to
+  now if never run), `isJobDue()`, `planDeadlineReminders()` (derives
+  30/7/1-day-before reminders directly from the deadline itself, never
+  a separately-maintained date), `formatTimezoneAwareTimestamp()`
+  (UTC always stored/compared, timezone only affects display) --
+  generalizes the scheduling shape already proven in
+  `followUpScheduler.ts`/`postFilingFollowUp.ts`/`paymentReminder.ts`.
+  8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P10-11 todo — Cross-system synchronization + sync exceptions (doc
   11 §44-49): named source-of-truth ownership per data object, a
   `SYNC_EXCEPTION` (never a silent overwrite) when two systems
@@ -1813,3 +1818,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-7] `automationPause.ts`: recordOperatorOverride() (reason+operator required), canStartNewAutomatedAction() (global kill switch), isAutomationBlocked() (global+workflow+case pause combined). 8 new tests, full suite 939/939 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-8 (Retry engine + failure classification + dead-letter queue).
 - 2026-08-26 — [P10-8] `retryEngine.ts`: isRetryableFailure(), computeRetryDelayMs() (deterministic exponential backoff), planRetry(), buildDeadLetterEntry(). 9 new tests, full suite 948/948 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-9 (Timeouts + idempotency keys + duplicate-action protection).
 - 2026-08-26 — [P10-9] `idempotentAction.ts`: buildIdempotencyKey(), checkIdempotentAction(), buildDuplicateEmailKey()/checkDuplicateFiling()/isDuplicatePayment(), evaluateStepTimeout() (timeout = status-unknown, not FAILED). 13 new tests, full suite 961/961 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-10 (Scheduled job system + deadline-aware scheduling).
+- 2026-08-26 — [P10-10] `scheduledJob.ts`: computeNextRunAt(), isJobDue(), planDeadlineReminders(), formatTimezoneAwareTimestamp(). 8 new tests, full suite 969/969 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-11 (Cross-system synchronization + sync exceptions).
