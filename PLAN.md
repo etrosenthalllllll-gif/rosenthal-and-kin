@@ -924,16 +924,29 @@ provider call itself is `blocked: needs credential`.
   how complete the override record is, and rejects an incomplete
   override (missing reason/operator/timestamp/affected-rule) for a soft
   blocker rather than accepting it with gaps. 9 new tests.
-- [ ] P7-12 todo — Idempotent submission engine (doc 08 §29-30, 57):
-  pure state-check logic preventing duplicate submission on
-  double-click/job-retry/network-timeout; an UNKNOWN submission status
-  (timeout after send) never triggers an automatic resubmit -- must
-  reconcile first. Reuses the job queue's idempotency-key discipline
-  (P0-8).
-- [ ] P7-13 todo — Filing state machine (doc 08 §6): explicit state
-  machine over the doc's full Filing status list, mirrors
-  stateMachine.ts's/claimPreparationStateMachine.ts's
-  validated-transition discipline (P0-3/P6-16).
+- [x] P7-12 done — Idempotent submission engine (doc 08 §29-30, 57):
+  `filingSubmissionGuard.ts`'s `evaluateSubmissionGuard()` -- a reused
+  idempotency key is always ALREADY_SUBMITTED regardless of status
+  (double-click/job-retry/browser-refresh protection, reusing the job
+  queue's idempotency-key discipline from P0-8); an UNKNOWN status
+  (timeout after send) is UNKNOWN_MUST_RECONCILE, never an automatic
+  resubmit. `resolveUnknownSubmission()` implements doc 08 §57's own
+  sequence -- only a provider-confirmed-absent result is
+  SAFE_TO_RESUBMIT; an unreachable provider stays STILL_UNKNOWN rather
+  than being treated as either outcome. 9 new tests.
+- [x] P7-13 done — Filing state machine (doc 08 §6):
+  `filingStateMachine.ts` mirrors stateMachine.ts's/
+  claimPreparationStateMachine.ts's validated-transition discipline
+  (P0-3/P6-16) over a plain-TS `FilingStatus` union mirroring the
+  schema enum (P7-1) -- no Prisma import, same DB-independence as every
+  other pure state machine here. PREPARING_SUBMISSION can skip straight
+  to SUBMITTING (no payment required) or go through the
+  AWAITING_PAYMENT/PAYMENT_PROCESSING/PAYMENT_COMPLETE branch; PROCESSING
+  branches three ways (ACCEPTED/PENDING/REJECTED); REJECTED stays on the
+  forward path (not a universal exit, since doc 08 explicitly gives it a
+  correction/resubmission branch) through CORRECTION_REQUIRED ->
+  RESUBMISSION_REQUIRED -> RESUBMITTED as a genuinely new attempt.
+  CANCELLED/FAILED/CLOSED are the three terminal states. 12 new tests.
 - [ ] P7-14 todo — Provider response normalization + confirmation
   verification (doc 08 §31-33): normalizes arbitrary provider statuses
   into a fixed internal vocabulary while always preserving the raw
@@ -1286,3 +1299,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-8] `submissionArtifact.ts`: `buildSubmissionArtifacts()` maps over claimPackage.ts's already-ordered document list to preserve package order, never mutating the approved package; `markArtifactUploaded()`/`markArtifactFailed()` return new objects; `allArtifactsUploaded()` false on an empty list. 6 new tests, full suite 541/541 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-9] `filingFeeRules.ts`: versioned FILING_FEE_RULES table, `getApplicableFeeRule()` (method-specific beats general, AMBIGUOUS never auto-picked), `calculateFilingFee()` (base+additional+provider=total, always names the rule/version, zero total on NO_RULE_FOUND/AMBIGUOUS_RULE rather than guessing). 7 new tests, full suite 548/548 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-11] `filingAuthorization.ts`: `evaluateSubmissionAuthorization()` (BLOCKED_NOT_READY regardless of mode/level, high-risk always needs an explicit operator submit even at level 4) + `applyHumanOverride()` (never overrides a hard blocker, rejects an incomplete override record for a soft blocker). 9 new tests, full suite 557/557 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-12] `filingSubmissionGuard.ts`: `evaluateSubmissionGuard()` (reused idempotency key or SUBMITTED status -> ALREADY_SUBMITTED, UNKNOWN -> UNKNOWN_MUST_RECONCILE, never auto-resubmit) + `resolveUnknownSubmission()` (only provider-confirmed-absent is safe to resubmit). [P7-13] `filingStateMachine.ts`: mirrors stateMachine.ts/claimPreparationStateMachine.ts over a plain-TS FilingStatus union, PROCESSING's three-way branch, REJECTED's correction/resubmission branch, CANCELLED/FAILED/CLOSED terminal. 21 new tests, full suite 578/578 passing, `tsc --noEmit` clean, `next build` clean.
