@@ -327,6 +327,18 @@ export const DECISION_TYPES = {
     highConsequence: true, // filing-adjacent -- doc 02 section 19's confirmation-step trigger
     category: "EXCEPTION",
   },
+  REVIEW_POST_FILING_EXCEPTION: {
+    key: "REVIEW_POST_FILING_EXCEPTION",
+    displayName: "Review Post-Filing Exception",
+    description:
+      "A post-filing case needs operator attention -- an escalated trigger, an unknown authority event, or a document/deadline conflict (doc 09 sections 41-52). Every meaningful post-filing decision flows into this same central dashboard rather than a separate task system.",
+    // doc 09 section 46's own literal action set.
+    availableActions: ["YES", "NO", "REVISE", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

@@ -113,4 +113,14 @@ describe("decision type registry", () => {
       "ESCALATE",
     ]);
   });
+
+  it("registers the doc 09 post-filing exception type (P8-14)", () => {
+    expect(DECISION_TYPES.REVIEW_POST_FILING_EXCEPTION.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.REVIEW_POST_FILING_EXCEPTION.availableActions).toEqual([
+      "YES",
+      "NO",
+      "REVISE",
+      "ESCALATE",
+    ]);
+  });
 });

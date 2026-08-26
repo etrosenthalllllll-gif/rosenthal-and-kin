@@ -1190,12 +1190,20 @@ routing logic itself, synthetic-data testing).
   `nextEscalationLevelIfUnacknowledged()` climbs one level (capped at
   4) only while UNACKNOWLEDGED -- any other acknowledgment status
   leaves the level unchanged. 6 new tests.
-- [ ] P8-14 todo — Operator tasks + decision-dashboard + AI case summary
-  integration (doc 09 §45-48): every actionable exception creates a
-  Task wired into the existing Decision Dashboard (P1-3), same pattern
-  as every other *DecisionRouting.ts module; AI case-summary generation
-  itself needs an AIProvider (blocked, same status as caseSummary.ts) --
-  the task/decision routing around it is not.
+- [x] P8-14 done — Operator tasks + decision-dashboard + AI case summary
+  integration (doc 09 §45-48): added `REVIEW_POST_FILING_EXCEPTION` to
+  `decisionTypes.ts` (doc 09 §46's own literal YES/NO/REVISE/ESCALATE
+  action set). `postFilingDecisionRouting.ts`'s
+  `planPostFilingEscalationDecision()` wires P8-13's escalation result
+  into it -- any escalation above Normal (level 0) becomes a decision,
+  naming every fired trigger in the reason. Doc 09 §45 describes a
+  separate "Operator Task" shape, but §46 is explicit that meaningful
+  decisions belong in the existing central dashboard -- same reuse
+  discipline as exceptionQueue.ts (P1-3) and every other
+  *DecisionRouting.ts module, so no second Task entity was built. AI
+  case-summary generation (§47-48) itself needs an AIProvider (blocked,
+  same status as caseSummary.ts) -- the decision routing here doesn't
+  depend on it. 3 new tests (plus 1 decisionTypes.ts test).
 - [ ] P8-15 todo — Court/agency document ingestion + event/deadline
   conflict detection (doc 09 §49-52): every detected event/deadline
   references its source document (page + extracted text) so an
@@ -1435,3 +1443,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-10] `postFilingNotification.ts`: `canSendPostFilingNotification()` delegates to communicationPreferences.ts's canSendOnChannel(); `createPostFilingNotification()` requires templateId/templateVersion (approved-templates-only enforced by the type); SENT/DELIVERED kept as distinct explicit transitions. 5 new tests, full suite 692/692 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-11] `postFilingFollowUp.ts`: `planPostFilingFollowUp()` -- all 9 stop conditions checked first (win even over an already-sent follow-up), alreadySent idempotency flag checked before SEND. 5 new tests, full suite 697/697 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-12] `postFilingClaimantResponse.ts`: `planClaimantResponseAction()` -- doc's worked examples as config table, OTHER fails closed to a generic operator decision. [P8-13] `postFilingEscalation.ts`: `ESCALATION_TRIGGER_LEVEL` (fails closed to level 4), `evaluateEscalation()`, `nextEscalationLevelIfUnacknowledged()` (climbs only while UNACKNOWLEDGED, caps at 4). 10 new tests, full suite 707/707 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-14] Added REVIEW_POST_FILING_EXCEPTION to decisionTypes.ts; `postFilingDecisionRouting.ts`'s `planPostFilingEscalationDecision()` wires P8-13's escalation result into it, no decision below level 1. No separate Operator Task entity built -- reuses Decision machinery per doc's own §46 instruction. 4 new tests, full suite 711/711 passing, `tsc --noEmit` clean, `next build` clean.
