@@ -1651,13 +1651,16 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   conflicting data > low-confidence > deadlines > provider failures >
   sync problems > other). 4 new tests, full suite 1005/1005 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-15 todo — Automation health score + analytics + quality loop
-  (doc 11 §64-67): pure-math automation metrics (success/retry/failure
-  rate, approval backlog, human-intervention rate) in the same
-  divide-by-zero-guarded style as `financialAnalytics.ts`/
-  `postFilingAnalytics.ts`, plus a stored (never auto-applied)
-  AI-recommendation-vs-human-decision outcome log for later rule/
-  threshold tuning.
+- [x] P10-15 done — Automation health score + analytics + quality loop
+  (doc 11 §64-67): `automationAnalytics.ts` --
+  `computeAutomationHealthScore()` (success/failure/retry rate),
+  `computeWorkflowInterventionMetrics()` (matches the doc's own 1,000-
+  execution worked example exactly; human-assisted + human-blocked
+  combine into one intervention rate), `buildAutomationOutcomeRecord()`/
+  `computeOutcomeAgreementRate()` (AI-recommendation-vs-human-decision
+  outcome log, stored for later deliberate review, never auto-applied
+  to change rules/thresholds). 8 new tests, full suite 1013/1013
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-16 todo — Configuration management (doc 11 §68-69):
   centralized, versioned, audited config for thresholds/retry
   policies/timeouts/approval requirements/rate & cost limits -- every
@@ -1841,3 +1844,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-12] `concurrencyGuard.ts`: detectEventOrderException(), validateAutomatedTransition() (delegates to existing domain state machines), detectWorkflowConflicts() (config-table), isRaceProtected(). 10 new tests, full suite 989/989 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-13 (Automation priority + resource/rate/cost limits).
 - 2026-08-26 — [P10-13] `automationLimits.ts`: sortByAutomationPriority(), isWithinResourceLimit(), evaluateRateLimit(), evaluateCostLimit(), evaluateAutomationBudget(). 12 new tests, full suite 1001/1001 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-14 (Observability: workflow trace + execution log + error dashboard).
 - 2026-08-26 — [P10-14] `automationObservability.ts`: buildWorkflowTrace(), buildExecutionLogEntry() (reference-only, no duplicated payloads), sortByExceptionPriority() (doc's 8-level ladder). 4 new tests, full suite 1005/1005 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-15 (Automation health score + analytics + quality loop).
+- 2026-08-26 — [P10-15] `automationAnalytics.ts`: computeAutomationHealthScore(), computeWorkflowInterventionMetrics(), buildAutomationOutcomeRecord()/computeOutcomeAgreementRate() (never auto-applied to change rules). 8 new tests, full suite 1013/1013 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-16 (Configuration management).
