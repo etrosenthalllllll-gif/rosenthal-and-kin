@@ -1334,12 +1334,18 @@ live provider call is blocked.
   based solely on AI output" instruction. `buildDistributionStatement()`
   always names the exact recovery/distribution versions it was
   generated from. 2 new tests (plus 1 decisionTypes.ts test).
-- [ ] P9-6 todo — Fee engine (recovery-side) + fee rule versioning +
-  validation (doc 10 §17-20): configurable fee structures
-  (percentage/flat/tiered/fixed-admin/other), every calculation
-  preserving its rule/version/rate/base/result -- distinct from P7-9's
-  filing-fee engine (different fee, different trigger point), but
-  reusing the identical versioned-rule-table shape.
+- [x] P9-6 done — Fee engine (recovery-side) + fee rule versioning +
+  validation (doc 10 §17-20): `recoveryFeeRules.ts`'s
+  `RECOVERY_FEE_RULES` versioned table (supersedes-linked, same
+  discipline as claimRules.ts/filingFeeRules.ts) + `getApplicableRecoveryFeeRule()`
+  (claim-type-specific beats general, AMBIGUOUS never auto-picked) +
+  `calculateRecoveryFee()` supporting all 4 configured structures
+  (PERCENTAGE/FLAT/TIERED/FIXED_ADMIN) -- OTHER fails to
+  `UNSUPPORTED_STRUCTURE` rather than guessing a calculation for a
+  structure this engine doesn't know how to compute, every result
+  naming the exact rule/version/structure/base used. `validateBeforeInvoice()`
+  -- PASS only once every one of the doc's 5 pre-invoice checks clears,
+  never before. 9 new tests.
 - [ ] P9-7 todo — Invoice model + numbering + generation + delivery
   (doc 10 §21-25): the doc's own Invoice status list; unique,
   immutable, never-reused invoice numbers; auto-generated only once the
@@ -1512,3 +1518,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-3] `recoveryVariance.ts`'s `evaluateRecoveryVariance()` -- config-default thresholds (NORMAL/REVIEW_OPTIONAL/OPERATOR_REVIEW/MANDATORY_REVIEW), percentDifference null rather than divide-by-zero. 6 new tests, full suite 766/766 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-4] Added Distribution/DistributionStatus schema model (each row is a version, unique on recoveryId+claimantId+version); `distributionEngine.ts`: `calculateNetDistributable()`, `validateDistributionRule()`, `allocateDistribution()`, `getCurrentDistributionVersion()`/`nextDistributionVersionNumber()` (scoped per beneficiary, never overwrites). 8 new tests, full suite 774/774 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-5] Added APPROVE_DISTRIBUTION to decisionTypes.ts; `distributionApproval.ts`'s `planDistributionApprovalDecision()` (unconditional, no auto-approve path) + `buildDistributionStatement()` (names exact recovery/distribution versions). 3 new tests, full suite 777/777 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-6] `recoveryFeeRules.ts`: versioned RECOVERY_FEE_RULES table + `getApplicableRecoveryFeeRule()` + `calculateRecoveryFee()` (4 structures, OTHER fails to UNSUPPORTED_STRUCTURE) + `validateBeforeInvoice()` (5-item pre-invoice checklist). 9 new tests, full suite 786/786 passing, `tsc --noEmit` clean, `next build` clean.
