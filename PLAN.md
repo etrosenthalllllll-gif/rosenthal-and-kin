@@ -225,12 +225,29 @@ idempotency, follow-up scheduling) is buildable now.
   would be premature. 9 new tests, full suite 226/226, `next build`
   clean. Depends on P3-1, P3-6 (used for opt-out state feeding
   `hasOptedOut`, not called directly here).
-- [ ] P3-8 todo — Human handoff / takeover (doc 04 §10, §30-31): escalation
-  triggers (low confidence, dispute, legal question, hostility, ambiguous
-  match, repeated automation failure), `HUMAN_HANDLING` pause-then-resume,
-  and the SEND/REVISE/REJECT/ESCALATE decision shape for AI-drafted
-  responses (never overwrite the original draft — store
-  draft+revision+final separately, §8). Depends on P3-4, P3-5.
+- [x] P3-8 done — Human handoff / takeover (doc 04 §10, §30, §8):
+  `humanHandoff.ts`. Scoped to what P3-4/P3-5 didn't already cover
+  (most of §10's escalation triggers are individual classification
+  categories, already handled): `takeoverConversation()`/
+  `resumeAutomation()` — the `humanHandling` state transition, idempotent
+  on takeover, and deliberately does **not** clear `attentionStatus` on
+  resume (resuming automation isn't the same as resolving whatever
+  flagged the conversation in the first place). `availableOperatorActions()`
+  — §30's exact action set (REPLY/CALL/SEND_SMS/ADD_NOTE/ESCALATE/
+  RESUME_AUTOMATION), empty until a human owns the conversation.
+  `checkRepeatedFailureEscalation()` — §10's own distinct trigger
+  ("automation repeatedly fails"), a consecutive-failure counter with a
+  configurable threshold (default 3, since the doc doesn't specify an
+  exact number — same "don't blindly use these exact numbers" discipline
+  as §28). `createDraftHistory()`/`applyOperatorRevision()`/
+  `recordFinalSend()` — §8's original-draft/operator-revision/
+  final-sent-version record, where the type shape itself makes
+  overwriting the original draft impossible rather than just documenting
+  a rule not to. The full §31 decision-package UI (conversation summary +
+  AI recommendation shown to the operator) is deliberately NOT built —
+  same "don't fake data nothing upstream produces yet" call as
+  `caseSummary.ts` (P1-3). 13 new tests, full suite 239/239, `next build`
+  clean. Depends on P3-4, P3-5.
 - [ ] P3-9 todo — SMS integration (doc 04 §11-12): same pipeline as P3-3
   but for SMS, against `CommunicationProvider`. Live send/receive is
   `blocked: needs credential — SMS provider (e.g. Twilio) account not yet
@@ -291,3 +308,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-6] `communicationPreferences.ts`: `canSendOnChannel()` (the single before-send check, centralized doNotContact always wins over per-channel flags) and `applyOptOutSignal()` (pure state transition -- DO_NOT_CONTACT is centralized/channel-independent, UNSUBSCRIBE only touches the one channel it arrived on, per doc 04's own SMS-opt-out example). Both signal keys map directly onto P3-4's DO_NOT_CONTACT/UNSUBSCRIBE classification categories. 9 new tests, full suite 207/207 passing, `next build` clean.
 - 2026-08-26 — [P3-5] `communicationAutomationRules.ts`: `decideAutomationAction()` composes P3-4's classification routing, P3-6's opt-out enforcement, and doc 04 section 30's humanHandling flag into one fixed-precedence evaluator (human-owned conversation > opt-out signal processed as an automated stop > classifier-requires-human > classifier-allows-but-channel-blocked escalates rather than silently dropping or wrongly sending > otherwise respond automatically). No new business rule invented -- this module is the evaluator over signals the earlier P3 tasks already produce. 10 new tests, full suite 217/217 passing, `next build` clean.
 - 2026-08-26 — [P3-7] `followUpScheduler.ts`: `planNextFollowUp()`, a pure decision over a configurable day-offset sequence (DEFAULT_OUTREACH_SEQUENCE: Day 0/7/14/30, doc 04's own example) and all seven of section 21's stop conditions, checked first so a mid-sequence response never triggers a blind follow-up. Outbound idempotency (sections 34-35) needed no new code -- already enforced by the job queue's required idempotencyKey (P0-8) and Communication.idempotencyKey's DB unique constraint (P3-1); documented rather than duplicated. Global pause-all-outbound and rate limiting deferred to whichever task wires a real send loop to a live provider. 9 new tests, full suite 226/226 passing, `next build` clean.
+- 2026-08-26 — [P3-8] `humanHandoff.ts`: scoped to what P3-4/P3-5 didn't already cover. takeoverConversation()/resumeAutomation() (humanHandling state transition, deliberately doesn't clear attentionStatus on resume), availableOperatorActions() (doc 04 section 30's exact action set), checkRepeatedFailureEscalation() (section 10's own distinct "automation repeatedly fails" trigger, configurable threshold), createDraftHistory()/applyOperatorRevision()/recordFinalSend() (section 8's draft/revision/final-sent record, shaped so overwriting the original draft is structurally impossible). Full §31 decision-package UI deliberately not built -- needs upstream data that doesn't exist yet, same call as caseSummary.ts. 13 new tests, full suite 239/239 passing, `next build` clean.
