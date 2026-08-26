@@ -162,7 +162,7 @@ export function selectFormsForClaim(
   });
 }
 
-function latestFormVersionsOnly(catalog: readonly FormMetadata[]): FormMetadata[] {
+export function latestFormVersionsOnly(catalog: readonly FormMetadata[]): FormMetadata[] {
   const supersededIds = new Set(catalog.map((f) => f.supersedes).filter((id): id is string => Boolean(id)));
   return catalog.filter((f) => !supersededIds.has(f.id));
 }

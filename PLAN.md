@@ -770,13 +770,23 @@ content goes in, same as P2-1.
   consume an AI review result once one exists is not blocked -- it just
   isn't wired to a live AI call yet, same status as caseSummary.ts. 9
   new tests.
-- [ ] P6-18 todo — Rule/form/jurisdiction update handling (doc 07
-  §50-53): jurisdiction change invalidates affected rules/forms/
-  requirements/exhibits and creates a new preparation version rather
-  than mutating the existing one; a newer rule/form version never
-  silently replaces one already used in an existing package -- always
-  a reviewable alert with an explicit keep-current/regenerate/review
-  choice.
+- [x] P6-18 done — Rule/form/jurisdiction update handling (doc 07
+  §50-53): `claimPreparationUpdateHandling.ts`'s `detectJurisdictionChange()`
+  (a jurisdiction change invalidates everything the preparation built,
+  no KEEP_CURRENT option -- only REGENERATE/REVIEW, since the old
+  jurisdiction's rules genuinely no longer apply) plus
+  `detectRuleVersionDrift()`/`detectFormVersionDrift()` (a used
+  rule/form-catalog entry that's since been superseded is flagged with
+  the full KEEP_CURRENT/REGENERATE/REVIEW choice -- never silently
+  swapped for the newer version). `requiresNewPreparationVersion()`
+  distinguishes the two: only a jurisdiction change forces a whole new
+  preparation version; rule/form drift can be resolved by regenerating
+  the affected pieces within the same preparation. Exported
+  `latestFormVersionsOnly()` from formCatalog.ts (P6-7) rather than
+  duplicating its supersedes-resolution logic here. 8 new tests. **Every
+  currently-unblocked Phase 6 task (P6-1 through P6-18) is now done** --
+  P6-12 remains blocked on an e-signature vendor account, and P6-19/
+  P6-20 remain deferred pending real prepared-claim data.
 - [ ] P6-19 todo — Claim preview / review UI: deferred like P4-13 --
   genuinely needs a real prepared claim (real forms, real documents,
   real exhibits) to be worth building against; revisit once P6-1
@@ -845,3 +855,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-15] `claimPackageIntegrity.ts`: `checkPackageIntegrity()` -- missing documents, duplicate manifest entries, superseded form versions, missing required signatures, manifest/document-list mismatches; `passed` only true once every check clears, every failure a specific typed issue. 6 new tests, full suite 480/480 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-16] `claimPreparationStateMachine.ts`: mirrors stateMachine.ts's (P0-3) validated-transition discipline over ClaimPreparationStatus -- forward path, REJECTED/CANCELLED/SUPERSEDED universal exits (SUPERSEDED terminal for a jurisdiction/rule/form-version change, correct response is a new preparation version, never a patch), COMPLETENESS_REVIEW -> REQUIRES_OPERATOR_REVIEW -> READY_FOR_APPROVAL. 9 new tests, full suite 489/489 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-17] Added `REVIEW_CLAIM_PACKAGE` to decisionTypes.ts (doc 07's literal action set, highConsequence: true); `claimPackageDecisionRouting.ts`'s `planClaimPackageReviewDecision()` wires P6-13/P6-15 outputs into it, `buildClaimPackageApprovalSnapshot()` is create-only like verificationSnapshot.ts. 9 new tests, full suite 496/496 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-18] `claimPreparationUpdateHandling.ts`: `detectJurisdictionChange()` (no KEEP_CURRENT -- the old jurisdiction's rules genuinely no longer apply) + `detectRuleVersionDrift()`/`detectFormVersionDrift()` (full KEEP_CURRENT/REGENERATE/REVIEW choice, never silently swaps in the newer version) + `requiresNewPreparationVersion()`. 8 new tests, full suite 504/504 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 6's currently-unblocked work (P6-1 through P6-18) is now done.** P6-12 (e-signature) stays blocked on a vendor account; P6-19/P6-20 stay deferred pending real prepared-claim data. Next unblocked work is decomposing Phases 7-9 (Filing, Post-filing, Recovery) into tasks, same as was done for Phases 3-6.
