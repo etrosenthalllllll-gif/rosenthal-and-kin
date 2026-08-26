@@ -1446,12 +1446,20 @@ live provider call is blocked.
   here. `reopenFinancialCase()` requires a non-empty reason and
   preserves the prior `FinancialClosureRecord` completely unchanged.
   6 new tests.
-- [ ] P9-17 todo — Financial audit trail + permissions (doc 10 §56-57):
-  every financial action records who/what/when/why/source/affected
-  record; separate fine-grained permissions (VIEW_FINANCIAL_DATA,
-  CALCULATE_FEES, APPROVE_DISTRIBUTION, REFUND_PAYMENT, etc.) rather
-  than one blanket financial-access flag -- extends the auth/permission
-  primitives from P0-4/P0-6.
+- [x] P9-17 done — Financial audit trail + permissions (doc 10 §56-57):
+  extended `auth.ts`'s (P0-4) `Permission` union with the doc's own
+  fine-grained financial permission list (CALCULATE_FEES/CREATE_INVOICE/
+  ISSUE_INVOICE/RECORD_PAYMENT/APPROVE_DISTRIBUTION/APPROVE_ADJUSTMENT/
+  REFUND_PAYMENT/CLOSE_FINANCIAL_CASE/REOPEN_FINANCIAL_CASE/
+  ESCALATE_FINANCIAL_EXCEPTION) rather than one blanket
+  VIEW_FINANCIAL_DATA flag -- OPERATOR gets routine preparation work
+  only, REVIEWER/ADMIN get the higher-trust approve/refund/close
+  actions, every role can escalate. `financialAudit.ts`'s
+  `buildFinancialAuditEntry()` maps a financial action onto audit.ts's
+  (P0-6) existing AuditEventInput shape (which already carries who/
+  what/when/affected-record) rather than building a second audit
+  mechanism -- `reason` becomes part of `metadata` since audit.ts has
+  no dedicated "why" field. 8 new tests (6 auth.ts + 2 financialAudit.ts).
 - [ ] P9-18 todo — Currency + rounding + adjustments (doc 10 §59-62):
   every amount carries an explicit currency (never assumes USD);
   deterministic, versioned rounding rules so the same calculation
@@ -1571,3 +1579,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-14] `financialReconciliation.ts`'s `evaluateFinancialReconciliation()` (two algebraic invariants + merges in already-detected exceptions, PASSes on the doc's own worked example). Added REVIEW_FINANCIAL_EXCEPTION to decisionTypes.ts + `financialDecisionRouting.ts`. 7 new tests, full suite 831/831 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-15] `financialDashboard.ts`: `buildFinancialTotals()`, `buildCaseFinancialSummary()` (readyToClose requires both clean reconciliation AND zero outstanding), `buildRecoveryTimeline()`. 5 new tests, full suite 836/836 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-16] `financialClosure.ts`: `evaluateFinancialClosureReadiness()` (financial-subset config table, never auto-closes with a blocker present) + `reopenFinancialCase()` (reason required, prior closure preserved unchanged). 6 new tests, full suite 842/842 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-17] Extended auth.ts's Permission union with 10 fine-grained financial permissions (OPERATOR gets routine work, REVIEWER/ADMIN get approve/refund/close); `financialAudit.ts`'s `buildFinancialAuditEntry()` maps onto audit.ts's existing AuditEventInput shape. 8 new tests, full suite 848/848 passing, `tsc --noEmit` clean, `next build` clean.

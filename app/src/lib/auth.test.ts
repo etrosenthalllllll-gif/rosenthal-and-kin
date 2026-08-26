@@ -55,4 +55,34 @@ describe("role-based permissions", () => {
   it("requirePermission does not throw for an allowed action", () => {
     expect(() => requirePermission("REVIEWER", "APPROVE_CLAIMS")).not.toThrow();
   });
+
+  // --- doc 10 section 57's fine-grained financial permissions (P9-17) ---
+
+  it("OPERATOR can do routine financial preparation but not approve/refund/close", () => {
+    expect(hasPermission("OPERATOR", "CALCULATE_FEES")).toBe(true);
+    expect(hasPermission("OPERATOR", "CREATE_INVOICE")).toBe(true);
+    expect(hasPermission("OPERATOR", "RECORD_PAYMENT")).toBe(true);
+    expect(hasPermission("OPERATOR", "APPROVE_DISTRIBUTION")).toBe(false);
+    expect(hasPermission("OPERATOR", "REFUND_PAYMENT")).toBe(false);
+    expect(hasPermission("OPERATOR", "CLOSE_FINANCIAL_CASE")).toBe(false);
+  });
+
+  it("every role can escalate a financial exception -- never gated behind a higher tier", () => {
+    expect(hasPermission("OPERATOR", "ESCALATE_FINANCIAL_EXCEPTION")).toBe(true);
+    expect(hasPermission("REVIEWER", "ESCALATE_FINANCIAL_EXCEPTION")).toBe(true);
+    expect(hasPermission("ADMIN", "ESCALATE_FINANCIAL_EXCEPTION")).toBe(true);
+  });
+
+  it("REVIEWER can approve distributions/adjustments and close/reopen financial cases", () => {
+    expect(hasPermission("REVIEWER", "APPROVE_DISTRIBUTION")).toBe(true);
+    expect(hasPermission("REVIEWER", "APPROVE_ADJUSTMENT")).toBe(true);
+    expect(hasPermission("REVIEWER", "CLOSE_FINANCIAL_CASE")).toBe(true);
+    expect(hasPermission("REVIEWER", "REOPEN_FINANCIAL_CASE")).toBe(true);
+  });
+
+  it("READ_ONLY has none of the fine-grained financial permissions", () => {
+    expect(hasPermission("READ_ONLY", "CALCULATE_FEES")).toBe(false);
+    expect(hasPermission("READ_ONLY", "RECORD_PAYMENT")).toBe(false);
+    expect(hasPermission("READ_ONLY", "ESCALATE_FINANCIAL_EXCEPTION")).toBe(false);
+  });
 });

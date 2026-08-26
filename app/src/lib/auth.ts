@@ -40,7 +40,21 @@ export type Permission =
   | "MANAGE_USERS"
   | "MANAGE_INTEGRATIONS"
   | "VIEW_AUDIT_LOGS"
-  | "CONFIGURE_WORKFLOWS";
+  | "CONFIGURE_WORKFLOWS"
+  // doc 10 section 57's own fine-grained financial permission list --
+  // "do not give every operator unrestricted financial permissions."
+  // Kept separate from VIEW_FINANCIAL_DATA (already existed) rather
+  // than folding every financial action under one blanket flag.
+  | "CALCULATE_FEES"
+  | "CREATE_INVOICE"
+  | "ISSUE_INVOICE"
+  | "RECORD_PAYMENT"
+  | "APPROVE_DISTRIBUTION"
+  | "APPROVE_ADJUSTMENT"
+  | "REFUND_PAYMENT"
+  | "CLOSE_FINANCIAL_CASE"
+  | "REOPEN_FINANCIAL_CASE"
+  | "ESCALATE_FINANCIAL_EXCEPTION";
 
 // Explicit allow-list per role. A role not listed for a permission is
 // denied by default — this is deliberately fail-closed, matching doc 01's
@@ -61,6 +75,16 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "MANAGE_INTEGRATIONS",
     "VIEW_AUDIT_LOGS",
     "CONFIGURE_WORKFLOWS",
+    "CALCULATE_FEES",
+    "CREATE_INVOICE",
+    "ISSUE_INVOICE",
+    "RECORD_PAYMENT",
+    "APPROVE_DISTRIBUTION",
+    "APPROVE_ADJUSTMENT",
+    "REFUND_PAYMENT",
+    "CLOSE_FINANCIAL_CASE",
+    "REOPEN_FINANCIAL_CASE",
+    "ESCALATE_FINANCIAL_EXCEPTION",
   ]),
   OPERATOR: new Set([
     "VIEW_CASES",
@@ -69,6 +93,12 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "UPLOAD_DOCUMENTS",
     "SEND_COMMUNICATIONS",
     "VIEW_FINANCIAL_DATA",
+    // Routine financial preparation work -- not the consequential
+    // approve/refund/close actions below.
+    "CALCULATE_FEES",
+    "CREATE_INVOICE",
+    "RECORD_PAYMENT",
+    "ESCALATE_FINANCIAL_EXCEPTION",
   ]),
   REVIEWER: new Set([
     "VIEW_CASES",
@@ -77,6 +107,16 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "FILE_CLAIMS",
     "VIEW_FINANCIAL_DATA",
     "VIEW_AUDIT_LOGS",
+    // The higher-trust approval/closure actions -- doc 10 section 57's
+    // "do not give every operator unrestricted financial permissions"
+    // applied by reserving these for Reviewer/Admin only.
+    "ISSUE_INVOICE",
+    "APPROVE_DISTRIBUTION",
+    "APPROVE_ADJUSTMENT",
+    "REFUND_PAYMENT",
+    "CLOSE_FINANCIAL_CASE",
+    "REOPEN_FINANCIAL_CASE",
+    "ESCALATE_FINANCIAL_EXCEPTION",
   ]),
   READ_ONLY: new Set(["VIEW_CASES", "VIEW_DOCUMENTS"]),
 };
