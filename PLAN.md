@@ -173,10 +173,21 @@ idempotency, follow-up scheduling) is buildable now.
   + opt-out status → {respond automatically, create decision, escalate,
   schedule follow-up, stop}. Same config-table discipline as
   `complianceRules.ts`. Depends on P3-2, P3-4, P3-6.
-- [ ] P3-6 todo — Communication preferences / opt-out / do-not-contact
-  (doc 04 §19): per-person channel preferences plus a centralized
-  `DO_NOT_CONTACT` that every outbound path must check before send —
-  "do not rely solely on the individual channel system." Depends on P3-1.
+- [x] P3-6 done — Communication preferences / opt-out / do-not-contact
+  (doc 04 §19): `communicationPreferences.ts` — `canSendOnChannel()` is
+  the single check every outbound path should call before sending;
+  centralized `doNotContact` always wins over per-channel flags,
+  matching §19's explicit "do not rely solely on the individual channel
+  system." `applyOptOutSignal()` is the pure state transition for the
+  two distinct signals §19 calls out: `DO_NOT_CONTACT` (centralized,
+  channel-independent — the channel it arrived on doesn't matter) vs.
+  `UNSUBSCRIBE` (touches only the one channel it arrived on, per §19's
+  own SMS-opt-out example — "while potentially allowing permitted other
+  channels"). Both signal keys map directly onto P3-4's
+  `DO_NOT_CONTACT`/`UNSUBSCRIBE` classification categories, so the
+  classifier's output feeds straight into this function. Reads/writes
+  the `Person` preference fields already added to the schema in P3-1. 9
+  new tests, full suite 207/207, `next build` clean. Depends on P3-1.
 - [ ] P3-7 todo — Outbound send idempotency + follow-up sequence scheduler
   (doc 04 §21, §34-35): configurable day-offset sequences (Day 0/7/14/30),
   stop conditions (response, opt-out, case closed/inactive, operator
@@ -246,3 +257,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — [P3-2] `matchConversationToCase.ts`: pure, confidence-scored conversation-to-case matcher over doc 04 §3's signal list (thread ID, case-number reference, email, phone, name), weighted so no single weak signal (name alone) can cross even the ambiguous floor. Never guesses: two candidates both clearing the auto-attach threshold resolve to `AMBIGUOUS`, exactly matching doc 04's own "Cases RK-1842 and RK-1917" example rather than picking one arbitrarily. Added `RESOLVE_AMBIGUOUS_CASE_MATCH` to the EXCEPTION set in `decisionTypes.ts` (reuses P1-3's Decision/exception-queue machinery, no new model) with an explicit `CREATE_NEW_CASE` action. 13 new tests, full suite 180/180 passing, `next build` clean.
 - 2026-08-26 — [P3-3] `planInboundEmailIngestion.ts`: pure inbound-email ingestion decision layer, sitting on top of P3-2's matcher. Validates the payload, dedupes on provider message ID (idempotency), matches via P3-2 using In-Reply-To as the thread signal, and produces one of REJECT_INVALID/SKIP_DUPLICATE/ATTACH_TO_CASE/CREATE_MATCH_EXCEPTION. Treats a genuine no-match the same as an ambiguous match (raise for human review) rather than silently dropping the message, per doc 04's "never silently disappear." The live webhook endpoint stays blocked (no inbound email provider account provisioned yet); this decision logic has no such dependency. 8 new tests, full suite 189/189 passing, `next build` clean.
 - 2026-08-26 — [P3-4] `communicationClassification.ts`: configurable category table covering doc 04 section 6's full list (20 categories), per-category confidence thresholds (section 28), and an `alwaysRequiresHumanReview` flag for the categories section 7/9 name explicitly (legal questions, payment questions, suspicious messages, deceased-person reports, unclear/escalate) -- no confidence level clears these. `routeClassifiedCommunication()` fails closed to human review on an unrecognized category. No live AI model call yet (no AIProvider account provisioned -- same gap as caseSummary.ts); this is the config-and-routing layer, fully tested against synthetic classification results. 9 new tests, full suite 199/199 passing, `next build` clean.
+- 2026-08-26 — [P3-6] `communicationPreferences.ts`: `canSendOnChannel()` (the single before-send check, centralized doNotContact always wins over per-channel flags) and `applyOptOutSignal()` (pure state transition -- DO_NOT_CONTACT is centralized/channel-independent, UNSUBSCRIBE only touches the one channel it arrived on, per doc 04's own SMS-opt-out example). Both signal keys map directly onto P3-4's DO_NOT_CONTACT/UNSUBSCRIBE classification categories. 9 new tests, full suite 207/207 passing, `next build` clean.
