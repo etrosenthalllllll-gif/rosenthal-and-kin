@@ -23,16 +23,16 @@ enum UserRole {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   passwordHash String
   name         String
-  role         UserRole @default(OPERATOR)
+  role         UserRole  @default(OPERATOR)
   disabledAt   DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  decisionsDecided Decision[]     @relation("DecisionDecidedBy")
+  decisionsDecided Decision[]   @relation("DecisionDecidedBy")
   auditEvents      AuditEvent[]
   notes            Note[]
   sessions         Session[]
@@ -72,17 +72,17 @@ enum FundsFlowModel {
 }
 
 model Estate {
-  id                 String       @id @default(cuid())
-  caseNumber         String       @unique // human-readable, e.g. RK-1842
-  decedentName       String
+  id                  String       @id @default(cuid())
+  caseNumber          String       @unique // human-readable, e.g. RK-1842
+  decedentName        String
   jurisdiction        String       @default("CA")
   estimatedValueCents Int?
-  probateCaseNumber  String?
-  filingDeadline     DateTime?
-  status             EstateStatus @default(SOURCED)
-  sourceTrackerRowId String?      // link back to the Sheets tracker row this came from
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  probateCaseNumber   String?
+  filingDeadline      DateTime?
+  status              EstateStatus @default(SOURCED)
+  sourceTrackerRowId  String? // link back to the Sheets tracker row this came from
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
   claimants     Claimant[]
   relationships Relationship[]
@@ -124,14 +124,14 @@ model Claimant {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  estate      Estate        @relation(fields: [estateId], references: [id])
-  person      Person        @relation(fields: [personId], references: [id])
-  documents   Document[]
-  decisions   Decision[]
-  notes       Note[]
-  transitions ClaimantStateTransition[]
-  conversations   Conversation[]
-  communications  Communication[]
+  estate         Estate                    @relation(fields: [estateId], references: [id])
+  person         Person                    @relation(fields: [personId], references: [id])
+  documents      Document[]
+  decisions      Decision[]
+  notes          Note[]
+  transitions    ClaimantStateTransition[]
+  conversations  Conversation[]
+  communications Communication[]
 
   @@index([estateId])
   @@index([status])
@@ -158,31 +158,32 @@ model ClaimantStateTransition {
 // ---------------------------------------------------------------------
 
 model Person {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   firstName String
   lastName  String
   dob       DateTime?
   email     String?
   phone     String?
   address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  claimants     Claimant[]
-  relationsFrom Relationship[] @relation("PersonA")
-  relationsTo   Relationship[] @relation("PersonB")
-  conversations   Conversation[]
-  communications  Communication[]
+  claimants      Claimant[]
+  relationsFrom  Relationship[]  @relation("PersonA")
+  relationsTo    Relationship[]  @relation("PersonB")
+  conversations  Conversation[]
+  communications Communication[]
 
   // doc 04 section 19 -- centralized, channel-specific communication
   // preferences. "Do not rely solely on the individual channel system":
   // doNotContact overrides every per-channel flag below regardless of
   // its own value.
-  emailAllowed  Boolean @default(true)
-  smsAllowed    Boolean @default(true)
-  voiceAllowed  Boolean @default(true)
-  mailAllowed   Boolean @default(true)
-  doNotContact  Boolean @default(false)
+  emailAllowed Boolean    @default(true)
+  smsAllowed   Boolean    @default(true)
+  voiceAllowed Boolean    @default(true)
+  mailAllowed  Boolean    @default(true)
+  doNotContact Boolean    @default(false)
+  Document     Document[]
 }
 
 enum RelationshipType {
@@ -218,38 +219,143 @@ model Relationship {
 }
 
 // ---------------------------------------------------------------------
-// Documents (doc 05 groundwork — storage abstraction lives in app code)
+// Documents (doc 05 "Document Intelligence") — PLAN.md P4-1.
+// OCR/classification/extraction/semantic-search themselves are
+// blocked (no OCR or AI provider account exists yet, P4-7 through
+// P4-9/P4-12) but the data model doc 05 section 1 asks for is added
+// now regardless, since every sub-status simply sits at NOT_STARTED
+// until those pipelines exist -- same reasoning P3-1 used for adding
+// Person's communication-preference fields ahead of P3-6's enforcement.
 // ---------------------------------------------------------------------
 
+// doc 05 section 2's full lifecycle, verbatim. No existing code
+// referenced the previous smaller enum, so this is a safe additive
+// change rather than a migration hazard.
 enum DocumentStatus {
   RECEIVED
+  // Deprecated, kept (not removed) so `prisma db push` never treats this
+  // enum change as data loss requiring --accept-data-loss -- a flag
+  // Claude Code's own auto-mode classifier blocks outright. Nothing
+  // reads or writes PROCESSING any more; INGESTING/OCR_PROCESSING/
+  // CLASSIFYING/EXTRACTING/MATCHING/VALIDATING replace it.
   PROCESSING
+  INGESTING
+  OCR_PROCESSING
+  CLASSIFYING
+  EXTRACTING
+  MATCHING
+  VALIDATING
+  INDEXING
   READY
   REQUIRES_REVIEW
   VERIFIED
   REJECTED
+  DUPLICATE
+  ARCHIVED
   FAILED
 }
 
+// doc 05 section 3's ingestion source list.
+enum DocumentSource {
+  EMAIL_ATTACHMENT
+  SMS_MMS
+  VOICE_UPLOAD
+  WEBSITE_UPLOAD
+  CLAIMANT_PORTAL
+  OPERATOR_UPLOAD
+  CLOUD_STORAGE
+  RESEARCH_SOURCE
+  EXTERNAL_API
+  PHYSICAL_MAIL_SCAN
+  OTHER
+}
+
+// Shared status for the three AI/OCR pipeline stages that are
+// currently blocked (P4-7/P4-8/P4-9) -- each just sits at NOT_STARTED
+// until a real provider exists to run it.
+enum DocumentPipelineStageStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  FAILED
+  SKIPPED
+}
+
+// doc 05 section 15's own output values, not a generic pipeline status
+// -- validation has real semantic outcomes distinct from "did it run."
+enum DocumentValidationStatus {
+  NOT_VALIDATED
+  VALID
+  INVALID
+  INCOMPLETE
+  UNCERTAIN
+}
+
+// doc 05 section 22.
+enum DocumentDuplicateStatus {
+  NOT_CHECKED
+  UNIQUE
+  LIKELY_DUPLICATE
+  CONFIRMED_DUPLICATE
+}
+
+// doc 05 section 32: "Separate AI PROCESSED from HUMAN VERIFIED... Do
+// not represent AI extraction as human verification."
+enum DocumentVerificationStatus {
+  NOT_VERIFIED
+  VERIFIED
+  REJECTED
+}
+
 model Document {
-  id               String         @id @default(cuid())
-  estateId         String?
-  claimantId       String?
-  documentType     String
-  originalFilename String
-  storageKey       String // object-storage key, never a public URL
-  mimeType         String
-  sizeBytes        Int
-  status           DocumentStatus @default(RECEIVED)
-  uploadedByUserId String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id                    String                      @id @default(cuid())
+  estateId              String?
+  claimantId            String?
+  // doc 05 section 1: "Person ID where applicable" -- a document may
+  // concern someone other than the claimant it's filed under (a
+  // parent's birth certificate, a sibling's marriage record, etc.).
+  personId              String?
+  documentType          String
+  // doc 05 section 3: where this document came from -- ingestion
+  // paths beyond OPERATOR_UPLOAD/EMAIL_ATTACHMENT are blocked until
+  // their own channel exists (P3-9/P3-10/P4-7), but the field is
+  // additive schema, not a functioning pipeline.
+  source                DocumentSource?
+  sourceCommunicationId String? // doc 05 section 37: email -> attachment -> Document provenance
+  originalFilename      String
+  storageKey            String // object-storage key, never a public URL
+  mimeType              String
+  sizeBytes             Int
+  // doc 05 section 22: exact-duplicate detection via cryptographic
+  // hash -- the one piece of "duplicate detection" that needs no AI/OCR
+  // (P4-3). Unique per estate below, not globally, since two different
+  // estates could legitimately receive byte-identical blank forms.
+  fileHash              String?
+  pageCount             Int?
+  status                DocumentStatus              @default(RECEIVED)
+  ocrStatus             DocumentPipelineStageStatus @default(NOT_STARTED)
+  classificationStatus  DocumentPipelineStageStatus @default(NOT_STARTED)
+  extractionStatus      DocumentPipelineStageStatus @default(NOT_STARTED)
+  validationStatus      DocumentValidationStatus    @default(NOT_VALIDATED)
+  duplicateStatus       DocumentDuplicateStatus     @default(NOT_CHECKED)
+  verificationStatus    DocumentVerificationStatus  @default(NOT_VERIFIED)
+  // doc 05 section 34: every AI-derived result should include
+  // confidence -- this is the document-level overall figure;
+  // field-level confidence belongs to the (still-blocked) extraction
+  // record, not this row.
+  aiConfidence          Float?
+  uploadedByUserId      String?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
 
   estate   Estate?   @relation(fields: [estateId], references: [id])
   claimant Claimant? @relation(fields: [claimantId], references: [id])
+  person   Person?   @relation(fields: [personId], references: [id])
 
   @@index([estateId])
   @@index([claimantId])
+  @@index([personId])
+  @@index([fileHash])
 }
 
 // ---------------------------------------------------------------------
@@ -287,8 +393,8 @@ model Decision {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  claimant   Claimant @relation(fields: [claimantId], references: [id])
-  decidedBy  User?    @relation("DecisionDecidedBy", fields: [decidedByUserId], references: [id])
+  claimant              Claimant        @relation(fields: [claimantId], references: [id])
+  decidedBy             User?           @relation("DecisionDecidedBy", fields: [decidedByUserId], references: [id])
   relatedCommunications Communication[]
 
   @@index([claimantId])
@@ -344,20 +450,20 @@ enum ConversationAttentionStatus {
 }
 
 model Conversation {
-  id                String                       @id @default(cuid())
-  claimantId        String
-  personId          String
-  channel           CommunicationChannel
-  attentionStatus   ConversationAttentionStatus  @default(AUTOMATED)
+  id               String                      @id @default(cuid())
+  claimantId       String
+  personId         String
+  channel          CommunicationChannel
+  attentionStatus  ConversationAttentionStatus @default(AUTOMATED)
   // doc 04 section 30 "HUMAN TAKEOVER": set true when an operator takes
   // over; pauses conflicting automation until explicitly resumed.
-  humanHandling     Boolean                      @default(false)
+  humanHandling    Boolean                     @default(false)
   // Provider-side thread identifiers (email Message-ID chains, SMS
   // conversation SIDs, etc.) -- section 5 "EMAIL THREADING". Free-form
   // since the shape differs per channel/provider.
-  providerThreadId  String?
-  createdAt         DateTime                     @default(now())
-  updatedAt         DateTime                     @updatedAt
+  providerThreadId String?
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
 
   claimant       Claimant        @relation(fields: [claimantId], references: [id])
   person         Person          @relation(fields: [personId], references: [id])
@@ -369,7 +475,7 @@ model Conversation {
 }
 
 model Communication {
-  id                       String                        @id @default(cuid())
+  id                       String                      @id @default(cuid())
   conversationId           String
   claimantId               String
   personId                 String
@@ -385,9 +491,9 @@ model Communication {
   // OutboundMessage.idempotencyKey in providers/types.ts); inbound
   // messages carry providerMessageId (provider-generated). Both unique so
   // a retried job or a re-delivered webhook can never create a second row.
-  providerMessageId        String?                       @unique
-  idempotencyKey           String?                       @unique
-  status                   CommunicationDeliveryStatus   @default(QUEUED)
+  providerMessageId        String?                     @unique
+  idempotencyKey           String?                     @unique
+  status                   CommunicationDeliveryStatus @default(QUEUED)
   // Configurable category string (doc 04 section 6/17's classification
   // lists), not an enum -- see communicationClassification.ts (P3-4).
   classification           String?
@@ -397,8 +503,8 @@ model Communication {
   relatedWorkflow          String?
   relatedDecisionId        String?
   relatedTaskId            String?
-  createdAt                DateTime                      @default(now())
-  updatedAt                DateTime                      @updatedAt
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
 
   conversation    Conversation @relation(fields: [conversationId], references: [id])
   claimant        Claimant     @relation(fields: [claimantId], references: [id])
@@ -416,11 +522,11 @@ model Communication {
 // ---------------------------------------------------------------------
 
 model AuditEvent {
-  id         String   @id @default(cuid())
-  entityType String // "Estate" | "Claimant" | "Document" | "Decision" | ...
-  entityId   String
-  eventType  String // "CREATED" | "STATUS_CHANGED" | "DOCUMENT_UPLOADED" | ...
-  actorUserId String?
+  id            String   @id @default(cuid())
+  entityType    String // "Estate" | "Claimant" | "Document" | "Decision" | ...
+  entityId      String
+  eventType     String // "CREATED" | "STATUS_CHANGED" | "DOCUMENT_UPLOADED" | ...
+  actorUserId   String?
   previousValue Json?
   newValue      Json?
   metadata      Json?
@@ -438,12 +544,12 @@ model AuditEvent {
 // ---------------------------------------------------------------------
 
 model Note {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   estateId   String?
   claimantId String?
   authorId   String
   content    String
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime @default(now())
 
   estate   Estate?   @relation(fields: [estateId], references: [id])
   claimant Claimant? @relation(fields: [claimantId], references: [id])
