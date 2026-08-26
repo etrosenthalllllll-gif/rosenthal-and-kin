@@ -43,6 +43,12 @@ describe("parseFirstHeirName", () => {
     expect(parseFirstHeirName("Unknown")).toBeNull();
   });
 
+  it("returns null for a placeholder sentence, not a fake claimant (found via a real production import)", () => {
+    expect(
+      parseFirstHeirName("none found yet - survivors not accessible via web search")
+    ).toBeNull();
+  });
+
   it("returns null for missing input", () => {
     expect(parseFirstHeirName(undefined)).toBeNull();
     expect(parseFirstHeirName("")).toBeNull();

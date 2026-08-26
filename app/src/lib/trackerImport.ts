@@ -75,6 +75,13 @@ export function parseMoneyToCents(raw: string | undefined | null): number | null
  * but every real tracker example seen so far parses correctly; multi-word
  * last names (double-barrelled, "de la Cruz") are a known limitation to
  * revisit once real data exposes it.
+ *
+ * Requires every word to look capitalized-name-shaped (starts with an
+ * uppercase letter) -- found via a real production import that this cell
+ * isn't always a name at all. One row's value was the literal placeholder
+ * "none found yet - survivors not accessible via web search", which
+ * split into first/last name tokens just fine and would have silently
+ * created a fake claimant named "Search" if this guard didn't exist.
  */
 export function parseFirstHeirName(raw: string | undefined | null): PersonInput | null {
   if (!raw) return null;
@@ -83,6 +90,9 @@ export function parseFirstHeirName(raw: string | undefined | null): PersonInput 
 
   const parts = firstEntry.split(/\s+/).filter(Boolean);
   if (parts.length < 2) return null; // need at least a first and last name
+  // Allow an optional leading quote character, since real cells include
+  // nicknames like `Tamar "Tammy" Simon Hoffs`.
+  if (!parts.every((word) => /^["']?[A-Z]/.test(word))) return null; // not name-shaped
 
   return {
     firstName: parts.slice(0, -1).join(" "),

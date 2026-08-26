@@ -52,7 +52,8 @@ export default async function OpsQueuePage() {
 
       {items.length === 0 ? (
         <p style={{ color: "#6b7280" }}>
-          No pending decisions. (Expected right now -- no cases have been imported yet; see PLAN.md P0-11.)
+          No pending decisions. (Expected right now -- cases are imported (P0-11) but nothing creates a Decision yet;
+          that&apos;s the outreach/document-request workflow, still Phase 4+.)
         </p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "0.75rem" }}>
