@@ -303,6 +303,18 @@ export const DECISION_TYPES = {
     highConsequence: false,
     category: "EXCEPTION",
   },
+  REVIEW_CLAIM_PACKAGE: {
+    key: "REVIEW_CLAIM_PACKAGE",
+    displayName: "Review Claim Package",
+    description:
+      "An assembled claim package (forms, declarations, exhibits, signatures) needs operator review before it can advance to APPROVED_FOR_FILING -- doc 07 sections 44-48. A package with any completeness/integrity blocker never auto-advances.",
+    // doc 07 section 44's own literal action set.
+    availableActions: ["APPROVE", "REVISE", "REJECT", "REQUEST_MORE_EVIDENCE", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: true, // filing-adjacent -- doc 02 section 19's confirmation-step trigger
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

@@ -91,4 +91,16 @@ describe("decision type registry", () => {
       "ESCALATE",
     ]);
   });
+
+  it("registers the doc 07 claim package review exception type (P6-17)", () => {
+    expect(DECISION_TYPES.REVIEW_CLAIM_PACKAGE.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.REVIEW_CLAIM_PACKAGE.availableActions).toEqual([
+      "APPROVE",
+      "REVISE",
+      "REJECT",
+      "REQUEST_MORE_EVIDENCE",
+      "ESCALATE",
+    ]);
+    expect(DECISION_TYPES.REVIEW_CLAIM_PACKAGE.highConsequence).toBe(true);
+  });
 });

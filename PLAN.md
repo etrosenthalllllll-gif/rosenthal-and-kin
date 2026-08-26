@@ -755,15 +755,21 @@ content goes in, same as P2-1.
   models the completeness engine's (P6-13) REQUIRES_REVIEW outcome, same
   "no further forward transitions besides resolution + universal exits"
   shape as stateMachine.ts's ESCALATED. 9 new tests.
-- [ ] P6-17 todo — Claim package decision integration (doc 07 §44-48):
-  new decision type(s) for package review/approval
-  (APPROVE/REVISE/REJECT/REQUEST_MORE_EVIDENCE/ESCALATE, doc 07's own
-  literal action set) wired the same way as documentDecisionRouting.ts/
-  verificationDecisionRouting.ts; approval snapshot (§48) is
-  create-only, same discipline as verificationSnapshot.ts (P5-11). AI
-  package review (§45) itself needs an AIProvider (blocked); the
-  routing logic that consumes an AI review result once one exists is
-  not.
+- [x] P6-17 done — Claim package decision integration (doc 07 §44-48):
+  added `REVIEW_CLAIM_PACKAGE` to `decisionTypes.ts` (doc 07's own
+  literal APPROVE/REVISE/REJECT/REQUEST_MORE_EVIDENCE/ESCALATE action
+  set, `highConsequence: true` since it's filing-adjacent).
+  `claimPackageDecisionRouting.ts`'s `planClaimPackageReviewDecision()`
+  wires claimCompletenessEngine.ts (P6-13) and claimPackageIntegrity.ts
+  (P6-15) outputs into that registry entry -- a package only advances
+  without a decision when BOTH are clean, and the reason combines
+  whichever module(s) actually flagged something. `buildClaimPackageApprovalSnapshot()`
+  is create-only, same discipline as verificationSnapshot.ts (P5-11).
+  doc 07 §45's AI-assisted package review itself needs an AIProvider
+  (blocked, no vendor account exists); the routing logic that would
+  consume an AI review result once one exists is not blocked -- it just
+  isn't wired to a live AI call yet, same status as caseSummary.ts. 9
+  new tests.
 - [ ] P6-18 todo — Rule/form/jurisdiction update handling (doc 07
   §50-53): jurisdiction change invalidates affected rules/forms/
   requirements/exhibits and creates a new preparation version rather
@@ -838,3 +844,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-14] `claimPackage.ts`: `assembleClaimPackage()` (deterministic document ordering + manifest, always a new object per version) + `diffClaimPackages()` (same-id-different-hash is `changed`, never remove+add). 7 new tests, full suite 474/474 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-15] `claimPackageIntegrity.ts`: `checkPackageIntegrity()` -- missing documents, duplicate manifest entries, superseded form versions, missing required signatures, manifest/document-list mismatches; `passed` only true once every check clears, every failure a specific typed issue. 6 new tests, full suite 480/480 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-16] `claimPreparationStateMachine.ts`: mirrors stateMachine.ts's (P0-3) validated-transition discipline over ClaimPreparationStatus -- forward path, REJECTED/CANCELLED/SUPERSEDED universal exits (SUPERSEDED terminal for a jurisdiction/rule/form-version change, correct response is a new preparation version, never a patch), COMPLETENESS_REVIEW -> REQUIRES_OPERATOR_REVIEW -> READY_FOR_APPROVAL. 9 new tests, full suite 489/489 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-17] Added `REVIEW_CLAIM_PACKAGE` to decisionTypes.ts (doc 07's literal action set, highConsequence: true); `claimPackageDecisionRouting.ts`'s `planClaimPackageReviewDecision()` wires P6-13/P6-15 outputs into it, `buildClaimPackageApprovalSnapshot()` is create-only like verificationSnapshot.ts. 9 new tests, full suite 496/496 passing, `tsc --noEmit` clean, `next build` clean.
