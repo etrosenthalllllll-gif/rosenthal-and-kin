@@ -604,21 +604,42 @@ content goes in, same as P2-1.
   jurisdiction is plausible, the top candidate isn't confident enough
   alone, or there's no signal at all -- never a silent default. 6 new
   tests.
-- [ ] P6-4 todo — Jurisdiction/claim rules engine (doc 07 §4, 6):
-  versioned, structured IF/THEN rule objects (jurisdiction + claim_type
-  + claimant_type -> required documents/forms/signatures/declarations/
-  exhibits), never overwrites an old rule version.
-- [ ] P6-5 todo — Rule conflict detection (doc 07 §7): two applicable
-  rules disagreeing never auto-resolves -- routes to human review with
-  both rules/sources/effective dates shown, same pattern as
-  conflictDetection.ts (P5-6).
-- [ ] P6-6 todo — Required-document rules / requirement engine (doc 07
-  §8-10): extends documentRequirements.ts's (P4-2) checklist model with
-  doc 07's richer status set (REQUIRED/RECEIVED/VALIDATED/VERIFIED/
-  MISSING/CONFLICTED/EXPIRED/NOT_APPLICABLE/PENDING) and conditional
-  requirements (e.g. "if claimant acts on behalf of an estate, require
-  estate documentation"); every requirement traces back to the rule
-  that created it.
+- [x] P6-4 done — Jurisdiction/claim rules engine (doc 07 §4, 6):
+  `claimRules.ts`'s `CLAIM_RULES` -- versioned, structured `ClaimRule`
+  objects (jurisdiction + claimType + optional claimantType -> required
+  documents/forms/signatures/declarations/exhibits via an `outcome`
+  object); `evaluateClaimRequirements()` unions every applicable rule's
+  outcome and reports `noRuleFound` rather than silently returning an
+  empty-but-satisfied result. A rule version is never overwritten in
+  place -- a new version points back at the old one via `supersedes`,
+  and `latestVersionsOnly()` excludes anything a newer version points
+  at. Seed content flagged `EXAMPLE_PENDING_LEGAL_SOURCING`, same status
+  as claimTypes.ts/P6-2. 6 new tests.
+- [x] P6-5 done — Rule conflict detection (doc 07 §7):
+  `claimRuleConflict.ts`'s `detectRuleConflicts()` -- flags two *current*
+  rules sharing the exact same jurisdiction+claimType+claimantType scope
+  as an unresolved conflict (never auto-picks the newer effectiveDate or
+  either rule), while correctly NOT flagging a general rule plus a
+  claimant-type-specific rule for the same claim type as conflicting
+  (that's additive/conditional design, not disagreement) -- same
+  never-auto-resolve discipline as conflictDetection.ts (P5-6). 5 new
+  tests.
+- [x] P6-6 done — Required-document rules / requirement engine (doc 07
+  §8-10): `claimRequirementChecklist.ts`'s `buildClaimRequirementChecklist()`
+  -- sources its requirements from claimRules.ts (P6-4) rather than a
+  fixed per-stage table, so a conditional requirement (e.g. "estate
+  representative needs estate documentation") is just a
+  claimantType-scoped rule already handled by the rules engine, not
+  special-cased here. Full doc 07 §8 status vocabulary
+  (REQUIRED/RECEIVED/VALIDATED/VERIFIED/MISSING/CONFLICTED/EXPIRED/
+  NOT_APPLICABLE/PENDING) exposed in the type, though REQUIRED/PENDING
+  are deliberately left to caller-owned workflow state
+  (ClaimPreparation.status) rather than derived here since they describe
+  "has a request even been sent" rather than a fact about documents on
+  hand; CONFLICTED always wins over a same-key VERIFIED/VALIDATED
+  candidate since an unresolved conflict can't be silently masked. Every
+  item traces back to the rule(s) that required it via `sourceRuleIds`.
+  8 new tests.
 - [ ] P6-7 todo — Form catalog + form selection engine (doc 07 §11-13):
   configurable form metadata (versioned, jurisdiction/claim-type
   scoped); pure selection logic over jurisdiction/claim type/claimant
@@ -758,3 +779,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. [P5-11] Added the `VerificationSnapshot` model to `schema.prisma` -- deliberately create-only (no `updatedAt` field, documented as never `.update()`d), so a new workflow stage always produces a new row rather than rewriting history, per doc 06 §34's own explicit instruction. `verificationSnapshot.ts`'s `buildVerificationSnapshot()` reproduces §34's own worked example ("Identity: Verified / Relationship: Supported / Competing heirs: None identified / ...") and derives an `overallReady` boolean. [P5-12] Extended `claimReadiness.ts` (P4-6) per doc 06 §39: new optional `identityVerified`/`relationshipVerified`/`competingHeirsCount`/`verificationReviewRequired` inputs, each blocking readiness with its own reason line only when explicitly unfavorable -- `undefined` never blocks, so every existing P4-6 document-only call site keeps working unchanged. One readiness calculation now covers both doc 05's document checklist and doc 06's verification signals, rather than two competing functions. 12 new tests, full suite 392/392 passing, `tsc --noEmit` clean, `next build` clean. **Only P5-13 (review-queue prioritization, extending priority.ts) is left `todo` in Phase 5** -- everything else in Phase 5 is done, none of it credential-blocked.
 - 2026-08-26 — Ethan said to continue again. [P5-13] Extended `priority.ts` (P1-4) with `competingHeirsCount` (flat bump per doc 06 §46's own worked CRITICAL example, no extra credit past the first candidate) and `unresolvedIssueCount` (diminishing-returns score, same clamp discipline as the existing value component) -- both optional and zero-contribution when omitted, so every existing caller keeps its exact prior score. Noted that `riskLevel` already shares the identical LOW/MEDIUM/HIGH/CRITICAL vocabulary humanReviewTriggers.ts's `ReviewRiskLevel` (P5-9) uses, so no bridging code was needed there. Fixed one now-stale hardcoded `components` object shape in `exceptionQueue.test.ts` that the new fields broke. 4 new tests, full suite 396/396 passing, `tsc --noEmit` clean, `next build` clean. **Phase 5 (Verification & Heirship Analysis, doc 06) is now fully complete** -- P5-1 through P5-13 all done, none of it credential-blocked (the only real gap left is the still-pending P4-1/P5-1 live-DB schema push, which the classifier keeps blocking regardless of confirmation). Next session should either get that push unblocked, or start decomposing Phase 6 (Claim Preparation).
 - 2026-08-26 — Ethan said to continue again. Read doc 07 ("Claim Preparation," 65 sections) in full from Drive and decomposed it into P6-1 through P6-20 in PLAN.md, flagging P6-12 (e-signature) as `blocked: needs credential` (a real provider account) and P6-19/P6-20 as deferred (need real filed-claim data), with everything else buildable now. [P6-1] Added the `ClaimPreparation` model + `ClaimPreparationStatus`/`ClaimCompletenessStatus` enums to `schema.prisma` (doc 07 §1's exact status list), with back-relations on `Estate`/`Claimant`; `prisma validate`/`generate` clean, queued behind the same still-pending live-DB push as P4-1/P5-1. [P6-2] `claimTypes.ts`: `CLAIM_TYPES` config table (doc 07 §2's own claim-type list plus an `OTHER` fallback that always requires review), each entry specifying required info/documents/forms/signatures/declarations/exhibits/filing method/review requirement -- config table, not hardcoded frontend logic; estate and probate-related claims flagged `alwaysRequiresReview: true` for their probate/court involvement. Explicitly flagged as illustrative starting content pending real jurisdiction-specific legal sourcing, same status as P2-1/complianceRules.ts. [P6-3] `jurisdictionDetermination.ts`: `determineJurisdiction()`, doc 07 §3's multi-signal evaluator (asset location, holder jurisdiction, decedent domicile, claimant location, etc.), weighted so claimant location alone can never determine jurisdiction per §3's explicit warning; returns every scored candidate plus a `requiresHumanReview` flag that's true whenever more than one jurisdiction is plausible, the top candidate isn't confident enough alone, or there's no signal at all. Self-caught and corrected a design flaw mid-implementation (an initial 3-way DETERMINED/AMBIGUOUS/NO_SIGNAL outcome union mislabeled a single weak candidate as "ambiguous") before writing tests. 11 new tests, full suite 407/407 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan said to keep going even though he's away from his computer and can't sign into GitHub right now, so this task-pair is committed locally only; push is queued behind him logging in (see session log above about the browser losing its GitHub session -- I don't log in myself, that means entering a password, a hard rule regardless of prior authorization). [P6-4] `claimRules.ts`: versioned IF/THEN `ClaimRule` table (jurisdiction + claim type + claimant type -> required documents/forms/signatures/declarations/exhibits), `supersedes`-linked versioning so an old rule is never overwritten in place. [P6-5] `claimRuleConflict.ts`: `detectRuleConflicts()` flags two current rules sharing the exact same scope as an unresolved conflict, while correctly treating a general rule plus a claimant-type-specific rule as additive/conditional rather than conflicting. [P6-6] `claimRequirementChecklist.ts`: `buildClaimRequirementChecklist()` sources requirements from P6-4's rules engine (so conditional requirements like "estate representative needs estate documentation" fall out of the rules engine rather than being special-cased), exposes doc 07 §8's full status vocabulary, CONFLICTED always wins over a same-key VERIFIED/VALIDATED candidate, every item traces back to its source rule(s). 19 new tests, full suite 426/426 passing, `tsc --noEmit` clean, `next build` clean.
