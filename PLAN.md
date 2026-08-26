@@ -805,13 +805,20 @@ the same way Phase 4/6 did: the connector/state-machine/decision logic
 is buildable now against an in-memory reference connector; the live
 provider call itself is `blocked: needs credential`.
 
-- [ ] P7-1 todo — Filing + FilingAttempt data model (doc 08 §1-3):
+- [x] P7-1 done — Filing + FilingAttempt data model (doc 08 §1-3):
   `Filing` (the doc's full status list, NOT_READY through CLOSED) +
-  append-only `FilingAttempt` (never overwritten -- a rejected attempt
-  and its resubmission both stay permanently visible). A filing
-  references an exact `ClaimPackage` id+version (P6-14) and must never
-  silently follow a newer version -- same immutable-reference
-  discipline as claimPackageDecisionRouting.ts's approval snapshot.
+  append-only `FilingAttempt` (no `updatedAt` -- deliberately create-only,
+  same discipline as VerificationSnapshot/P5-11; a rejected attempt and
+  its resubmission both stay permanently visible, `@@unique([filingId,
+  attemptNumber])` so an attempt number can never collide). A filing
+  references an exact `packageId`+`packageVersion` (ClaimPackage isn't a
+  Prisma model yet -- P6-14 is pure logic only -- so this pair *is* the
+  immutable reference) and must never silently follow a newer version.
+  `providerAccount` is a reference/label only, never a raw credential,
+  per P7-5's secrets-management note. Added back-relations on
+  `Estate`/`Claimant`. `prisma format`/`validate`/`generate` all clean;
+  queued behind the same still-pending live-DB push as every schema
+  change since P4-1.
 - [ ] P7-2 todo — Filing eligibility/readiness check (doc 08 §4-5):
   deterministic pure check composing claimCompletenessEngine.ts
   (P6-13) + claimPackageIntegrity.ts (P6-15) + jurisdiction/method/
@@ -1229,3 +1236,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-17] Added `REVIEW_CLAIM_PACKAGE` to decisionTypes.ts (doc 07's literal action set, highConsequence: true); `claimPackageDecisionRouting.ts`'s `planClaimPackageReviewDecision()` wires P6-13/P6-15 outputs into it, `buildClaimPackageApprovalSnapshot()` is create-only like verificationSnapshot.ts. 9 new tests, full suite 496/496 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-18] `claimPreparationUpdateHandling.ts`: `detectJurisdictionChange()` (no KEEP_CURRENT -- the old jurisdiction's rules genuinely no longer apply) + `detectRuleVersionDrift()`/`detectFormVersionDrift()` (full KEEP_CURRENT/REGENERATE/REVIEW choice, never silently swaps in the newer version) + `requiresNewPreparationVersion()`. 8 new tests, full suite 504/504 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 6's currently-unblocked work (P6-1 through P6-18) is now done.** P6-12 (e-signature) stays blocked on a vendor account; P6-19/P6-20 stay deferred pending real prepared-claim data. Next unblocked work is decomposing Phases 7-9 (Filing, Post-filing, Recovery) into tasks, same as was done for Phases 3-6.
 - 2026-08-26 — Ethan asked for a full progress explanation + time estimate, then said to continue. Still queued behind the GitHub-login blocker (still away from his computer), so no push yet this entry either -- purely planning work, no code changed. Read docs 08 ("Filing & Submission," 69 sections), 09 ("Post-filing Monitoring & Case Management," 75 sections), and 10 ("Recovery, Distribution & Payment," 79 sections) in full from Drive and decomposed all three into P7-1 through P7-18, P8-1 through P8-19, and P9-1 through P9-19 in PLAN.md -- replacing the old "Phases 7-9: not started" stub. Followed the same split as Phases 4/6: connector/state-machine/decision/ledger logic is buildable now against in-memory reference implementations and synthetic data; live calls to a real filing provider, court/agency monitoring API, or payment provider are each flagged `blocked: needs credential` (P7-5, P7-10, P8-3, P9-8) since those accounts don't exist yet. AI-assisted pieces (rejection-message interpretation, case summaries, document-request classification, financial-variance explanations) are noted as needing an AIProvider without blocking the surrounding routing logic, same status as caseSummary.ts throughout this project. Next unblocked task is P7-1 (Filing + FilingAttempt data model).
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-1] Added `Filing`/`FilingAttempt` models + `FilingStatus` enum to `schema.prisma` -- FilingAttempt is deliberately create-only (no updatedAt), a Filing's packageId+packageVersion pair is its immutable package reference since ClaimPackage isn't a Prisma model yet. `prisma validate`/`generate` clean, 504/504 tests passing (unchanged, schema-only), `tsc --noEmit` clean, `next build` clean.
