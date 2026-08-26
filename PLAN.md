@@ -1403,12 +1403,15 @@ live provider call is blocked.
   the actual ledger balance as a non-optional parameter -- there's no
   code path that renders a communication without a real figure, never
   an AI-invented amount. 4 new tests.
-- [ ] P9-13 todo — Payment confirmation + financial ledger (doc 10
-  §43-45): append-only `FinancialTransaction` ledger (the doc's own
-  transaction-type list); an error is corrected with a new correcting
-  transaction, never a silent edit to a historical one -- same
-  immutable-ledger discipline as VerificationSnapshot (P5-11)/
-  claimPackage.ts (P6-14).
+- [x] P9-13 done — Payment confirmation + financial ledger (doc 10
+  §43-45): added append-only `FinancialTransaction`/
+  `FinancialTransactionType` (the doc's own transaction-type list, no
+  `updatedAt`) to `schema.prisma`. `financialLedger.ts`'s
+  `createCorrectingTransaction()` -- always a new ADJUSTMENT transaction
+  linked back to the original by id, never touching (let alone
+  overwriting) the original row's own fields. `sumLedgerTransactions()`
+  sums whatever subset the caller supplies, respecting caller-assigned
+  sign rather than re-deriving it from transaction type. 3 new tests.
 - [ ] P9-14 todo — Case-level financial reconciliation + exceptions
   (doc 10 §46-47): compares expected/actual/distributed/fees/invoiced/
   paid/outstanding into one PASS/exception result; every exception type
@@ -1548,3 +1551,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-10] `paymentReversal.ts`: `createPaymentReversal()`/`createRefund()` (never mutate the original, refund requires reason+approvedBy) + `recalculateOutstandingBalance()` (always reproduced from full transaction history). 6 new tests, full suite 809/809 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-11] `paymentReminder.ts`: `determinePaymentReminderStage()` (BEFORE_DUE/DUE_TODAY/OVERDUE_7/14/30_DAYS) + `planPaymentReminder()` (stop conditions first, idempotency next). Outstanding-balance math already covered by P9-10. 8 new tests, full suite 817/817 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-12] Added PaymentDispute/PaymentDisputeStatus schema model; `paymentDispute.ts`: `shouldStopCollectionReminders()` + `buildPaymentCommunicationContent()` (ledger balance required, never invented). 4 new tests, full suite 821/821 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-13] Added append-only FinancialTransaction/FinancialTransactionType schema model; `financialLedger.ts`: `createCorrectingTransaction()` + `sumLedgerTransactions()`. 3 new tests, full suite 824/824 passing, `tsc --noEmit` clean, `next build` clean.

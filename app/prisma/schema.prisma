@@ -1372,3 +1372,39 @@ model PaymentDispute {
   @@index([invoiceId])
   @@index([status])
 }
+
+// doc 10 sections 43-45. Append-only -- deliberately no `updatedAt`.
+// An error is corrected with a new transaction (see financialLedger.ts's
+// createCorrectingTransaction()), never a silent edit to a historical
+// one -- same immutable-ledger discipline as VerificationSnapshot
+// (P5-11)/claimPackage.ts (P6-14).
+enum FinancialTransactionType {
+  RECOVERY_EXPECTED
+  RECOVERY_RECEIVED
+  FEE_CALCULATED
+  INVOICE_ISSUED
+  PAYMENT_RECEIVED
+  PAYMENT_REVERSED
+  REFUND_ISSUED
+  CREDIT_APPLIED
+  ADJUSTMENT
+  DISTRIBUTION_PAID
+}
+
+model FinancialTransaction {
+  id                    String                   @id @default(cuid())
+  estateId              String
+  claimantId            String?
+  recoveryId            String?
+  invoiceId             String?
+  transactionType       FinancialTransactionType
+  amountCents           Int
+  currency              String                   @default("USD")
+  description           String?
+  correctsTransactionId String?
+  createdAt             DateTime                 @default(now())
+
+  @@index([estateId])
+  @@index([recoveryId])
+  @@index([invoiceId])
+}
