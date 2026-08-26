@@ -186,6 +186,79 @@ export const DECISION_TYPES = {
     highConsequence: false,
     category: "EXCEPTION",
   },
+
+  // --- Document intelligence exceptions (doc 05 section 35) ---------
+  // "Create decisions when: Document classification is ambiguous, Case
+  // matching is ambiguous, Person matching is ambiguous, Critical
+  // extraction has low confidence, Documents conflict, Required
+  // evidence is missing, Document quality is inadequate, Duplicate is
+  // suspected, Validation fails, Human verification is required." Most
+  // of that list is already covered by existing types above without a
+  // document-specific duplicate: classification-ambiguous and
+  // low-confidence-extraction both fold into RESOLVE_LOW_CONFIDENCE
+  // (same "AI confidence below threshold" shape); validation failure
+  // is RESOLVE_INVALID_DOCUMENT; missing evidence reuses
+  // REQUEST_DOCUMENTS (doc 04's existing type -- section 42's
+  // DOCUMENT_REQUEST is that same action, not a new one). Person
+  // matching (needs extracted names, P4-10) and document quality
+  // (needs OCR-derived quality signals, P4-11) stay unadded until
+  // their upstream data exists -- adding a decision type nothing can
+  // ever create would be dead configuration. Only genuinely new shapes
+  // get their own type below.
+  RESOLVE_AMBIGUOUS_DOCUMENT_MATCH: {
+    key: "RESOLVE_AMBIGUOUS_DOCUMENT_MATCH",
+    displayName: "Resolve Ambiguous Document Match",
+    description:
+      "A document could plausibly belong to more than one case, or to none on file -- doc 05 section 12. 'Never silently attach an ambiguous document.'",
+    // Mirrors RESOLVE_AMBIGUOUS_CASE_MATCH exactly -- same
+    // never-guess shape, matchDocumentToCase.ts (P4-4) produces the
+    // same AMBIGUOUS/candidate-list outcome matchConversationToCase.ts
+    // does. Kept as its own type rather than reusing the
+    // communication one so the decision queue can distinguish "which
+    // case does this email belong to" from "which case does this
+    // document belong to" at a glance.
+    availableActions: ["RESOLVE", "CREATE_NEW_CASE", "ESCALATE", "DEFER"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_DOCUMENT_CONFLICT: {
+    key: "RESOLVE_DOCUMENT_CONFLICT",
+    displayName: "Resolve Document Conflict",
+    description:
+      "A document's extracted field conflicts with the case's existing data, or two documents disagree with each other -- doc 05 sections 16-17. 'Do not automatically choose one.'",
+    // Doc 05's own example shows named per-document buttons ([USE BIRTH
+    // CERTIFICATE] [USE PASSPORT]), but same static-actions constraint
+    // as RESOLVE_AMBIGUOUS_CASE_MATCH: which document is "correct"
+    // isn't known at registry-definition time. RESOLVE means "operator
+    // picked which value is correct," recorded in reason/evidenceRefs
+    // exactly like every other RESOLVE action in this table.
+    availableActions: ["RESOLVE", "ESCALATE", "DEFER"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_SUSPECTED_DUPLICATE_DOCUMENT: {
+    key: "RESOLVE_SUSPECTED_DUPLICATE_DOCUMENT",
+    displayName: "Resolve Suspected Duplicate Document",
+    description:
+      "A newly received document appears to be an exact duplicate of one already on file -- doc 05 section 22. 'Never delete a potential duplicate automatically.'",
+    // Doc 05 gives concrete named actions here (unlike the two types
+    // above) -- [KEEP A] [KEEP B] [KEEP BOTH] [REVIEW] -- because the
+    // choice itself (which copy to treat as canonical) is generic
+    // across every duplicate pair, not case-specific. Used literally.
+    availableActions: ["KEEP_NEW", "KEEP_EXISTING", "KEEP_BOTH", "ESCALATE"],
+    // requiresComment must be true whenever requiresEvidenceViewed is
+    // -- same invariant every other type in this table follows
+    // (decisionTypes.test.ts asserts it registry-wide), so the operator
+    // always leaves a record of why they picked the copy they did.
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

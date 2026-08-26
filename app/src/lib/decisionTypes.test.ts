@@ -57,4 +57,20 @@ describe("decision type registry", () => {
       expect(["DECISION", "EXCEPTION"]).toContain(config.category);
     }
   });
+
+  it("registers the doc 05 document-intelligence exception types (P4-14)", () => {
+    expect(DECISION_TYPES.RESOLVE_AMBIGUOUS_DOCUMENT_MATCH.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_AMBIGUOUS_DOCUMENT_MATCH.availableActions).toContain(
+      "CREATE_NEW_CASE"
+    );
+    expect(DECISION_TYPES.RESOLVE_DOCUMENT_CONFLICT.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_DOCUMENT_CONFLICT.availableActions).toContain("RESOLVE");
+    expect(DECISION_TYPES.RESOLVE_SUSPECTED_DUPLICATE_DOCUMENT.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_SUSPECTED_DUPLICATE_DOCUMENT.availableActions).toEqual([
+      "KEEP_NEW",
+      "KEEP_EXISTING",
+      "KEEP_BOTH",
+      "ESCALATE",
+    ]);
+  });
 });
