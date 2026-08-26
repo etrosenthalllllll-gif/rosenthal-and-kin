@@ -973,13 +973,21 @@ provider call itself is `blocked: needs credential`.
   flags a mismatch for review. `classifyProviderCheckOutcome()` reports
   PROVIDER_UNAVAILABLE explicitly rather than silently treating an
   unreachable provider as "no change." 10 new tests.
-- [ ] P7-16 todo — Rejection handling + classification + severity (doc
-  08 §39-42): configurable rejection-category table +
-  LOW/MEDIUM/HIGH/CRITICAL severity (fails closed to CRITICAL for an
-  unconfigured category, same discipline as conflictDetection.ts/P5-6),
-  HIGH/CRITICAL always requiring human review. AI rejection-message
-  interpretation itself needs an AIProvider (blocked); the
-  classification/severity/decision-routing logic around it is not.
+- [x] P7-16 done — Rejection handling + classification + severity (doc
+  08 §39-42): `filingRejection.ts`'s `DEFAULT_REJECTION_SEVERITY`
+  config table (the doc's own worked examples -- TECHNICAL_FAILURE
+  LOW, CLAIMANT_INFORMATION_ERROR MEDIUM, MISSING_DOCUMENT HIGH,
+  JURISDICTION_PROBLEM CRITICAL) + `classifyRejectionSeverity()`
+  (fails closed to CRITICAL for an unconfigured category, same
+  discipline as conflictDetection.ts's/P5-6 classifyConflictSeverity())
+  + `classifyRejection()` (HIGH/CRITICAL always sets
+  `requiresHumanReview`). Deliberately decides nothing about
+  resubmission itself -- doc 08 §42's "AI must NOT independently decide
+  to resubmit" applies to this logic layer too, not just an eventual AI
+  assistant; that decision is P7-17's job. AI rejection-message
+  interpretation itself needs an AIProvider (blocked); this
+  classification logic works over an already-categorized rejection
+  regardless of who/what assigned the category. 5 new tests.
 - [ ] P7-17 todo — Correction + resubmission workflow + duplicate-filing
   protection (doc 08 §43-48): `CorrectionCase` model (the doc's own
   status list); a correction that changes the claim package creates a
@@ -1315,3 +1323,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-12] `filingSubmissionGuard.ts`: `evaluateSubmissionGuard()` (reused idempotency key or SUBMITTED status -> ALREADY_SUBMITTED, UNKNOWN -> UNKNOWN_MUST_RECONCILE, never auto-resubmit) + `resolveUnknownSubmission()` (only provider-confirmed-absent is safe to resubmit). [P7-13] `filingStateMachine.ts`: mirrors stateMachine.ts/claimPreparationStateMachine.ts over a plain-TS FilingStatus union, PROCESSING's three-way branch, REJECTED's correction/resubmission branch, CANCELLED/FAILED/CLOSED terminal. 21 new tests, full suite 578/578 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-14] `filingProviderNormalization.ts`: `normalizeProviderStatus()` (fails closed to UNKNOWN for an unrecognized raw status/connector, raw response always preserved) + `verifyFilingConfirmation()` (a bare network response alone is never sufficient, VERIFIED needs an external filing ID plus a corroborating signal). 9 new tests, full suite 587/587 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-15] `filingTrackingReconciliation.ts`: `planNextStatusCheck()` (never polls webhook-capable connectors, follows the immediate/1hr/6hr/24hr schedule otherwise, stops at ACCEPTED/REJECTED/CLOSED) + `isDuplicateWebhookEvent()` + `reconcileFilingStatus()`/`shouldCreateReconciliationException()` (never assumes agreement) + `classifyProviderCheckOutcome()` (explicit PROVIDER_UNAVAILABLE, never silently "unchanged"). 10 new tests, full suite 597/597 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-16] `filingRejection.ts`: `DEFAULT_REJECTION_SEVERITY` config table + `classifyRejectionSeverity()` (fails closed to CRITICAL) + `classifyRejection()` (HIGH/CRITICAL always requires human review, decides nothing about resubmission). 5 new tests, full suite 602/602 passing, `tsc --noEmit` clean, `next build` clean.
