@@ -96,6 +96,7 @@ model Estate {
   postFilingCases       PostFilingCase[]
   recoveries            Recovery[]
   distributions         Distribution[]
+  invoices              Invoice[]
 
   @@index([status])
 }
@@ -147,6 +148,7 @@ model Claimant {
   postFilingCases       PostFilingCase[]
   recoveries            Recovery[]
   distributions         Distribution[]
+  invoices              Invoice[]
 
   @@index([estateId])
   @@index([status])
@@ -1172,6 +1174,7 @@ model Recovery {
   estimateVersions RecoveryEstimateVersion[]
   actualRecoveries ActualRecovery[]
   distributions    Distribution[]
+  invoices         Invoice[]
 
   @@index([estateId])
   @@index([claimantId])
@@ -1283,4 +1286,53 @@ model Distribution {
   @@unique([recoveryId, claimantId, version])
   @@index([recoveryId])
   @@index([claimantId])
+}
+
+// doc 10 sections 21-25. Invoice numbers are unique, immutable, and
+// never reused -- enforced by the `@unique` constraint below alongside
+// invoiceGeneration.ts's (P9-7) sequential numbering logic.
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ISSUED
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  DISPUTED
+  VOID
+  CANCELLED
+  WRITTEN_OFF
+}
+
+model Invoice {
+  id                          String        @id @default(cuid())
+  estateId                    String
+  claimantId                  String
+  recoveryId                  String
+  invoiceNumber               String        @unique
+  invoiceDate                 DateTime      @default(now())
+  dueDate                     DateTime?
+  grossRecoveryCents          Int
+  feeBasisDescription         String?
+  feeAmountCents              Int
+  otherAuthorizedChargesCents Int           @default(0)
+  creditsCents                Int           @default(0)
+  totalDueCents               Int
+  amountPaidCents             Int           @default(0)
+  amountOutstandingCents      Int
+  currency                    String        @default("USD")
+  status                      InvoiceStatus @default(DRAFT)
+  paymentTerms                String?
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+
+  estate   Estate   @relation(fields: [estateId], references: [id])
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+  recovery Recovery @relation(fields: [recoveryId], references: [id])
+
+  @@index([estateId])
+  @@index([claimantId])
+  @@index([recoveryId])
+  @@index([status])
 }
