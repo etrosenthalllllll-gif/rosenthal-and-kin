@@ -839,17 +839,23 @@ provider call itself is `blocked: needs credential`.
   an unlisted operation (or an unrecognized method) rather than
   guessing, echoing doc 08 §8's "connector must explicitly report
   unsupported operations" at the method-config level too. 6 new tests.
-- [ ] P7-4 todo — Filing connector abstraction + registry (doc 08
-  §8-11): `FilingConnector` interface (validate/get_requirements/
-  calculate_fee/create_submission/upload_document/submit/get_status/
-  get_confirmation/cancel/retrieve_receipt/parse_rejection/
-  get_rejection_details -- each connector explicitly declares
-  unsupported operations) + a registry resolving jurisdiction+claimType+
-  authority+method to the best configured connector, with a versioned
-  in-memory reference implementation for testing -- same pattern as
-  CommunicationProvider (P0-9). Real per-jurisdiction provider
+- [x] P7-4 done — Filing connector abstraction + registry (doc 08
+  §8-11): `filingConnector.ts`'s `FilingConnector` interface (the doc's
+  own method list, `submit`/`getStatus` required, everything else
+  optional; `connectorSupportsOperation()` reads only the explicit
+  `supportedOperations` list, never inferring support from whether a
+  method happens to be present) + `resolveConnector()` (jurisdiction +
+  claim type + filing authority + filing method -> best matching
+  registry entry, AMBIGUOUS -- never a silent pick -- when more than one
+  entry matches equally, same never-guess discipline as
+  formCatalog.ts's selectFormsForClaim()/P6-7) + `createInMemoryFilingConnector()`
+  reference implementation for tests, same pattern as
+  CommunicationProvider (P0-9). Superseded the original stub
+  `FilingProvider` interface in `providers/types.ts` (built pre-doc-08-read,
+  nothing depended on it) -- left in place marked `@deprecated` with a
+  pointer here rather than deleted. Real per-jurisdiction provider
   connectors are a separate, later concern needing actual provider
-  integration.
+  integration (blocked behind P7-5). 7 new tests.
 - [ ] P7-5 blocked: needs credential — Provider credentials +
   authentication-failure handling (doc 08 §12-13): no real filing
   provider account/API key or secrets-manager integration exists yet.
@@ -1246,3 +1252,4 @@ live provider call is blocked.
 - 2026-08-26 — Ethan asked for a full progress explanation + time estimate, then said to continue. Still queued behind the GitHub-login blocker (still away from his computer), so no push yet this entry either -- purely planning work, no code changed. Read docs 08 ("Filing & Submission," 69 sections), 09 ("Post-filing Monitoring & Case Management," 75 sections), and 10 ("Recovery, Distribution & Payment," 79 sections) in full from Drive and decomposed all three into P7-1 through P7-18, P8-1 through P8-19, and P9-1 through P9-19 in PLAN.md -- replacing the old "Phases 7-9: not started" stub. Followed the same split as Phases 4/6: connector/state-machine/decision/ledger logic is buildable now against in-memory reference implementations and synthetic data; live calls to a real filing provider, court/agency monitoring API, or payment provider are each flagged `blocked: needs credential` (P7-5, P7-10, P8-3, P9-8) since those accounts don't exist yet. AI-assisted pieces (rejection-message interpretation, case summaries, document-request classification, financial-variance explanations) are noted as needing an AIProvider without blocking the surrounding routing logic, same status as caseSummary.ts throughout this project. Next unblocked task is P7-1 (Filing + FilingAttempt data model).
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-1] Added `Filing`/`FilingAttempt` models + `FilingStatus` enum to `schema.prisma` -- FilingAttempt is deliberately create-only (no updatedAt), a Filing's packageId+packageVersion pair is its immutable package reference since ClaimPackage isn't a Prisma model yet. `prisma validate`/`generate` clean, 504/504 tests passing (unchanged, schema-only), `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-2] `filingReadiness.ts`: `evaluateFilingReadiness()` -- config-table 14-item readiness checklist, READY/NOT_READY listing every specific blocker, paymentMethodAvailable conditional on a nonzero fee. [P7-3] `filingMethods.ts`: `FILING_METHODS` config table (7 methods) + `methodSupportsOperation()`. 12 new tests, full suite 516/516 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-4] `filingConnector.ts`: `FilingConnector` interface + `connectorSupportsOperation()` (reads only the explicit list, never infers) + `resolveConnector()` (AMBIGUOUS rather than a silent pick) + `createInMemoryFilingConnector()` reference implementation. Marked the pre-doc-08-read `FilingProvider` stub in `providers/types.ts` `@deprecated` with a pointer here rather than deleting it. 7 new tests, full suite 523/523 passing, `tsc --noEmit` clean, `next build` clean.

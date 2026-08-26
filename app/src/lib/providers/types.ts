@@ -71,6 +71,13 @@ export interface AIProvider {
 }
 
 // --- Filing (doc 08) -------------------------------------------------------
+//
+// Superseded by filingConnector.ts's richer `FilingConnector` interface
+// (P7-4), built once doc 08 was read in full -- this original stub
+// predates that read and nothing in the codebase depends on it. Left
+// here, unused, rather than deleted, so a future reader searching this
+// file for "Filing" still finds a pointer to where the real interface
+// now lives.
 
 export interface FilingSubmission {
   filingId: string;
@@ -85,6 +92,7 @@ export interface FilingResult {
   raw?: unknown;
 }
 
+/** @deprecated superseded by FilingConnector in filingConnector.ts (P7-4) */
 export interface FilingProvider {
   jurisdiction: string;
   submit(submission: FilingSubmission): Promise<FilingResult>;
