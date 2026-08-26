@@ -1765,12 +1765,25 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   no new business logic, just packaging what P10-1 through P10-24
   already produce. 3 new tests, full suite 1089/1089 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P10-26 todo — Full end-to-end automation scenario test (doc 11
-  §100): one integration test walking the doc's own 20-step scenario
-  (trigger → rule → confidence → approval → execute → verify → event →
-  next workflow → transient failure → retry → success → duplicate
-  event ignored → provider conflict → sync exception) across the
-  modules built in this phase.
+- [x] P10-26 done — Full end-to-end automation scenario test (doc 11
+  §100): `automationEndToEnd.test.ts` -- one integration test wiring
+  together the real functions from every module built this phase
+  (rulesEngine, confidenceGate, approvalGate, idempotentAction,
+  workflowPreflight, eventBus, workflowExecution, scheduledJob,
+  retryEngine, crossSystemSync), walking the doc's own 20-step scenario
+  end to end: case created → trigger → rule evaluated → confidence
+  classified → approval gate created/approved → action executed
+  idempotently → result validated → event emitted → next workflow
+  queued → follow-up scheduled → transient provider failure → retry
+  planned/succeeds → duplicate event ignored → provider conflict →
+  sync exception flagged. Deliberately no new module -- an integration
+  test, not new logic. 1 new test, full suite 1090/1090 passing, `tsc
+  --noEmit` clean, `next build` clean.
+
+  **All of Phase 10 (P10-1 through P10-26) is now done.** No
+  credential-blocked tasks this phase -- everything was buildable
+  purely as internal coordination logic wrapping the systems built in
+  Phases 0-9.
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -1901,3 +1914,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-23] `workflowPreflight.ts`: evaluateWorkflowDependencies(), evaluatePreFlightCheck(), validatePostFlightOutcome(). 6 new tests, full suite 1079/1079 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-24 (State reconciliation + stale-workflow + SLA tracking).
 - 2026-08-26 — [P10-24] `workflowReconciliation.ts`: findReconciliationDiscrepancies() (reuses crossSystemSync.ts's detectSyncException()), evaluateWorkflowStaleness(), evaluateSlaCompliance()/computeSlaComplianceRate(). 7 new tests, full suite 1086/1086 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-25 (Control dashboard assembly).
 - 2026-08-26 — [P10-25] `automationControlCenter.ts`: buildAutomationControlCenterSummary(), buildCaseAutomationPanel(), OPERATOR_APPROVAL_FLOW. 3 new tests, full suite 1089/1089 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-26 (Full end-to-end automation scenario test) -- the last task in Phase 10.
+- 2026-08-26 — [P10-26] `automationEndToEnd.test.ts`: one integration test walking doc 11's own 20-step end-to-end scenario across every Phase 10 module. 1 new test, full suite 1090/1090 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 10 (P10-1 through P10-26) is now done -- no credential blockers this phase.** Still queued locally behind the GitHub-login blocker; nothing from Phases 6-10 has been pushed yet.
