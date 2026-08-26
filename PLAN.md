@@ -710,12 +710,17 @@ content goes in, same as P2-1.
   tracking and the SIGNATURE_PRESENT vs. SIGNATURE_REQUIREMENT_SATISFIED
   distinction (§32) don't need the live provider and can still be built
   now as their own task if split out.
-- [ ] P6-13 todo — Completeness engine (doc 07 §33-37): central
-  evaluator combining every requirement/form/signature/exhibit/
-  verification/conflict signal into COMPLETE/INCOMPLETE/
-  REQUIRES_REVIEW, with explicit hard blockers (never overridable by a
-  score) vs. soft warnings, and a human-readable explanation (never
-  just "claim incomplete").
+- [x] P6-13 done — Completeness engine (doc 07 §33-37):
+  `claimCompletenessEngine.ts`'s `evaluateClaimCompleteness()` -- a
+  central *composer* over `CompletenessSignal` entries (not a new
+  source of truth: whatever wires this to real case data translates
+  claimRequirementChecklist.ts/claimRuleConflict.ts/formCatalog.ts/
+  verificationSnapshot.ts's own outputs into signals). Any unsatisfied
+  hard blocker forces INCOMPLETE outright, un-overridable by any number
+  of otherwise-satisfied signals; an unsatisfied soft signal alone only
+  ever produces REQUIRES_REVIEW; every result carries a human-readable,
+  multi-line explanation listing each specific blocker/warning by its
+  own explanation text -- never a bare status code. 5 new tests.
 - [ ] P6-14 todo — Claim package generator + versioning + manifest +
   diff (doc 07 §38-40, 54): deterministic package assembly from
   forms/declarations/documents/exhibits; every version preserved (never
@@ -810,3 +815,4 @@ docs 08-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-9] `formValidation.ts`: `validateFormField()`/`validateFormFields()` (required/format/date checks, format only applies once a value exists) + `compareValuesAcrossForms()`, reusing crossSourceComparison.ts's compareAcrossSources() to treat two generated forms disagreeing on the same case-data path exactly like two external sources disagreeing -- never picks a winner. 9 new tests, full suite 446/446 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-10] `claimDocumentGeneration.ts`: `generateDocumentFromTemplate()` -- missing OR unverified required facts both block generation (fails closed rather than asserting unconfirmed facts); draft/revision/approval history mirrors humanHandoff.ts's MessageRevisionHistory shape exactly. Template content flagged EXAMPLE_PENDING_LEGAL_SOURCING, same status as engagementAgreement.ts. 5 new tests, full suite 451/451 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P6-11] `exhibitAssembly.ts`: `checkExhibitEligibility()` (correct case, validated, not a confirmed duplicate, not superseded) + `buildExhibitAssembly()`, deterministic ordering + auto-generated index/page map over the eligible subset only, CUSTOM scheme without an order fails closed rather than falling back silently. Verified regeneration-equality directly (same input -> byte-identical output). 11 new tests, full suite 462/462 passing, `tsc --noEmit` clean, `next build` clean. **Phase 6's currently-unblocked-and-buildable tasks (P6-1 through P6-11) are now all done**; P6-12 is blocked on an e-signature vendor account, and P6-13 through P6-18 remain todo.
+- 2026-08-26 — Ethan asked for a progress percentage + time estimate (answered ~55-60% by rough phase-weighting, flagged that Phases 7-9 aren't decomposed yet and involve the heaviest remaining vendor-account blockers) and said to keep going. Still queued behind the GitHub-login blocker (still away from his computer). [P6-13] `claimCompletenessEngine.ts`: `evaluateClaimCompleteness()` composes CompletenessSignal entries from earlier P6 modules into COMPLETE/INCOMPLETE/REQUIRES_REVIEW -- any unsatisfied hard blocker forces INCOMPLETE un-overridably, an unsatisfied soft signal alone only reaches REQUIRES_REVIEW, every result carries a specific human-readable explanation. 5 new tests, full suite 467/467 passing, `tsc --noEmit` clean, `next build` clean.
