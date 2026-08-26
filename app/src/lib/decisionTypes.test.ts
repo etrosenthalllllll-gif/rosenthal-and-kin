@@ -38,4 +38,23 @@ describe("decision type registry", () => {
       }
     }
   });
+
+  it("marks routine workflow decisions as category DECISION", () => {
+    expect(DECISION_TYPES.APPROVE_OUTREACH.category).toBe("DECISION");
+    expect(DECISION_TYPES.APPROVE_CLAIM_PACKAGE.category).toBe("DECISION");
+  });
+
+  it("marks exception-handling types as category EXCEPTION (doc 02 section 12)", () => {
+    expect(DECISION_TYPES.RESOLVE_LOW_CONFIDENCE.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_CONFLICTING_EVIDENCE.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_DUPLICATE_CASE.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_INVALID_DOCUMENT.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.RESOLVE_WORKFLOW_FAILURE.category).toBe("EXCEPTION");
+  });
+
+  it("every decision type declares a category", () => {
+    for (const config of Object.values(DECISION_TYPES)) {
+      expect(["DECISION", "EXCEPTION"]).toContain(config.category);
+    }
+  });
 });

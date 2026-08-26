@@ -16,6 +16,12 @@ export interface DecisionTypeConfig {
   // Consequential actions (filing, financial, closing) get a confirmation
   // step in the UI -- see doc 02 section 19 "DECISION SAFETY".
   highConsequence: boolean;
+  // doc 02 section 12 "EXCEPTION / REVIEW QUEUE": exceptions are a
+  // distinct lane from routine decisions, not a separate database
+  // entity -- they're Decisions whose type is flagged EXCEPTION here,
+  // reusing the same Decision/DecisionStatus machinery already built
+  // rather than standing up a competing model. See exceptionQueue.ts.
+  category: "DECISION" | "EXCEPTION";
 }
 
 export const DECISION_TYPES = {
@@ -27,6 +33,7 @@ export const DECISION_TYPES = {
     requiresComment: false,
     requiresEvidenceViewed: false,
     highConsequence: false,
+    category: "DECISION",
   },
   REQUEST_DOCUMENTS: {
     key: "REQUEST_DOCUMENTS",
@@ -36,6 +43,7 @@ export const DECISION_TYPES = {
     requiresComment: false,
     requiresEvidenceViewed: false,
     highConsequence: false,
+    category: "DECISION",
   },
   APPROVE_CLAIMANT: {
     key: "APPROVE_CLAIMANT",
@@ -45,6 +53,7 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: true,
     highConsequence: false,
+    category: "DECISION",
   },
   RESOLVE_GENEALOGY_CONFLICT: {
     key: "RESOLVE_GENEALOGY_CONFLICT",
@@ -54,6 +63,7 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: true,
     highConsequence: false,
+    category: "DECISION",
   },
   APPROVE_CLAIM_PACKAGE: {
     key: "APPROVE_CLAIM_PACKAGE",
@@ -63,6 +73,7 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: true,
     highConsequence: true,
+    category: "DECISION",
   },
   REVIEW_FILING_REJECTION: {
     key: "REVIEW_FILING_REJECTION",
@@ -72,6 +83,7 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: true,
     highConsequence: false,
+    category: "DECISION",
   },
   APPROVE_RECOVERY_DISTRIBUTION: {
     key: "APPROVE_RECOVERY_DISTRIBUTION",
@@ -81,6 +93,7 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: true,
     highConsequence: true,
+    category: "DECISION",
   },
   CLOSE_CASE: {
     key: "CLOSE_CASE",
@@ -90,6 +103,69 @@ export const DECISION_TYPES = {
     requiresComment: true,
     requiresEvidenceViewed: false,
     highConsequence: true,
+    category: "DECISION",
+  },
+
+  // --- Exceptions (doc 02 section 12) -----------------------------
+  // A representative set covering the doc's trigger list, not one type
+  // per bullet point -- e.g. RESOLVE_CONFLICTING_EVIDENCE covers
+  // "conflicting evidence," "genealogy conflicts," and "claimant
+  // disputes information" alike, since they need the same operator
+  // actions. `availableActions` omits doc 02's "OVERRIDE where
+  // authorized": that needs its own permission plumbing (a specific
+  // grant beyond the existing role checks) that doesn't exist yet --
+  // add it once that's built rather than fake the authorization check.
+  RESOLVE_LOW_CONFIDENCE: {
+    key: "RESOLVE_LOW_CONFIDENCE",
+    displayName: "Resolve Low-Confidence Case",
+    description: "AI confidence fell below the threshold for automatic progression.",
+    availableActions: ["RESOLVE", "ESCALATE", "DEFER", "CLOSE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_CONFLICTING_EVIDENCE: {
+    key: "RESOLVE_CONFLICTING_EVIDENCE",
+    displayName: "Resolve Conflicting Evidence",
+    description:
+      "Two or more sources disagree, identity can't be verified, or a claimant disputes information on file.",
+    availableActions: ["RESOLVE", "ESCALATE", "DEFER", "CLOSE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_DUPLICATE_CASE: {
+    key: "RESOLVE_DUPLICATE_CASE",
+    displayName: "Resolve Suspected Duplicate Case",
+    description: "Two estate or claimant records may refer to the same real-world case.",
+    availableActions: ["RESOLVE", "ESCALATE", "DEFER", "CLOSE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_INVALID_DOCUMENT: {
+    key: "RESOLVE_INVALID_DOCUMENT",
+    displayName: "Resolve Invalid Document",
+    description: "A required document was received but failed validation.",
+    availableActions: ["RESOLVE", "RETRY", "ESCALATE", "DEFER"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
+  },
+  RESOLVE_WORKFLOW_FAILURE: {
+    key: "RESOLVE_WORKFLOW_FAILURE",
+    displayName: "Resolve Workflow Failure",
+    description:
+      "A filing, integration, or automated workflow failed, got stuck, or couldn't determine its next step.",
+    availableActions: ["RESOLVE", "RETRY", "ESCALATE", "DEFER"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: false,
+    category: "EXCEPTION",
   },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
