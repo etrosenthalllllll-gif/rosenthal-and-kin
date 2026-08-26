@@ -1724,11 +1724,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   control plane's own automation issues (stuck approvals, workflow
   failures) rather than case escalation. 9 new tests, full suite
   1060/1060 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-22 todo — Circuit breaker + provider health (doc 11 §88-90):
-  CLOSED/OPEN/HALF_OPEN circuit breaker per external provider, a
-  pause-workflow-and-alert rule after N consecutive bad responses
-  (never let a broken integration keep acting), and a per-provider
-  HEALTHY/DEGRADED/DOWN/UNKNOWN health status.
+- [x] P10-22 done — Circuit breaker + provider health (doc 11 §88-90):
+  `providerCircuitBreaker.ts` -- `nextCircuitStateOnFailure()` (trips
+  CLOSED->OPEN at the doc's own 20-consecutive-failure example; a
+  HALF_OPEN test failure goes straight back to OPEN),
+  `nextCircuitStateOnSuccess()` (only HALF_OPEN->CLOSED; OPEN can
+  never jump straight to CLOSED), `shouldMoveToHalfOpen()` (cooldown-
+  gated), `canAttemptRequest()` (blocked only in OPEN),
+  `computeProviderHealthStatus()` (UNKNOWN with zero observed
+  requests, never guessed HEALTHY; HEALTHY/DEGRADED/DOWN by
+  configurable error-rate thresholds). 13 new tests, full suite
+  1073/1073 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-23 todo — Automation dependencies + pre/post-flight checks
   (doc 11 §91-93): declared per-workflow dependencies (don't start if a
   required system/provider is unavailable), a pre-flight
@@ -1879,3 +1885,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-19] `automationAudit.ts`: checkAuthenticatedActor() (no anonymous automation), buildAutomationAuditEntry() (maps onto audit.ts's AuditEventInput shape). 4 new tests, full suite 1043/1043 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-20 (Data consistency: outbox/inbox + correlation + case timeline).
 - 2026-08-26 — [P10-20] `dataConsistency.ts`: buildOutboxEntry()/markOutboxDelivered(), buildInboxEntry()/evaluateInboxIntake()/markInboxProcessed(), needsReconciliationTask(), attachCorrelationId(), buildCaseTimeline(). 8 new tests, full suite 1051/1051 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-21 (Notification + escalation engine).
 - 2026-08-26 — [P10-21] `automationNotification.ts`: shouldNotify(), buildAutomationNotification(), resolveEscalationAction()/DEFAULT_APPROVAL_ESCALATION_LADDER (24h/48h/72h ladder). 9 new tests, full suite 1060/1060 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-22 (Circuit breaker + provider health).
+- 2026-08-26 — [P10-22] `providerCircuitBreaker.ts`: nextCircuitStateOnFailure()/nextCircuitStateOnSuccess(), shouldMoveToHalfOpen(), canAttemptRequest(), computeProviderHealthStatus(). 13 new tests, full suite 1073/1073 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-23 (Automation dependencies + pre/post-flight checks).
