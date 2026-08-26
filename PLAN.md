@@ -149,13 +149,25 @@ idempotency, follow-up scheduling) is buildable now.
   logic has no such dependency and is fully tested against synthetic
   payloads. 8 new tests, full suite 189/189, `next build` clean. Depends
   on P3-1, P3-2.
-- [ ] P3-4 todo — Communication classification engine (doc 04 §6):
-  configurable category table (INTERESTED, QUESTION, LEGAL_QUESTION,
-  DOCUMENT_ATTACHED, SUSPICIOUS, DO_NOT_CONTACT, UNCLEAR, etc., per §6's
-  list) plus a confidence-threshold router to human review — mirrors the
-  `complianceRules.ts` "versioned config table, not hardcoded" pattern.
-  Runs against the existing `AIProvider` interface (no live AI account
-  requirement to build/test this against a fake provider). Depends on P3-1.
+- [x] P3-4 done — Communication classification engine (doc 04 §6, §9,
+  §28): `communicationClassification.ts` — `CLASSIFICATION_CATEGORIES`,
+  a full configurable table covering every category doc 04 §6 lists
+  (INTERESTED through ESCALATE, 20 total), each with its own confidence
+  threshold (§28: "configurable by communication type... not these exact
+  numbers") and an `alwaysRequiresHumanReview` flag for the categories
+  §7/§9 name explicitly (LEGAL_QUESTION, PAYMENT_QUESTION, SUSPICIOUS,
+  DECEASED_PERSON, UNCLEAR, ESCALATE — no confidence clears these, matching
+  §9's own worked example: "IF classification = LEGAL_QUESTION THEN: Do
+  not automatically answer"). `routeClassifiedCommunication()` fails
+  closed to `HUMAN_REVIEW` on an unrecognized category, same discipline
+  as `checkFeeCompliance()`'s "no matching rule → block." Does **not**
+  call a real AI model — no live `AIProvider` account exists yet
+  (`blocked: needs credential — Anthropic API key not provisioned`,
+  same gap `caseSummary.ts` flagged in Phase 1); this is the
+  configuration-and-routing layer that runs on a classification result
+  from any source, tested against synthetic results that exercise the
+  exact same logic a real model's output would. 9 new tests, full suite
+  199/199, `next build` clean. Depends on P3-1.
 - [ ] P3-5 todo — Communications automation rule engine (doc 04 §9, §29):
   configurable IF/THEN rules over case state + classification + confidence
   + opt-out status → {respond automatically, create decision, escalate,
@@ -233,3 +245,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-25 — Phase 2 fully done; started Phase 3 (Communications). Read doc 04 ("Communications," 48 sections) in full from Drive and decomposed it into P3-1 through P3-13 in PLAN.md, flagging every task that needs a real vendor account (SMS/voice/mail providers, live inbound-email webhook) as `blocked: needs credential` per the ground rules rather than self-approving around the gap — only the provider-agnostic logic is buildable right now. [P3-1] Built the unified `Communication`/`Conversation` Prisma model (doc 04 §1-2), reusing the existing channel-unified `CommunicationProvider` interface from `providers/types.ts` instead of inventing separate per-channel provider types (already satisfies doc 04 §32). Keyed to both `claimantId` and `personId` independently per §2's "don't assume 1:1." `providerMessageId`/`idempotencyKey` are unique DB constraints, the real backing for §34's idempotency requirement. Added centralized per-Person communication preferences (§19) as pure schema now, enforcement logic deferred to P3-6. Pushed to the live Render DB via `prisma db push`. Built `communicationTimeline.ts` (pure chronological view-model builder, doc 04 §24, + a thin Prisma fetch wrapper). 7 new tests, full suite 167/167 passing, `next build` clean.
 - 2026-08-26 — [P3-2] `matchConversationToCase.ts`: pure, confidence-scored conversation-to-case matcher over doc 04 §3's signal list (thread ID, case-number reference, email, phone, name), weighted so no single weak signal (name alone) can cross even the ambiguous floor. Never guesses: two candidates both clearing the auto-attach threshold resolve to `AMBIGUOUS`, exactly matching doc 04's own "Cases RK-1842 and RK-1917" example rather than picking one arbitrarily. Added `RESOLVE_AMBIGUOUS_CASE_MATCH` to the EXCEPTION set in `decisionTypes.ts` (reuses P1-3's Decision/exception-queue machinery, no new model) with an explicit `CREATE_NEW_CASE` action. 13 new tests, full suite 180/180 passing, `next build` clean.
 - 2026-08-26 — [P3-3] `planInboundEmailIngestion.ts`: pure inbound-email ingestion decision layer, sitting on top of P3-2's matcher. Validates the payload, dedupes on provider message ID (idempotency), matches via P3-2 using In-Reply-To as the thread signal, and produces one of REJECT_INVALID/SKIP_DUPLICATE/ATTACH_TO_CASE/CREATE_MATCH_EXCEPTION. Treats a genuine no-match the same as an ambiguous match (raise for human review) rather than silently dropping the message, per doc 04's "never silently disappear." The live webhook endpoint stays blocked (no inbound email provider account provisioned yet); this decision logic has no such dependency. 8 new tests, full suite 189/189 passing, `next build` clean.
+- 2026-08-26 — [P3-4] `communicationClassification.ts`: configurable category table covering doc 04 section 6's full list (20 categories), per-category confidence thresholds (section 28), and an `alwaysRequiresHumanReview` flag for the categories section 7/9 name explicitly (legal questions, payment questions, suspicious messages, deceased-person reports, unclear/escalate) -- no confidence level clears these. `routeClassifiedCommunication()` fails closed to human review on an unrecognized category. No live AI model call yet (no AIProvider account provisioned -- same gap as caseSummary.ts); this is the config-and-routing layer, fully tested against synthetic classification results. 9 new tests, full suite 199/199 passing, `next build` clean.
