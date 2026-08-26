@@ -1385,13 +1385,15 @@ live provider call is blocked.
   `recalculateOutstandingBalance()` reproduces the balance from the
   full transaction history every time (payments − reversals − refunds
   − credits), never a hand-edited field. 6 new tests.
-- [ ] P9-11 todo — Outstanding balance engine + payment reminders +
-  stop conditions (doc 10 §37-39): balance always reproducible from
-  underlying transactions, never a solely-manually-editable field;
-  configurable reminder cadence with every stop condition (paid, voided,
-  arrangement established, dispute opened, case closed) checked before
-  sending another reminder -- same discipline as followUpScheduler.ts
-  (P3-7)/P8-11.
+- [x] P9-11 done — Outstanding balance engine + payment reminders +
+  stop conditions (doc 10 §37-39): the outstanding-balance half was
+  already `recalculateOutstandingBalance()` in paymentReversal.ts
+  (P9-10), not duplicated. `paymentReminder.ts`'s
+  `determinePaymentReminderStage()` -- the doc's own
+  BEFORE_DUE/DUE_TODAY/OVERDUE_7/14/30_DAYS ladder. `planPaymentReminder()`
+  -- same stop-condition-first, idempotency-checked-next shape as
+  followUpScheduler.ts (P3-7)/postFilingFollowUp.ts (P8-11); a stop
+  condition wins even over an already-sent reminder. 8 new tests.
 - [ ] P9-12 todo — Payment disputes + escalation + communications (doc
   10 §40-42): `PaymentDispute` (the doc's own status list) stops
   automated collection reminders on open; payment communications are
@@ -1540,3 +1542,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-7] Added Invoice/InvoiceStatus schema model; `invoiceGeneration.ts`: `generateNextInvoiceNumber()`, `evaluateInvoiceGenerationReadiness()` (recovery-verified/fee-calculated/distribution-approved all required), `isInvoiceConfirmedDelivered()`. 7 new tests, full suite 793/793 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-9] `paymentMatching.ts`: `matchPaymentToInvoice()` (deterministic matching, UNMATCHED with no hint), `requiresReconciliationQueue()`, `checkDuplicatePayment()`. Uses plain interfaces mirroring the still-blocked Payment entity (P9-8) rather than depending on it. 10 new tests, full suite 803/803 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-10] `paymentReversal.ts`: `createPaymentReversal()`/`createRefund()` (never mutate the original, refund requires reason+approvedBy) + `recalculateOutstandingBalance()` (always reproduced from full transaction history). 6 new tests, full suite 809/809 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-11] `paymentReminder.ts`: `determinePaymentReminderStage()` (BEFORE_DUE/DUE_TODAY/OVERDUE_7/14/30_DAYS) + `planPaymentReminder()` (stop conditions first, idempotency next). Outstanding-balance math already covered by P9-10. 8 new tests, full suite 817/817 passing, `tsc --noEmit` clean, `next build` clean.
