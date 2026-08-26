@@ -33,6 +33,13 @@ GitHub repo on push, per `20 - Hosting & Deployment Architecture`.
   migration history yet, just a schema in sync with the DB. Move to
   `migrate deploy` with real migration files once that matters (before
   a second environment, or before this matters for rollback safety).
+- **Redis:** `rosenthal-and-kin-redis` — Render Key Value, Free tier,
+  same Ohio region. Maxmemory policy set to `noeviction` (not the
+  console's cache-oriented `allkeys-lru` default) — job data must not be
+  evicted under memory pressure. No persistent disk on the free tier, so
+  data is lost on restart; acceptable for now since no worker actually
+  depends on queue durability yet (Phase 4+). Connected to the app via
+  its internal URL as the `REDIS_URL` env var.
 
 ## Tech stack: Next.js + TypeScript + Prisma + Postgres
 No existing application code to match (the repo was GitHub Pages only
