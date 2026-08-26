@@ -1566,10 +1566,14 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   members must reach APPROVED/COMPLETED; a single REJECTED/CANCELLED/
   EXPIRED member BLOCKS the whole group, never outvoted). 9 new tests,
   full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-7 todo — Operator override + automation pause (doc 11
-  §26-29): global kill switch (ACTIVE/PAUSED/EMERGENCY_STOP),
-  workflow-level pause, and case-level pause -- an override always
-  records reason/operator/timestamp and is never hidden.
+- [x] P10-7 done — Operator override + automation pause (doc 11
+  §26-29): `automationPause.ts` -- `recordOperatorOverride()` (reason +
+  operator structurally required, never silently applied),
+  `canStartNewAutomatedAction()` (global ACTIVE/PAUSED/
+  EMERGENCY_STOP kill switch), `isAutomationBlocked()` (global +
+  workflow-level + case-level pause all checked together -- any one of
+  the three blocks action). 8 new tests, full suite 939/939 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-8 todo — Retry engine + failure classification + dead-letter
   queue (doc 11 §30-34): only transient failures retry (timeout, rate
   limit, provider outage); permanent/data/auth failures go straight to
@@ -1793,3 +1797,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-4] `rulesEngine.ts`: config-table rules, full comparison operator set (fail-closed on unrecognized), nested AND/OR/NOT, dotted-path fields, evaluateRule()/evaluateRuleTable() with full auditable condition-result tree. 20 new tests, full suite 913/913 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-5 (Confidence thresholds + rule/confidence combination).
 - 2026-08-26 — [P10-5] `confidenceGate.ts`: classifyConfidence() (configurable bands), actionForConfidenceBand(), combineRuleAndConfidence()/evaluateRuleAndConfidence() (rule FAIL always blocks, never overridden by confidence). 9 new tests, full suite 922/922 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-6 (Approval gates + expiration + multi-approval dependencies).
 - 2026-08-26 — [P10-6] `approvalGate.ts`: planApprovalGate() (reuses Decision/decisionTypes.ts, no second queue), isApprovalExpired(), evaluateApprovalDependencies() (one rejection blocks the whole group). 9 new tests, full suite 931/931 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-7 (Operator override + automation pause).
+- 2026-08-26 — [P10-7] `automationPause.ts`: recordOperatorOverride() (reason+operator required), canStartNewAutomatedAction() (global kill switch), isAutomationBlocked() (global+workflow+case pause combined). 8 new tests, full suite 939/939 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-8 (Retry engine + failure classification + dead-letter queue).
