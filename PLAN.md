@@ -947,13 +947,18 @@ provider call itself is `blocked: needs credential`.
   correction/resubmission branch) through CORRECTION_REQUIRED ->
   RESUBMISSION_REQUIRED -> RESUBMITTED as a genuinely new attempt.
   CANCELLED/FAILED/CLOSED are the three terminal states. 12 new tests.
-- [ ] P7-14 todo — Provider response normalization + confirmation
-  verification (doc 08 §31-33): normalizes arbitrary provider statuses
-  into a fixed internal vocabulary while always preserving the raw
-  provider response too -- never discarded. A network response alone
-  is never sufficient proof of successful filing; an uncertain outcome
-  becomes FILING_STATUS = UNKNOWN + human review, per doc 08's own
-  instruction.
+- [x] P7-14 done — Provider response normalization + confirmation
+  verification (doc 08 §31-33): `filingProviderNormalization.ts`'s
+  `normalizeProviderStatus()` -- a configured connector+raw-status
+  mapping table, failing closed to UNKNOWN for an unrecognized raw
+  status or connector rather than guessing, always preserving the raw
+  status/response regardless of recognition. `verifyFilingConfirmation()`
+  -- a bare network response is never sufficient proof; VERIFIED
+  requires an external filing ID plus at least one independent
+  corroborating signal (confirmation number, receipt, or independently
+  -confirmed provider status), otherwise UNCERTAIN_REQUIRES_REVIEW,
+  which a caller maps to FILING_STATUS = UNKNOWN + human review per the
+  doc's own instruction. 9 new tests.
 - [ ] P7-15 todo — Filing tracking + reconciliation (doc 08 §34-36, 56,
   58): scheduled status-polling job (configurable backoff intervals) as
   the no-webhook fallback, plus a reconciliation engine comparing
@@ -1300,3 +1305,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-9] `filingFeeRules.ts`: versioned FILING_FEE_RULES table, `getApplicableFeeRule()` (method-specific beats general, AMBIGUOUS never auto-picked), `calculateFilingFee()` (base+additional+provider=total, always names the rule/version, zero total on NO_RULE_FOUND/AMBIGUOUS_RULE rather than guessing). 7 new tests, full suite 548/548 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-11] `filingAuthorization.ts`: `evaluateSubmissionAuthorization()` (BLOCKED_NOT_READY regardless of mode/level, high-risk always needs an explicit operator submit even at level 4) + `applyHumanOverride()` (never overrides a hard blocker, rejects an incomplete override record for a soft blocker). 9 new tests, full suite 557/557 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-12] `filingSubmissionGuard.ts`: `evaluateSubmissionGuard()` (reused idempotency key or SUBMITTED status -> ALREADY_SUBMITTED, UNKNOWN -> UNKNOWN_MUST_RECONCILE, never auto-resubmit) + `resolveUnknownSubmission()` (only provider-confirmed-absent is safe to resubmit). [P7-13] `filingStateMachine.ts`: mirrors stateMachine.ts/claimPreparationStateMachine.ts over a plain-TS FilingStatus union, PROCESSING's three-way branch, REJECTED's correction/resubmission branch, CANCELLED/FAILED/CLOSED terminal. 21 new tests, full suite 578/578 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-14] `filingProviderNormalization.ts`: `normalizeProviderStatus()` (fails closed to UNKNOWN for an unrecognized raw status/connector, raw response always preserved) + `verifyFilingConfirmation()` (a bare network response alone is never sufficient, VERIFIED needs an external filing ID plus a corroborating signal). 9 new tests, full suite 587/587 passing, `tsc --noEmit` clean, `next build` clean.
