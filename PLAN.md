@@ -1694,11 +1694,14 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   the existing `highConsequence` boolean on `decisionTypes.ts` into a
   full four-level scale. 8 new tests, full suite 1039/1039 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-19 todo — Security + audit trail for automation actions (doc
-  11 §79-80): every automated action runs under an authenticated
-  actor (never anonymous), mapped onto the existing generic `audit.ts`
-  `AuditEventInput` shape rather than a second audit mechanism (same
-  reuse as `financialAudit.ts`).
+- [x] P10-19 done — Security + audit trail for automation actions (doc
+  11 §79-80): `automationAudit.ts` -- `checkAuthenticatedActor()`
+  (rejects a missing/blank actor -- "do not use anonymous automation"
+  enforced structurally), `buildAutomationAuditEntry()` (maps onto
+  audit.ts's existing `AuditEventInput` shape, folding workflow/
+  permission/result into metadata, same reuse discipline as
+  `financialAudit.ts`). 4 new tests, full suite 1043/1043 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-20 todo — Data consistency: outbox/inbox + correlation + case
   timeline (doc 11 §81-85): outbox pattern for events created inside a
   DB transaction (never lost), inbox pattern for incoming external
@@ -1863,3 +1866,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-16] `automationConfig.ts`: planNextConfigVersion() (never in-place edit), recordConfigChange() (reason+actor required). 5 new tests, full suite 1018/1018 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-17 (Dry-run/test mode + manual controls).
 - 2026-08-26 — [P10-17] `workflowManualControls.ts`: buildDryRunReport(), canPerformRealAction(), buildManualExecutionPreview(), evaluateSkipStep(), resolveRestartStepIndex(), buildCancellationConsequences(). 13 new tests, full suite 1031/1031 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-18 (Orchestration safety: risk levels + high-risk gates).
 - 2026-08-26 — [P10-18] `orchestrationRisk.ts`: DEFAULT_ACTION_RISK_TABLE, getActionRiskLevel() (fails closed to CRITICAL), requiresHumanApprovalRegardlessOfConfidence(), evaluateOrchestrationSafety(). 8 new tests, full suite 1039/1039 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-19 (Security + audit trail for automation actions).
+- 2026-08-26 — [P10-19] `automationAudit.ts`: checkAuthenticatedActor() (no anonymous automation), buildAutomationAuditEntry() (maps onto audit.ts's AuditEventInput shape). 4 new tests, full suite 1043/1043 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-20 (Data consistency: outbox/inbox + correlation + case timeline).
