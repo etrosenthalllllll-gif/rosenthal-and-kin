@@ -130,6 +130,8 @@ model Claimant {
   decisions   Decision[]
   notes       Note[]
   transitions ClaimantStateTransition[]
+  conversations   Conversation[]
+  communications  Communication[]
 
   @@index([estateId])
   @@index([status])
@@ -169,6 +171,18 @@ model Person {
   claimants     Claimant[]
   relationsFrom Relationship[] @relation("PersonA")
   relationsTo   Relationship[] @relation("PersonB")
+  conversations   Conversation[]
+  communications  Communication[]
+
+  // doc 04 section 19 -- centralized, channel-specific communication
+  // preferences. "Do not rely solely on the individual channel system":
+  // doNotContact overrides every per-channel flag below regardless of
+  // its own value.
+  emailAllowed  Boolean @default(true)
+  smsAllowed    Boolean @default(true)
+  voiceAllowed  Boolean @default(true)
+  mailAllowed   Boolean @default(true)
+  doNotContact  Boolean @default(false)
 }
 
 enum RelationshipType {
@@ -275,9 +289,126 @@ model Decision {
 
   claimant   Claimant @relation(fields: [claimantId], references: [id])
   decidedBy  User?    @relation("DecisionDecidedBy", fields: [decidedByUserId], references: [id])
+  relatedCommunications Communication[]
 
   @@index([claimantId])
   @@index([status])
+}
+
+// ---------------------------------------------------------------------
+// Communications (doc 04) -- channel-independent Communication +
+// Conversation model. PLAN.md P3-1. Reuses CommunicationProvider's
+// channel type (app/src/lib/providers/types.ts) rather than inventing a
+// second one; Claimant is the "case" doc 04 refers to (matches
+// Decision's own claimantId keying), Person is the participant. Doc 04
+// section 2 explicitly warns not to assume one case = one person or one
+// case = one conversation, so both Conversation and Communication key
+// off claimantId AND personId independently rather than inferring one
+// from the other.
+// ---------------------------------------------------------------------
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+  VOICE
+  MAIL
+}
+
+enum CommunicationDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// Delivery/lifecycle status -- doc 04 section 11's QUEUED/SENT/DELIVERED/
+// FAILED/UNDELIVERED list, plus RECEIVED for inbound messages (which are
+// never "sent" from this system's perspective) and BOUNCED (section 20).
+enum CommunicationDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  UNDELIVERED
+  BOUNCED
+  RECEIVED
+}
+
+// doc 04 section 27 "UNREAD / ATTENTION SYSTEM": AUTOMATED vs
+// OPERATOR_REQUIRED vs EXCEPTION. HUMAN_HANDLING is tracked separately
+// below (section 30) since an operator can take over an otherwise-
+// AUTOMATED conversation at any time independent of why it needed
+// attention in the first place.
+enum ConversationAttentionStatus {
+  AUTOMATED
+  OPERATOR_REQUIRED
+  EXCEPTION
+}
+
+model Conversation {
+  id                String                       @id @default(cuid())
+  claimantId        String
+  personId          String
+  channel           CommunicationChannel
+  attentionStatus   ConversationAttentionStatus  @default(AUTOMATED)
+  // doc 04 section 30 "HUMAN TAKEOVER": set true when an operator takes
+  // over; pauses conflicting automation until explicitly resumed.
+  humanHandling     Boolean                      @default(false)
+  // Provider-side thread identifiers (email Message-ID chains, SMS
+  // conversation SIDs, etc.) -- section 5 "EMAIL THREADING". Free-form
+  // since the shape differs per channel/provider.
+  providerThreadId  String?
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+
+  claimant       Claimant        @relation(fields: [claimantId], references: [id])
+  person         Person          @relation(fields: [personId], references: [id])
+  communications Communication[]
+
+  @@index([claimantId])
+  @@index([personId])
+  @@index([attentionStatus])
+}
+
+model Communication {
+  id                       String                        @id @default(cuid())
+  conversationId           String
+  claimantId               String
+  personId                 String
+  channel                  CommunicationChannel
+  direction                CommunicationDirection
+  sender                   String
+  recipient                String
+  subject                  String?
+  body                     String
+  attachments              Json?
+  // Idempotency keys -- doc 04 section 34, "this is critical." Outbound
+  // sends carry idempotencyKey (caller-generated, matches
+  // OutboundMessage.idempotencyKey in providers/types.ts); inbound
+  // messages carry providerMessageId (provider-generated). Both unique so
+  // a retried job or a re-delivered webhook can never create a second row.
+  providerMessageId        String?                       @unique
+  idempotencyKey           String?                       @unique
+  status                   CommunicationDeliveryStatus   @default(QUEUED)
+  // Configurable category string (doc 04 section 6/17's classification
+  // lists), not an enum -- see communicationClassification.ts (P3-4).
+  classification           String?
+  classificationConfidence Float?
+  aiSummary                String?
+  aiConfidence             Float?
+  relatedWorkflow          String?
+  relatedDecisionId        String?
+  relatedTaskId            String?
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id])
+  claimant        Claimant     @relation(fields: [claimantId], references: [id])
+  person          Person       @relation(fields: [personId], references: [id])
+  relatedDecision Decision?    @relation(fields: [relatedDecisionId], references: [id])
+
+  @@index([conversationId])
+  @@index([claimantId])
+  @@index([status])
+  @@index([classification])
 }
 
 // ---------------------------------------------------------------------

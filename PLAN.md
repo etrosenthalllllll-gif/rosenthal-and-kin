@@ -67,7 +67,114 @@ Status legend: `todo` · `in_progress` · `blocked` · `done`
 - [x] P2-2 done — `app/src/lib/engagementAgreement.ts`: `generateEngagementAgreement()` reads exclusively from `complianceRules.ts` (single source of truth, per doc 03 §1.4 — "not separate hardcoded percentages in two modules"). Drafts agreement text whenever a verified disclosure/fee-cap rule exists for the jurisdiction/asset source, records exactly which rule versions backed the draft (`rulesUsed`, each with its citation and `lastReviewedDate` — doc 03 §1.4's "must record which version of the rule set was used, since these statutes change"), and separately reports `canAdvanceToEngaged` (true only when `checkFeeCompliance()` returns `PROCEED`). Key design call: the agreement *text* still gets drafted for CA probate estates even though the fee can never auto-clear (Prob. Code § 11604 is a court's case-by-case call, not a number) — doc 03 blocks the claimant from advancing to "Engaged," not the existence of a document for a human to review. Explicitly does not invent a rescission/cooling-off right — neither verified statute (Prob. Code § 11604.5, CCP § 1582) contains one, so the draft says so plainly rather than assume a "standard" cancellation clause exists. 8 passing tests. Same owner-approved-override status as P2-1: implemented and tested, not attorney-reviewed — the draft text says so in its own footer.
 - [x] P2-3 done — Named-approver policy question resolved; see `docs/decisions/named-approver.md` (Ethan named as approver, owner override, 2026-08-25). The actual enforcement code (permission check, segregation-of-duties, immutable snapshot, auto-invalidation) is Phase 7 work and still todo — this only unblocked the policy decision, not the implementation.
 
-## Phases 3-9 — Communications, Documents, Verification, Claim Prep, Filing, Post-filing, Recovery
+## Phase 3 — Communications (doc 04)
+Read doc 04 ("Communications") in full from Drive (48 sections) before
+decomposing. Reuses existing groundwork rather than rebuilding it:
+`CommunicationProvider` (channel-unified, `app/src/lib/providers/types.ts`)
+already satisfies doc 04 §32's provider-abstraction requirement across
+EMAIL/SMS/VOICE/MAIL — no separate `EmailProvider`/`SMSProvider` types
+needed. `Claimant` is the "case" this doc refers to (per-claimant-per-estate
+pursuit, matching Decision's own `claimantId` keying); `Person` is the
+participant. Real vendor accounts (Twilio, Postmark/SendGrid inbound
+parsing, PostGrid, a voice/telephony provider) don't exist yet, so every
+task below that needs a live account is `blocked: needs credential`
+rather than self-approved — only the provider-agnostic logic (data model,
+matching, classification config, rules engine, opt-out enforcement,
+idempotency, follow-up scheduling) is buildable now.
+
+- [x] P3-1 done — Unified `Communication` + `Conversation` Prisma models
+  (doc 04 §1-2): `CommunicationChannel`/`CommunicationDirection`/
+  `CommunicationDeliveryStatus` enums, `ConversationAttentionStatus`
+  (AUTOMATED/OPERATOR_REQUIRED/EXCEPTION, doc 04 §27) plus a separate
+  `humanHandling` boolean (§30 — independent of *why* attention is
+  needed). Both models key off `claimantId` (case) AND `personId`
+  (participant) independently per §2's "don't assume one case = one
+  person/conversation." `Communication.providerMessageId` and
+  `.idempotencyKey` are both unique DB constraints — the real
+  enforcement mechanism behind doc 04 §34's "this is critical," not just
+  application-level convention. Also added centralized per-`Person`
+  communication preferences (`emailAllowed`/`smsAllowed`/`voiceAllowed`/
+  `mailAllowed`/`doNotContact`, doc 04 §19) since they're pure schema
+  and the natural home is on the model this task already touches — the
+  *enforcement* logic is still P3-6. Pushed to the live Render Postgres
+  via `prisma db push` (same shadow-DB workaround as P0-2). Built
+  `communicationTimeline.ts`: `buildCommunicationTimeline()` (pure —
+  chronological view-model builder per doc 04 §24's timeline example,
+  derives `requiresAttention` from the conversation's attention status
+  rather than duplicating it per-message, falls back to a truncated body
+  when no AI summary exists yet) + `fetchCommunicationTimeline()` (thin
+  Prisma wrapper, untested by design, same split as `decisionQueue.ts`).
+  7 new tests, full suite 167/167, `next build` clean.
+- [ ] P3-2 todo — Conversation-to-case matching engine (doc 04 §3): pure,
+  confidence-scored function over available signals (email, phone,
+  thread/provider IDs, name, case references). High confidence
+  auto-attaches; ambiguous match creates a Decision (reuses existing
+  Decision/exception-queue machinery from P1-3/P2, `category: EXCEPTION`)
+  rather than guessing. Depends on P3-1.
+- [ ] P3-3 todo — Inbound email ingestion pipeline, minus the live inbox
+  connection (doc 04 §4-5): validate/store/dedupe a `RawInboundEmail`-shaped
+  payload end to end (idempotent on provider message ID / Message-ID +
+  In-Reply-To threading), calling P3-2's matcher. The actual webhook
+  endpoint that receives real provider payloads is
+  `blocked: needs credential — inbound email provider account (e.g.
+  Postmark/SendGrid inbound parse) not yet provisioned`; the pipeline
+  logic itself is not blocked and should be built + tested against
+  synthetic payloads. Depends on P3-1, P3-2.
+- [ ] P3-4 todo — Communication classification engine (doc 04 §6):
+  configurable category table (INTERESTED, QUESTION, LEGAL_QUESTION,
+  DOCUMENT_ATTACHED, SUSPICIOUS, DO_NOT_CONTACT, UNCLEAR, etc., per §6's
+  list) plus a confidence-threshold router to human review — mirrors the
+  `complianceRules.ts` "versioned config table, not hardcoded" pattern.
+  Runs against the existing `AIProvider` interface (no live AI account
+  requirement to build/test this against a fake provider). Depends on P3-1.
+- [ ] P3-5 todo — Communications automation rule engine (doc 04 §9, §29):
+  configurable IF/THEN rules over case state + classification + confidence
+  + opt-out status → {respond automatically, create decision, escalate,
+  schedule follow-up, stop}. Same config-table discipline as
+  `complianceRules.ts`. Depends on P3-2, P3-4, P3-6.
+- [ ] P3-6 todo — Communication preferences / opt-out / do-not-contact
+  (doc 04 §19): per-person channel preferences plus a centralized
+  `DO_NOT_CONTACT` that every outbound path must check before send —
+  "do not rely solely on the individual channel system." Depends on P3-1.
+- [ ] P3-7 todo — Outbound send idempotency + follow-up sequence scheduler
+  (doc 04 §21, §34-35): configurable day-offset sequences (Day 0/7/14/30),
+  stop conditions (response, opt-out, case closed/inactive, operator
+  pause), rate limits/cooldowns, and a global emergency
+  pause-all-outbound switch (§36). Uses the existing job queue
+  (`app/src/lib/queue`). Depends on P3-1, P3-6.
+- [ ] P3-8 todo — Human handoff / takeover (doc 04 §10, §30-31): escalation
+  triggers (low confidence, dispute, legal question, hostility, ambiguous
+  match, repeated automation failure), `HUMAN_HANDLING` pause-then-resume,
+  and the SEND/REVISE/REJECT/ESCALATE decision shape for AI-drafted
+  responses (never overwrite the original draft — store
+  draft+revision+final separately, §8). Depends on P3-4, P3-5.
+- [ ] P3-9 todo — SMS integration (doc 04 §11-12): same pipeline as P3-3
+  but for SMS, against `CommunicationProvider`. Live send/receive is
+  `blocked: needs credential — SMS provider (e.g. Twilio) account not yet
+  provisioned`; the channel-agnostic pipeline logic itself is not
+  blocked. Depends on P3-1 through P3-6.
+- [ ] P3-10 todo — Voice/phone architecture + AI phone agent state machine
+  (doc 04 §13-17): `VoiceProvider` interface (doc 04 already anticipates
+  this fits inside `CommunicationProvider`'s channel abstraction) and the
+  explicit call-state machine (§15) bounding what the AI agent may do in
+  each state. Live calls/transcription are
+  `blocked: needs credential — voice/telephony provider account not yet
+  provisioned`; the state machine and transcript-processing logic are not
+  blocked. Depends on P3-1, P3-4.
+- [ ] P3-11 todo — Physical mail integration (doc 04 §23): PostGrid
+  provider adapter satisfying `CommunicationProvider`.
+  `blocked: needs credential — PostGrid API key (test/sandbox) not yet
+  provisioned`.
+- [ ] P3-12 todo — Communication history timeline + search UI in the case
+  workspace (doc 04 §24-25, §45): unified chronological view across all
+  channels, filterable. Depends on P3-1 (data exists to render).
+- [ ] P3-13 todo — Communication dashboard + analytics (doc 04 §26, §41):
+  metrics (pending responses, exceptions, opt-outs, follow-ups due,
+  automated vs. human-reviewed rate) linking into the existing `/ops`
+  decision dashboard rather than a separate surface. Depends on P3-1
+  through P3-8.
+
+## Phases 4-9 — Documents, Verification, Claim Prep, Filing, Post-filing, Recovery
 Not started. See the full spec docs (Drive: System Architecture folder,
 docs 04-10) for detail — summarized in the chat plan already delivered.
 
@@ -94,3 +201,4 @@ docs 04-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-25 — Phase 2 is now hard-blocked (P2-1 needs attorney review, P2-2 depends on it, P2-3 needs a named approver) and Phases 3-9 aren't decomposed into tasks yet, so rather than idle, went back and closed two pieces of Phase 1 that P1-3's own note had flagged as still-todo despite the checkbox being checked: doc 02's case-summary generator (section 9) and exception/review queue (section 12). Read doc 02 ("Decision and Operator System") in full from Drive to scope both correctly. Built `exceptionQueue.ts` (reuses the existing Decision/DecisionStatus machinery via a new `category: EXCEPTION` flag on 5 new decision types, rather than a competing model) and wired it into `/ops` as a real red-flagged section — verified via the full test suite and a clean build, not just written. Built `caseSummary.ts` (deterministic template synthesis, no AIProvider wired up yet) but deliberately did NOT wire it into `/ops`'s UI: doing so honestly needs real document-count and competing-heir data that nothing upstream produces yet, and faking that data to make the UI look finished would break this session's "verify for real" discipline. 17 new tests (11 case summary + 6 exception queue, plus 2 more decisionTypes tests for the new category field), full suite 149/149, `next build` clean.
 - 2026-08-25 — Ethan explicitly overrode the "leave blocked for attorney review" defaults on both P2-1 and P2-3 and asked for real legal research rather than an unresolved gap. Did a second, deeper research pass on the CA fee-cap question: found `Cal. Prob. Code § 11604.5` (the actual probate-estate heir-locator disclosure statute -- filing deadlines, 10-point-type disclosure, no agency/recourse clauses) and `Cal. Code Civ. Proc. § 1582` (a REAL, verified, fixed 10% fee cap -- but scoped only to CA State Controller unclaimed-property recovery agreements, not probate estates). This explains the widely-repeated "10% heir-finder cap" claim: it's a real number, just attached to the wrong statute by multiple secondary sources. Rewrote `complianceRules.ts`'s `checkFeeCompliance()` to be asset-source-aware (`PROBATE_ESTATE` vs `STATE_CONTROLLER_UNCLAIMED_PROPERTY`) so it actually enforces the real 10% cap for unclaimed-property cases while correctly staying fail-closed for probate estates (CA hands that to case-by-case court judgment, confirmed, not an open question). Updated `docs/decisions/named-approver.md`: Ethan named as the approver (owner override), with an explicit note that this doesn't override the UPL licensing requirement for cases where a licensed attorney is actually required to file. P2-1 and P2-3 marked done in PLAN.md, both explicitly noted as owner-approved rather than attorney-reviewed. Full suite: 152/152 passing, `next build` clean.
 - 2026-08-25 — [P2-2] Engagement/fee agreement generator (`engagementAgreement.ts`), now unblocked since P2-1 has real disclosure content to read from. Drafts agreement text from `complianceRules.ts`'s verified rules, records which rule versions backed each draft, and gates `canAdvanceToEngaged` on `checkFeeCompliance()` rather than duplicating that logic. Deliberately still drafts a document for CA probate estates even though the fee can never auto-clear (doc 03 blocks advancing the claimant, not producing something for a human to review), and deliberately does NOT invent a rescission right neither verified statute contains. 8 new tests, full suite 160/160 passing, `next build` clean. Same owner-approved-override status as P2-1.
+- 2026-08-25 — Phase 2 fully done; started Phase 3 (Communications). Read doc 04 ("Communications," 48 sections) in full from Drive and decomposed it into P3-1 through P3-13 in PLAN.md, flagging every task that needs a real vendor account (SMS/voice/mail providers, live inbound-email webhook) as `blocked: needs credential` per the ground rules rather than self-approving around the gap — only the provider-agnostic logic is buildable right now. [P3-1] Built the unified `Communication`/`Conversation` Prisma model (doc 04 §1-2), reusing the existing channel-unified `CommunicationProvider` interface from `providers/types.ts` instead of inventing separate per-channel provider types (already satisfies doc 04 §32). Keyed to both `claimantId` and `personId` independently per §2's "don't assume 1:1." `providerMessageId`/`idempotencyKey` are unique DB constraints, the real backing for §34's idempotency requirement. Added centralized per-Person communication preferences (§19) as pure schema now, enforcement logic deferred to P3-6. Pushed to the live Render DB via `prisma db push`. Built `communicationTimeline.ts` (pure chronological view-model builder, doc 04 §24, + a thin Prisma fetch wrapper). 7 new tests, full suite 167/167 passing, `next build` clean.
