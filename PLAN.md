@@ -1813,11 +1813,16 @@ observability logic over data the platform already produces.
   backup staleness; every abnormal signal collected, not just the
   first). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit`
   clean, `next build` clean.
-- [ ] P11-3 todo — API monitoring + error classification (doc 12
-  §6-7): per-API/endpoint/provider request-count and error-rate
-  tracking, the doc's 400/401/403/404/409/429/500/502/503/504/
-  NETWORK_ERROR/UNKNOWN classification (never treat every 4xx as an
-  outage).
+- [x] P11-3 done — API monitoring + error classification (doc 12
+  §6-7): `apiMonitoring.ts` -- `classifyApiError()` (doc's full
+  400-504/NETWORK_ERROR/UNKNOWN code list; missing status ->
+  NETWORK_ERROR, unrecognized status fails closed to UNKNOWN),
+  `isOutageClassError()` (only 5xx/NETWORK_ERROR count as outage
+  signal, never a bare 4xx), `computeApiCallMetrics()`, 
+  `groupApiMetricsBy()` (one shared grouping primitive for
+  api/endpoint/provider/workflow/case, not five ad-hoc reducers). 7
+  new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P11-4 todo — API latency + availability monitoring (doc 12
   §8-9): P50/P90/P95/P99 latency-threshold classification, rolling
   availability percentage over 24h/7d/30d windows.
@@ -2087,3 +2092,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — Ethan asked to complete Phases 11-17. Read doc 12 ("Monitoring," 92 sections) and doc 13 ("Analytics," 97 sections) in full from Drive; confirmed docs 14-16 ("System Improvement & Optimization Layer," "Enterprise Control, Data, Intelligence & Resilience Layer," "Compounding Intelligence Engine") are each individually large and explicitly marked "NEEDS RECONCILING" with each other, and docs 17/18 are the Build Order meta-doc and an architecture diagram, not additional buildable phases. Decomposed doc 12 into P11-1 through P11-28 in PLAN.md. Given the scope (each of docs 12/13 is on the same scale as doc 11's 26-task Phase 10, and docs 14-16 combined are larger still), this will span many sessions -- proceeding phase by phase with the same per-task test/build/commit rigor as every prior phase. Planning only, no code yet. Next: P11-1 (Health status model + health check system).
 - 2026-08-26 — [P11-1] `healthStatus.ts`: resolveHealthStatus(), buildSystemHealthRecord(), health-check-type vocabulary. 9 new tests, full suite 1099/1099 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-2 (Database health monitoring).
 - 2026-08-26 — [P11-2] `databaseHealth.ts`: evaluateDatabaseHealthAlerts() (config-table checks, every abnormal signal collected). 4 new tests, full suite 1103/1103 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-3 (API monitoring + error classification).
+- 2026-08-26 — [P11-3] `apiMonitoring.ts`: classifyApiError(), isOutageClassError(), computeApiCallMetrics(), groupApiMetricsBy(). 7 new tests, full suite 1110/1110 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-4 (API latency + availability monitoring).
