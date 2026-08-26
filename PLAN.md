@@ -1713,12 +1713,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   `buildCaseTimeline()` (merges entries from every system into one
   chronological view). 8 new tests, full suite 1051/1051 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P10-21 todo — Notification + escalation engine (doc 11 §86-87):
-  configurable notifications for approval-required/failure/deadline/
-  provider-outage/sync-conflict/automation-paused, and a
-  time-based escalation ladder (reminder → escalation → high-priority
-  queue) with configurable thresholds -- reuses the escalation-ladder
-  shape from `filingDeadlineAlerts.ts`/`postFilingEscalation.ts`.
+- [x] P10-21 done — Notification + escalation engine (doc 11 §86-87):
+  `automationNotification.ts` -- `shouldNotify()` (an unconfigured
+  trigger defaults to notify, not silence), `buildAutomationNotification()`,
+  `resolveEscalationAction()`/`DEFAULT_APPROVAL_ESCALATION_LADDER`
+  (doc's own 24h/48h/72h reminder→escalation→high-priority-queue
+  ladder; always returns the *last* threshold reached, never a repeat
+  lower-level action) -- same config-table shape as
+  `postFilingEscalation.ts`'s case-level ladder, applied here to the
+  control plane's own automation issues (stuck approvals, workflow
+  failures) rather than case escalation. 9 new tests, full suite
+  1060/1060 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-22 todo — Circuit breaker + provider health (doc 11 §88-90):
   CLOSED/OPEN/HALF_OPEN circuit breaker per external provider, a
   pause-workflow-and-alert rule after N consecutive bad responses
@@ -1873,3 +1878,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P10-18] `orchestrationRisk.ts`: DEFAULT_ACTION_RISK_TABLE, getActionRiskLevel() (fails closed to CRITICAL), requiresHumanApprovalRegardlessOfConfidence(), evaluateOrchestrationSafety(). 8 new tests, full suite 1039/1039 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-19 (Security + audit trail for automation actions).
 - 2026-08-26 — [P10-19] `automationAudit.ts`: checkAuthenticatedActor() (no anonymous automation), buildAutomationAuditEntry() (maps onto audit.ts's AuditEventInput shape). 4 new tests, full suite 1043/1043 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-20 (Data consistency: outbox/inbox + correlation + case timeline).
 - 2026-08-26 — [P10-20] `dataConsistency.ts`: buildOutboxEntry()/markOutboxDelivered(), buildInboxEntry()/evaluateInboxIntake()/markInboxProcessed(), needsReconciliationTask(), attachCorrelationId(), buildCaseTimeline(). 8 new tests, full suite 1051/1051 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-21 (Notification + escalation engine).
+- 2026-08-26 — [P10-21] `automationNotification.ts`: shouldNotify(), buildAutomationNotification(), resolveEscalationAction()/DEFAULT_APPROVAL_ESCALATION_LADDER (24h/48h/72h ladder). 9 new tests, full suite 1060/1060 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-22 (Circuit breaker + provider health).
