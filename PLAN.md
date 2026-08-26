@@ -1514,12 +1514,17 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   step), `resolveExecutionVersion()` (pins to currentVersion at start
   time -- consumed by P10-2). 12 new tests, full suite 876/876 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-2 todo — WorkflowExecution model + step types (doc 11 §5-6):
-  execution status machine (QUEUED/RUNNING/WAITING/
-  WAITING_FOR_APPROVAL/RETRYING/FAILED/COMPLETED/CANCELLED/PAUSED/
-  TIMED_OUT) and the doc's step-type vocabulary (TRIGGER/CONDITION/
-  AI_ANALYSIS/API_CALL/HUMAN_APPROVAL/etc.), extensible for future step
-  types.
+- [x] P10-2 done — WorkflowExecution model + step types (doc 11 §5-6):
+  added `WorkflowExecution`/`WorkflowExecutionStatus` schema (no
+  `updatedAt` -- status history goes through P10-14's execution log,
+  not silent edits); `workflowExecution.ts`:
+  `canTransitionExecutionStatus`/`assertValidExecutionTransition`
+  (FAILED/TIMED_OUT deliberately non-terminal so the retry engine can
+  recover them; only COMPLETED/CANCELLED are true dead ends),
+  `planNewWorkflowExecution()` (always starts QUEUED, retryCount 0,
+  pinned to the version passed in), the doc's 16-item step-type
+  vocabulary + `isKnownWorkflowStepType()` guard. 9 new tests, full
+  suite 885/885 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-3 todo — Event model + event bus + idempotent dedup (doc 11
   §7-10): standardized `AutomationEvent` (type/entity/case/source/
   payload/correlation ID/actor), publish/subscribe abstraction so
@@ -1763,3 +1768,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — [P9-19] `financialAnalytics.ts`: `computeFinancialAnalyticsMetrics()`, `computeAverageDaysToPayment()`, `buildRecoveryPipeline()` (FORECAST/EXPECTED/CONFIRMED/RECEIVED kept independent, never merged into one revenue figure). 7 new tests, full suite 864/864 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 9's currently-unblocked work (P9-1 through P9-19, minus P9-8, which stays blocked on a payment-provider credential) is now done.** Still queued locally behind the GitHub-login blocker — nothing from this segment has been pushed yet.
 - 2026-08-26 — Read doc 11 ("Automation Control," 100 sections) in full from Drive and decomposed it into P10-1 through P10-26 in PLAN.md. No credential-blocked tasks in this phase -- it's the internal control plane (workflow engine, rules engine, confidence gating, retry/idempotency, scheduling, sync, observability, risk-gated approvals) coordinating the systems already built in Phases 0-9, all buildable now. Planning only, no code yet. Next: P10-1 (Workflow definition + versioning model).
 - 2026-08-26 — [P10-1] Workflow/WorkflowVersion schema + `workflowDefinition.ts` (status transitions, append-only versioning, structural definition validation). 12 new tests, full suite 876/876 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-2 (WorkflowExecution model + step types).
+- 2026-08-26 — [P10-2] WorkflowExecution/WorkflowExecutionStatus schema + `workflowExecution.ts` (execution status machine, new-execution planning pinned to a version, step-type vocabulary). 9 new tests, full suite 885/885 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-3 (Event model + event bus + idempotent dedup).

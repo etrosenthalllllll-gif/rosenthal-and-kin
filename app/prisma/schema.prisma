@@ -1458,7 +1458,8 @@ model Workflow {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  versions WorkflowVersion[]
+  versions   WorkflowVersion[]
+  executions WorkflowExecution[]
 }
 
 // Append-only: publishing a new version creates a new row, never edits a
@@ -1481,4 +1482,47 @@ model WorkflowVersion {
 
   @@unique([workflowId, version])
   @@index([workflowId])
+}
+
+enum WorkflowExecutionStatus {
+  QUEUED
+  RUNNING
+  WAITING
+  WAITING_FOR_APPROVAL
+  RETRYING
+  FAILED
+  COMPLETED
+  CANCELLED
+  PAUSED
+  TIMED_OUT
+}
+
+// One row per run of a workflow against a case/entity. Pinned to the
+// specific workflowVersion it started with (P10-1's
+// resolveExecutionVersion()) -- never re-resolved to a later version
+// mid-run. No `updatedAt` -- status changes are recorded as
+// WorkflowExecutionLog entries (P10-14), not silent in-place edits,
+// same create-only-history discipline as FilingAttempt/PostFilingEvent.
+model WorkflowExecution {
+  id              String                  @id @default(cuid())
+  workflowId      String
+  workflowVersion Int
+  caseId          String?
+  entityId        String?
+  currentStep     String?
+  status          WorkflowExecutionStatus @default(QUEUED)
+  startedAt       DateTime                @default(now())
+  lastActivityAt  DateTime                @default(now())
+  completedAt     DateTime?
+  errorState      String?
+  retryCount      Int                     @default(0)
+  parentExecutionId String?
+  correlationId   String
+
+  workflow Workflow @relation(fields: [workflowId], references: [id])
+
+  @@index([workflowId])
+  @@index([caseId])
+  @@index([correlationId])
+  @@index([status])
 }
