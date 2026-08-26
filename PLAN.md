@@ -1204,13 +1204,17 @@ routing logic itself, synthetic-data testing).
   case-summary generation (§47-48) itself needs an AIProvider (blocked,
   same status as caseSummary.ts) -- the decision routing here doesn't
   depend on it. 3 new tests (plus 1 decisionTypes.ts test).
-- [ ] P8-15 todo — Court/agency document ingestion + event/deadline
-  conflict detection (doc 09 §49-52): every detected event/deadline
-  references its source document (page + extracted text) so an
-  operator can verify it; two sources implying different
-  hearings/deadlines never auto-resolve -- creates an
-  EVENT_CONFLICT/DEADLINE_CONFLICT requiring human review, reusing
-  conflictDetection.ts's (P5-6) never-pick-a-winner discipline.
+- [x] P8-15 done — Court/agency document ingestion + event/deadline
+  conflict detection (doc 09 §49-52):
+  `postFilingDocumentConflict.ts`'s `isValidEventSourceReference()` --
+  fails closed to invalid for an empty document id or extracted text,
+  so an event can never be traced back to nothing. `detectDateConflict()`
+  -- no conflict only when two sources genuinely agree (including both
+  absent); any disagreement becomes EVENT_CONFLICT/DEADLINE_CONFLICT,
+  always `requiresHumanReview: true`, both values preserved on the
+  result rather than one silently overwriting the other -- same
+  never-pick-a-winner discipline as conflictDetection.ts (P5-6), reused
+  for scheduled dates instead of heirship facts. 7 new tests.
 - [ ] P8-16 todo — Stale-case/no-update monitoring + prioritization +
   calendar/timezone handling (doc 09 §53-58): configurable
   no-update/stale-case thresholds (never implying delay means
@@ -1444,3 +1448,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-11] `postFilingFollowUp.ts`: `planPostFilingFollowUp()` -- all 9 stop conditions checked first (win even over an already-sent follow-up), alreadySent idempotency flag checked before SEND. 5 new tests, full suite 697/697 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-12] `postFilingClaimantResponse.ts`: `planClaimantResponseAction()` -- doc's worked examples as config table, OTHER fails closed to a generic operator decision. [P8-13] `postFilingEscalation.ts`: `ESCALATION_TRIGGER_LEVEL` (fails closed to level 4), `evaluateEscalation()`, `nextEscalationLevelIfUnacknowledged()` (climbs only while UNACKNOWLEDGED, caps at 4). 10 new tests, full suite 707/707 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-14] Added REVIEW_POST_FILING_EXCEPTION to decisionTypes.ts; `postFilingDecisionRouting.ts`'s `planPostFilingEscalationDecision()` wires P8-13's escalation result into it, no decision below level 1. No separate Operator Task entity built -- reuses Decision machinery per doc's own §46 instruction. 4 new tests, full suite 711/711 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-15] `postFilingDocumentConflict.ts`: `isValidEventSourceReference()` (fails closed on empty doc id/text) + `detectDateConflict()` (never picks a winner between two disagreeing sources, always requires review). 7 new tests, full suite 718/718 passing, `tsc --noEmit` clean, `next build` clean.
