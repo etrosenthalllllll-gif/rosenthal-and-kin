@@ -470,16 +470,22 @@ documentValidation.ts).
   person's record exists") and `checkGenealogyCompleteness()` (flags an
   unresearched branch rather than assuming completeness once every
   currently-known relative has a record). 10 new tests.
-- [ ] P5-5 todo — Cross-source comparison + source independence (doc 06
-  §11-13): generalizes documentValidation.ts's
-  compareFieldAcrossDocuments() beyond documents to any source
-  (research, communications, case data); source-independence detection
-  so N republications of one obituary don't count as N confirmations.
-- [ ] P5-6 todo — Conflict detection + severity (doc 06 §14-16): pure
-  conflict engine over any two fact sources, configurable severity
-  (LOW/MEDIUM/HIGH/CRITICAL), structured explanation
-  (what/sources/why-it-matters/possible-explanations/recommended-next-step)
-  -- never asserts a speculative explanation as fact.
+- [x] P5-5 done — Cross-source comparison + source independence (doc 06
+  §11-13): `crossSourceComparison.ts` generalizes
+  documentValidation.ts's compareFieldAcrossDocuments() (P4-5) beyond
+  documents to any source (research, communications, case data) via
+  `compareAcrossSources()`; `countIndependentSources()` resolves a
+  `derivedFromSourceId` chain to its ultimate origin so N
+  republications of one obituary count as one independent source, not
+  N -- doc 06's own worked example. 8 new tests.
+- [x] P5-6 done — Conflict detection + severity (doc 06 §14-16):
+  `conflictDetection.ts`'s `classifyConflictSeverity()` (config-table
+  LOW/MEDIUM/HIGH/CRITICAL per field, fails closed to CRITICAL for an
+  unconfigured field) and `explainConflict()` (structured
+  what/sources/why-it-matters/possible-explanations/recommended-next-step,
+  `requiresHumanReview` true for HIGH/CRITICAL) -- possible
+  explanations are always a neutral list, never a single asserted
+  cause. 8 new tests.
 - [ ] P5-7 todo — Confidence scoring engine (doc 06 §17-19): explainable,
   component-based confidence (identity match, source quality,
   independence, cross-source agreement, conflict penalty), configurable
@@ -556,3 +562,4 @@ docs 07-10) for detail — summarized in the chat plan already delivered.
 - 2026-08-26 — Ethan said to continue again. [P4-15] Document processing observability/analytics (doc 05 §48-49): `documentProcessingMetrics.ts`, same pure-math/thin-wrapper split as `communicationDashboardMetrics.ts` (P3-13), scoped to what the schema can measure honestly (review rate, duplicate rate, human-verified rate, validation-failure rate) rather than the doc's full list -- per-stage processing time needs timestamps that don't exist, and OCR/classification/extraction failure rates would just report a meaningless 0% while those pipelines stay blocked. Deliberately did NOT wire this into `/ops` yet, unlike P3-13: the live production DB still doesn't have the P4-1 columns (`duplicateStatus` etc.) since that schema push is still pending, so querying them from a live page would 500 the dashboard rather than show an honest empty state -- wiring it in is a one-line addition once the push lands. 7 new tests, full suite 305/305 passing, `tsc --noEmit` clean, `next build` clean. **P4-13 (needs real uploaded documents) is the only Phase 4 task left `todo`; P4-7 through P4-12 remain `blocked: needs credential`. The P4-1 live-DB schema push is still the single blocking item for all of it to actually run in production** -- still waiting on Ethan to run `npx prisma db push --skip-generate` from `app/`, or grant a permission rule so I can.
 - 2026-08-26 — Ethan said to continue again. Phase 4's remaining buildable work is done, so read doc 06 ("Verification & Heirship Analysis," 53 sections) in full from Drive and decomposed it into P5-1 through P5-13 in PLAN.md -- unlike Phase 4, nothing in Phase 5 is credential-blocked (it's a pure evidence-organization/confidence-scoring engine over whatever facts already exist), so the split here is "buildable now against synthetic facts" vs. "the document-extracted facts it'll eventually consume aren't real yet since P4-9 is blocked," same discipline as documentValidation.ts. [P5-1] Extended `schema.prisma`: new `Verification`/`VerificationClaim`/`PotentialHeir` models + `VerificationType`/`VerificationStatus`/`PotentialHeirStatus` enums; extended the existing `Relationship` model (built back in P0-2) with `status`/`source`/`updatedAt` instead of duplicating it. `prisma validate` and `prisma generate` both clean; queued behind the same still-pending live-DB push as P4-1 rather than opening a second blocked push. [P5-2] `identityResolution.ts`: `resolveIdentityMatch()`/`nameMatchScore()`, doc 06 §3-5's identity-verification workflow -- multi-signal confidence scoring (name, DOB, address, phone, email, documented links) that never decides from name similarity alone, reproduces the doc's own worked examples (John Smith/John A Smith/J. A. Smith name variations, marriage-record-linked maiden name, DOB-conflict → LIKELY_DIFFERENT_PERSON). 13 new tests, full suite 318/318 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Ethan said to continue again. [P5-3] `relationshipVerification.ts`: `verifyRelationshipClaim()`, doc 06 §7-8's per-claim classifier over supporting/independent/contradicting evidence entries -- CONFLICTED is a first-class outcome (never silently picks a side when both exist), non-independent duplicate sources never establish sufficiency alone (§13). [P5-4] `genealogyGraph.ts`: `findLineagePath()` (BFS over PARENT_OF/CHILD_OF edges, tracks whether every edge along a multi-generation path actually has evidence rather than assuming a chain is verified just because each person has a record -- §9-10's own explicit warning) and `checkGenealogyCompleteness()` (§25 -- flags an unresearched branch as incomplete rather than declaring the tree done once every currently-known relative has a record). 18 new tests, full suite 336/336 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Ethan asked what percent of the project is done (answered ~45-50% by rough phase-weighting, flagged that Phases 6-9 aren't even decomposed yet so the true total is uncertain) and said to continue. [P5-5] `crossSourceComparison.ts`: generalizes documentValidation.ts's compareFieldAcrossDocuments() (P4-5) to any source type per doc 06 §11; `countIndependentSources()` resolves a `derivedFromSourceId` chain to its origin so republications of one source never inflate the independent-confirmation count (§13's own obituary example). [P5-6] `conflictDetection.ts`: `classifyConflictSeverity()` (config-table LOW/MEDIUM/HIGH/CRITICAL per field, fails closed to CRITICAL for anything unconfigured) + `explainConflict()` (full what/sources/why-it-matters/possible-explanations/recommended-next-step record, HIGH/CRITICAL auto-flag for human review, explanations always a neutral list per §16's "do not assert a speculative explanation as fact"). 16 new tests, full suite 352/352 passing, `tsc --noEmit` clean, `next build` clean.
