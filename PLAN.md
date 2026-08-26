@@ -1161,11 +1161,16 @@ routing logic itself, synthetic-data testing).
   `markNotificationSent()`/`markNotificationDelivered()` keep SENT and
   DELIVERED as distinct, separately-triggered transitions -- SENT is
   never assumed to mean DELIVERED. 5 new tests.
-- [ ] P8-11 todo — Automated status follow-ups + idempotency + stop
-  conditions (doc 09 §32-34): same follow-up-sequence discipline as
-  followUpScheduler.ts (P3-7) -- every stop condition (claimant
-  responded, document received, request satisfied, opt-out, case
-  closed, etc.) checked before ever sending another automated message.
+- [x] P8-11 done — Automated status follow-ups + idempotency + stop
+  conditions (doc 09 §32-34): `postFilingFollowUp.ts`'s
+  `planPostFilingFollowUp()` -- same stop-condition-first discipline as
+  followUpScheduler.ts (P3-7): all 9 of the doc's stop conditions are
+  checked before ever producing SEND, and a stop condition wins even
+  when the follow-up was already sent once before. Idempotency is a
+  caller-supplied `alreadySent` flag (same recommended-idempotency-key
+  pattern as P3-7, not re-derived) checked after stop conditions but
+  before SEND, so a retried job never produces a duplicate. 5 new
+  tests.
 - [ ] P8-12 todo — Claimant response routing (doc 09 §40): matches an
   inbound claimant reply to its case (reuses matchConversationToCase.ts
   /P3-2), classifies intent, and creates a decision/task only when
@@ -1421,3 +1426,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-7] `postFilingDeadline.ts`: `classifyDeadlineStatus()` + `buildDeadlineRecord()` (source required, calculation inputs preserved, ambiguity forces REQUIRES_REVIEW). [P8-8] `postFilingDeadlineDashboard.ts`: reuses filingDeadlineAlerts.ts's escalation ladder, `groupDeadline()`/`buildDeadlineDashboard()` (doc's own groupings), caught and fixed a shared-array-reference bug in `emptyDeadlineDashboard()` before shipping. 14 new tests, full suite 681/681 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-9] Added DocumentRequest/DocumentRequestStatus schema model; `postFilingDocumentRequest.ts`'s `evaluateDocumentRequestSatisfaction()` -- ACCEPTED only on type match + clean validation + unambiguous match, never auto-accepts on upload alone. 6 new tests, full suite 687/687 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-10] `postFilingNotification.ts`: `canSendPostFilingNotification()` delegates to communicationPreferences.ts's canSendOnChannel(); `createPostFilingNotification()` requires templateId/templateVersion (approved-templates-only enforced by the type); SENT/DELIVERED kept as distinct explicit transitions. 5 new tests, full suite 692/692 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P8-11] `postFilingFollowUp.ts`: `planPostFilingFollowUp()` -- all 9 stop conditions checked first (win even over an already-sent follow-up), alreadySent idempotency flag checked before SEND. 5 new tests, full suite 697/697 passing, `tsc --noEmit` clean, `next build` clean.
