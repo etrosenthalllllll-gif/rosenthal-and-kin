@@ -315,6 +315,18 @@ export const DECISION_TYPES = {
     highConsequence: true, // filing-adjacent -- doc 02 section 19's confirmation-step trigger
     category: "EXCEPTION",
   },
+  REVIEW_FILING_EXCEPTION: {
+    key: "REVIEW_FILING_EXCEPTION",
+    displayName: "Review Filing Exception",
+    description:
+      "A filing-stage exception needs operator attention -- a provider rejection, a possible duplicate filing, or a filing/external-state reconciliation mismatch (doc 08 sections 39-42, 48, 51, 58).",
+    // doc 08 section 51's own literal action set.
+    availableActions: ["REQUEST_DOCUMENT", "REVISE", "REJECT_CLAIM", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: true, // filing-adjacent -- doc 02 section 19's confirmation-step trigger
+    category: "EXCEPTION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

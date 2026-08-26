@@ -103,4 +103,14 @@ describe("decision type registry", () => {
     ]);
     expect(DECISION_TYPES.REVIEW_CLAIM_PACKAGE.highConsequence).toBe(true);
   });
+
+  it("registers the doc 08 filing exception type (P7-18)", () => {
+    expect(DECISION_TYPES.REVIEW_FILING_EXCEPTION.category).toBe("EXCEPTION");
+    expect(DECISION_TYPES.REVIEW_FILING_EXCEPTION.availableActions).toEqual([
+      "REQUEST_DOCUMENT",
+      "REVISE",
+      "REJECT_CLAIM",
+      "ESCALATE",
+    ]);
+  });
 });

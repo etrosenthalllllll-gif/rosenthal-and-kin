@@ -1002,14 +1002,30 @@ provider call itself is `blocked: needs credential`.
   than a second mechanism; resubmission is always a new FilingAttempt
   (P7-1's create-only model already enforces never-overwrite). 6 new
   tests.
-- [ ] P7-18 todo — Filing deadlines + queue + decision-dashboard
+- [x] P7-18 done — Filing deadlines + queue + decision-dashboard
   integration + event log/audit trail + analytics (doc 08 §49-51, 54,
-  61-63): configured (never fabricated) filing deadlines with
-  escalating alerts; a centralized filing queue; exceptions wired into
-  the existing Decision Dashboard (P1-3) the same way as
-  claimPackageDecisionRouting.ts (P6-17); an append-only FilingEvent
-  log; pure-math filing analytics scoped to what's honestly measurable,
-  same discipline as documentProcessingMetrics.ts (P4-15).
+  61-63): `filingDeadlineAlerts.ts`'s `evaluateFilingDeadlineAlert()`
+  (configurable escalation ladder, `source` required so a deadline is
+  never fabricated); `filingQueue.ts`'s `buildFilingQueue()` (config-table
+  next-action-per-status, pure view-model assembly over
+  already-computed fields, same pattern as communicationTimeline.ts/
+  P3-1); added `REVIEW_FILING_EXCEPTION` to `decisionTypes.ts` (doc 08
+  §51's own literal action set) and `filingDecisionRouting.ts` wiring
+  P7-16's rejection classification / P7-17's duplicate-filing check /
+  P7-15's reconciliation result into it, same wiring-layer role as
+  claimPackageDecisionRouting.ts (P6-17); added the append-only
+  `FilingEvent` model to `schema.prisma` (no `updatedAt`, raw provider
+  response preserved, distinct from AuditEvent's generic shape);
+  `filingAnalytics.ts`'s `computeFilingMetrics()`/`computeAverageAcceptanceDays()`
+  scoped to what Filing's own timestamp/status fields can honestly
+  measure right now (acceptance/rejection/resubmission rate, average
+  time to acceptance) -- provider-error/payment-failure/cost/
+  automation-rate metrics are left out rather than faked, since no real
+  filing has gone through the system yet, same discipline as
+  documentProcessingMetrics.ts (P4-15). 34 new tests. **Every
+  currently-unblocked Phase 7 task (P7-1 through P7-18) is now done** --
+  P7-5 and P7-10 remain blocked on real filing-provider and
+  payment-provider accounts.
 
 ## Phase 8 — Post-filing Monitoring & Case Management (doc 09)
 Doc 09 (75 sections) read in full from Drive. Transforms a FILED claim
@@ -1331,3 +1347,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-15] `filingTrackingReconciliation.ts`: `planNextStatusCheck()` (never polls webhook-capable connectors, follows the immediate/1hr/6hr/24hr schedule otherwise, stops at ACCEPTED/REJECTED/CLOSED) + `isDuplicateWebhookEvent()` + `reconcileFilingStatus()`/`shouldCreateReconciliationException()` (never assumes agreement) + `classifyProviderCheckOutcome()` (explicit PROVIDER_UNAVAILABLE, never silently "unchanged"). 10 new tests, full suite 597/597 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-16] `filingRejection.ts`: `DEFAULT_REJECTION_SEVERITY` config table + `classifyRejectionSeverity()` (fails closed to CRITICAL) + `classifyRejection()` (HIGH/CRITICAL always requires human review, decides nothing about resubmission). 5 new tests, full suite 602/602 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-17] `filingCorrection.ts`: `createCorrectionCase()` (OPEN/unassigned/unresolved), `evaluateResubmissionReadiness()` (7-check readiness list, every failure named), `checkDuplicateFilingProtection()` (pauses + requires review, never silently blocks or allows). 6 new tests, full suite 608/608 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-18] `filingDeadlineAlerts.ts` (escalation ladder, source required, never fabricated), `filingQueue.ts` (next-action-per-status view model), `REVIEW_FILING_EXCEPTION` decision type + `filingDecisionRouting.ts` (wires rejection/duplicate/reconciliation into it), append-only `FilingEvent` schema model, `filingAnalytics.ts` (acceptance/rejection/resubmission rate + average acceptance days, honestly scoped). 34 new tests, full suite 629/629 passing, `tsc --noEmit` clean, `next build` clean. **Every currently-unblocked Phase 7 task (P7-1 through P7-18) is now done.** P7-5/P7-10 remain blocked on real filing-provider/payment-provider accounts. Next unblocked work is Phase 8 (Post-filing Monitoring, doc 09) starting at P8-1.

@@ -898,3 +898,24 @@ model FilingAttempt {
   @@unique([filingId, attemptNumber])
   @@index([filingId])
 }
+
+// doc 08 section 38: an append-only log distinct from AuditEvent --
+// this one is scoped specifically to filing-status transitions and
+// carries the raw provider response alongside the normalized event
+// type, which AuditEvent's generic shape isn't built to hold. No
+// `updatedAt` -- deliberately create-only, same discipline as
+// FilingAttempt/VerificationSnapshot.
+model FilingEvent {
+  id             String   @id @default(cuid())
+  filingId       String
+  attemptId      String?
+  eventType      String // e.g. FILING_CREATED, SUBMISSION_STARTED, REJECTION_RECEIVED -- doc 08's own list
+  previousStatus String?
+  newStatus      String?
+  source         String? // e.g. "provider-webhook", "operator", "status-poll"
+  rawResponse    Json?
+  humanActorId   String?
+  createdAt      DateTime @default(now())
+
+  @@index([filingId])
+}
