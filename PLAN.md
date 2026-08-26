@@ -1487,10 +1487,174 @@ live provider call is blocked.
   honesty-scoping discipline as documentProcessingMetrics.ts/
   filingAnalytics.ts/postFilingAnalytics.ts. 7 new tests.
 
+## Phase 10 — Automation Control (doc 11)
+Doc 11 (100 sections) read in full from Drive. This is the control
+plane coordinating every system built in Phases 1-9: EVENT → TRIGGER →
+RULE EVALUATION → CONFIDENCE CHECK → AUTOMATED ACTION OR HUMAN APPROVAL
+→ EXECUTION → VERIFICATION → NEXT EVENT. Explicitly told not to rebuild
+the systems it coordinates — it wraps them. Same reuse discipline as
+every phase before it: approval gates route into the existing
+`Decision`/`decisionTypes.ts` machinery rather than a second competing
+entity; deterministic rules always outrank probabilistic AI confidence
+(§20); reversible vs. irreversible and per-action risk level (§76-78)
+extend the existing `highConsequence` pattern already used for
+distribution/filing approvals. No credential-blocked tasks in this
+phase — it's pure internal coordination logic, buildable entirely
+against in-memory/synthetic data like Phases 0-2's foundations.
+
+- [ ] P10-1 todo — Workflow definition + versioning (doc 11 §2-4):
+  `Workflow`/`WorkflowStatus` (DRAFT/ACTIVE/PAUSED/DISABLED/ARCHIVED)
+  schema + versioning rules -- an in-flight execution keeps the
+  workflow version it started with; a workflow is never silently
+  changed underneath a running execution.
+- [ ] P10-2 todo — WorkflowExecution model + step types (doc 11 §5-6):
+  execution status machine (QUEUED/RUNNING/WAITING/
+  WAITING_FOR_APPROVAL/RETRYING/FAILED/COMPLETED/CANCELLED/PAUSED/
+  TIMED_OUT) and the doc's step-type vocabulary (TRIGGER/CONDITION/
+  AI_ANALYSIS/API_CALL/HUMAN_APPROVAL/etc.), extensible for future step
+  types.
+- [ ] P10-3 todo — Event model + event bus + idempotent dedup (doc 11
+  §7-10): standardized `AutomationEvent` (type/entity/case/source/
+  payload/correlation ID/actor), publish/subscribe abstraction so
+  systems stay decoupled, and a processed-event-ID store so a
+  duplicate-delivered event never re-executes its workflow.
+- [ ] P10-4 todo — Trigger conditions + rules engine (doc 11 §11-16):
+  config-table rules (not scattered if/else) with the doc's operator
+  set (=, !=, >, <, IN, CONTAINS, EXISTS, AND/OR/NOT, BETWEEN,
+  MATCHES), nested conditions, and full rule auditability (inputs,
+  version, condition-by-condition result, final decision all
+  reproducible).
+- [ ] P10-5 todo — Confidence thresholds + rule/confidence combination
+  (doc 11 §17-20): configurable confidence bands (not hardcoded
+  percentages) per workflow, and the doc's precedence rule --
+  deterministic RULE result always outranks probabilistic AI
+  confidence; a FAIL is never overridden by high confidence.
+- [ ] P10-6 todo — Approval gates + expiration + multi-approval
+  dependencies (doc 11 §21-25): `ApprovalRequest` wired into the
+  existing `Decision`/decision-dashboard machinery (no second queue),
+  approval expiry (a stale approval is never auto-executed), and
+  support for actions needing more than one satisfied approval.
+- [ ] P10-7 todo — Operator override + automation pause (doc 11
+  §26-29): global kill switch (ACTIVE/PAUSED/EMERGENCY_STOP),
+  workflow-level pause, and case-level pause -- an override always
+  records reason/operator/timestamp and is never hidden.
+- [ ] P10-8 todo — Retry engine + failure classification + dead-letter
+  queue (doc 11 §30-34): only transient failures retry (timeout, rate
+  limit, provider outage); permanent/data/auth failures go straight to
+  the dead-letter queue with operator actions (RETRY/SKIP/REASSIGN/
+  ESCALATE/CANCEL).
+- [ ] P10-9 todo — Timeouts + idempotency keys + duplicate-action
+  protection (doc 11 §35-39): every externally-impactful action (send
+  email/SMS, file a claim, create an invoice, record a payment) gets an
+  idempotency key and a check-before-execute guard, covering the doc's
+  three named cases (duplicate email/filing/payment).
+- [ ] P10-10 todo — Scheduled job system + deadline-aware scheduling
+  (doc 11 §40-43): centralized `ScheduledJob` model (one-time/
+  recurring/delayed/polling/reminder/reconciliation), deriving
+  schedules from structured case dates, explicit timezone handling
+  (UTC storage + local display, never assume server timezone) --
+  reuses the scheduling shape already proven in `followUpScheduler.ts`/
+  `postFilingFollowUp.ts`/`paymentReminder.ts`.
+- [ ] P10-11 todo — Cross-system synchronization + sync exceptions (doc
+  11 §44-49): named source-of-truth ownership per data object, a
+  `SYNC_EXCEPTION` (never a silent overwrite) when two systems
+  disagree, external-API sync tracking, and the polling/webhook
+  patterns -- generalizes the same shape already built per-domain in
+  `filingTrackingReconciliation.ts`/`postFilingMonitoringReconciliation.ts`.
+- [ ] P10-12 todo — Event ordering + state-transition + concurrency
+  protection (doc 11 §50-53): an out-of-order event (e.g. ACCEPTED
+  before SUBMITTED) produces an `EVENT_ORDER_EXCEPTION` rather than
+  corrupting state; every automated transition is checked against the
+  case state machine's allowed-next-states; conflicting concurrent
+  workflows on the same case are detected and blocked, not raced.
+- [ ] P10-13 todo — Automation priority + resource/rate/cost limits (doc
+  11 §54-58): CRITICAL/HIGH/NORMAL/LOW priority affecting queue order
+  and escalation; per-provider/workflow/case rate limits; per-case AI/
+  communication/research budgets that pause and request review when
+  exceeded, never silently overspend.
+- [ ] P10-14 todo — Observability: workflow trace + execution log +
+  error dashboard (doc 11 §59-63): a visible step-by-step trace per
+  case, a per-step execution log (referencing stored objects, not
+  duplicating huge payloads), and an automation-errors view ordered by
+  the doc's exception-first priority (critical failures > approvals >
+  conflicting data > low-confidence > deadlines > provider failures >
+  sync problems > other).
+- [ ] P10-15 todo — Automation health score + analytics + quality loop
+  (doc 11 §64-67): pure-math automation metrics (success/retry/failure
+  rate, approval backlog, human-intervention rate) in the same
+  divide-by-zero-guarded style as `financialAnalytics.ts`/
+  `postFilingAnalytics.ts`, plus a stored (never auto-applied)
+  AI-recommendation-vs-human-decision outcome log for later rule/
+  threshold tuning.
+- [ ] P10-16 todo — Configuration management (doc 11 §68-69):
+  centralized, versioned, audited config for thresholds/retry
+  policies/timeouts/approval requirements/rate & cost limits -- every
+  change records old value, new value, reason, actor, timestamp,
+  affected workflows.
+- [ ] P10-17 todo — Dry-run/test mode + manual controls (doc 11
+  §70-75): a simulate-only mode that reports what the system *would*
+  do without sending/filing/moving money; sandboxed test mode; operator
+  manual-run, skip-step (never for mandatory compliance gates without
+  elevated permission), restart (from-beginning / retry-failed-step /
+  resume-from-last-success), and cancellation with consequences shown
+  first.
+- [ ] P10-18 todo — Orchestration safety: risk levels + high-risk gates
+  (doc 11 §76-78): LOW/MEDIUM/HIGH/CRITICAL risk per action type
+  (matches the doc's own examples -- draft email LOW, submit claim
+  HIGH, distribute funds CRITICAL), extending the existing
+  `highConsequence` pattern; high confidence never bypasses a required
+  human-approval gate on a HIGH/CRITICAL action.
+- [ ] P10-19 todo — Security + audit trail for automation actions (doc
+  11 §79-80): every automated action runs under an authenticated
+  actor (never anonymous), mapped onto the existing generic `audit.ts`
+  `AuditEventInput` shape rather than a second audit mechanism (same
+  reuse as `financialAudit.ts`).
+- [ ] P10-20 todo — Data consistency: outbox/inbox + correlation + case
+  timeline (doc 11 §81-85): outbox pattern for events created inside a
+  DB transaction (never lost), inbox pattern for incoming external
+  events (store-then-dedupe-then-process), shared correlation IDs
+  across a case's related events, and a unified cross-system timeline
+  (what happened / when / why / which system / what's next).
+- [ ] P10-21 todo — Notification + escalation engine (doc 11 §86-87):
+  configurable notifications for approval-required/failure/deadline/
+  provider-outage/sync-conflict/automation-paused, and a
+  time-based escalation ladder (reminder → escalation → high-priority
+  queue) with configurable thresholds -- reuses the escalation-ladder
+  shape from `filingDeadlineAlerts.ts`/`postFilingEscalation.ts`.
+- [ ] P10-22 todo — Circuit breaker + provider health (doc 11 §88-90):
+  CLOSED/OPEN/HALF_OPEN circuit breaker per external provider, a
+  pause-workflow-and-alert rule after N consecutive bad responses
+  (never let a broken integration keep acting), and a per-provider
+  HEALTHY/DEGRADED/DOWN/UNKNOWN health status.
+- [ ] P10-23 todo — Automation dependencies + pre/post-flight checks
+  (doc 11 §91-93): declared per-workflow dependencies (don't start if a
+  required system/provider is unavailable), a pre-flight
+  READY/BLOCKED check (data/documents/permissions/provider/case-state/
+  conflicting-workflow/budget), and post-flight validation that checks
+  the actual expected outcome occurred rather than trusting a
+  non-throwing API response.
+- [ ] P10-24 todo — State reconciliation + stale-workflow + SLA
+  tracking (doc 11 §94-96): nightly reconciliation jobs comparing
+  internal state against provider/invoice/schedule state (flag, don't
+  silently fix), stale-workflow detection (actual duration far exceeds
+  expected), and configurable per-workflow-type SLA compliance
+  tracking.
+- [ ] P10-25 todo — Control dashboard assembly (doc 11 §97-99): the
+  final AUTOMATION CONTROL CENTER view (active workflows/waiting
+  approvals/failed jobs/dead-letter/sync exceptions/stale workflows/
+  success rate) and the per-case automation panel, assembled from
+  P10-1 through P10-24's modules rather than new logic.
+- [ ] P10-26 todo — Full end-to-end automation scenario test (doc 11
+  §100): one integration test walking the doc's own 20-step scenario
+  (trigger → rule → confidence → approval → execute → verify → event →
+  next workflow → transient failure → retry → success → duplicate
+  event ignored → provider conflict → sync exception) across the
+  modules built in this phase.
+
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
 - Scale/triage, batch decisions, multi-operator — only when real volume forces it.
-- Reconciling docs 14/15/16 (optimization-layer specs) into one — before Phase 10, not before.
+- Reconciling docs 14/15/16 (optimization-layer specs) into one — before Phase 11+, not before.
 
 ## Session log
 - 2026-08-26 — Repo inspected (was GitHub Pages marketing site only, no backend). Decisions recorded (funds-flow, jurisdiction, hosting/stack, sheets-integration). Named-approver left blocked. PLAN.md created. No Phase 0 code written yet — next session starts P0-1.
@@ -1590,3 +1754,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-17] Extended auth.ts's Permission union with 10 fine-grained financial permissions (OPERATOR gets routine work, REVIEWER/ADMIN get approve/refund/close); `financialAudit.ts`'s `buildFinancialAuditEntry()` maps onto audit.ts's existing AuditEventInput shape. 8 new tests, full suite 848/848 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-18] Added Adjustment/AdjustmentType schema model (reason/approvedBy required); `financialAdjustments.ts`: `convertCurrency()` (never overwrites original), `applyRounding()` (deterministic UP/DOWN/HALF_UP/HALF_EVEN), `createAdjustment()` (authorization structurally required, no exceptions). 9 new tests, full suite 857/857 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P9-19] `financialAnalytics.ts`: `computeFinancialAnalyticsMetrics()`, `computeAverageDaysToPayment()`, `buildRecoveryPipeline()` (FORECAST/EXPECTED/CONFIRMED/RECEIVED kept independent, never merged into one revenue figure). 7 new tests, full suite 864/864 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 9's currently-unblocked work (P9-1 through P9-19, minus P9-8, which stays blocked on a payment-provider credential) is now done.** Still queued locally behind the GitHub-login blocker — nothing from this segment has been pushed yet.
+- 2026-08-26 — Read doc 11 ("Automation Control," 100 sections) in full from Drive and decomposed it into P10-1 through P10-26 in PLAN.md. No credential-blocked tasks in this phase -- it's the internal control plane (workflow engine, rules engine, confidence gating, retry/idempotency, scheduling, sync, observability, risk-gated approvals) coordinating the systems already built in Phases 0-9, all buildable now. Planning only, no code yet. Next: P10-1 (Workflow definition + versioning model).
