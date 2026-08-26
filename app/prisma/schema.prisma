@@ -97,6 +97,7 @@ model Estate {
   recoveries            Recovery[]
   distributions         Distribution[]
   invoices              Invoice[]
+  paymentDisputes       PaymentDispute[]
 
   @@index([status])
 }
@@ -149,6 +150,7 @@ model Claimant {
   recoveries            Recovery[]
   distributions         Distribution[]
   invoices              Invoice[]
+  paymentDisputes       PaymentDispute[]
 
   @@index([estateId])
   @@index([status])
@@ -1327,12 +1329,46 @@ model Invoice {
   createdAt                   DateTime      @default(now())
   updatedAt                   DateTime      @updatedAt
 
-  estate   Estate   @relation(fields: [estateId], references: [id])
-  claimant Claimant @relation(fields: [claimantId], references: [id])
-  recovery Recovery @relation(fields: [recoveryId], references: [id])
+  estate   Estate           @relation(fields: [estateId], references: [id])
+  claimant Claimant         @relation(fields: [claimantId], references: [id])
+  recovery Recovery         @relation(fields: [recoveryId], references: [id])
+  disputes PaymentDispute[]
 
   @@index([estateId])
   @@index([claimantId])
   @@index([recoveryId])
+  @@index([status])
+}
+
+// doc 10 sections 40-42. Opening a dispute stops automated collection
+// reminders -- see paymentDispute.ts's shouldStopCollectionReminders().
+enum PaymentDisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESPONDED
+  RESOLVED
+  ESCALATED
+  CLOSED
+}
+
+model PaymentDispute {
+  id                 String               @id @default(cuid())
+  invoiceId          String
+  estateId           String
+  claimantId         String
+  amountCents        Int
+  reason             String?
+  status             PaymentDisputeStatus @default(OPEN)
+  claimantMessage    String?
+  assignedOperatorId String?
+  resolution         String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  invoice  Invoice  @relation(fields: [invoiceId], references: [id])
+  estate   Estate   @relation(fields: [estateId], references: [id])
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@index([invoiceId])
   @@index([status])
 }

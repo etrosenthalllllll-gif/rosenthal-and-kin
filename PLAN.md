@@ -1394,11 +1394,15 @@ live provider call is blocked.
   -- same stop-condition-first, idempotency-checked-next shape as
   followUpScheduler.ts (P3-7)/postFilingFollowUp.ts (P8-11); a stop
   condition wins even over an already-sent reminder. 8 new tests.
-- [ ] P9-12 todo — Payment disputes + escalation + communications (doc
-  10 §40-42): `PaymentDispute` (the doc's own status list) stops
-  automated collection reminders on open; payment communications are
-  template-generated from the actual ledger balance -- an AI model must
-  never invent a financial amount.
+- [x] P9-12 done — Payment disputes + escalation + communications (doc
+  10 §40-42): added `PaymentDispute`/`PaymentDisputeStatus` (the doc's
+  own status list) to `schema.prisma`. `paymentDispute.ts`'s
+  `shouldStopCollectionReminders()` -- reminders stop for every active
+  dispute status (OPEN/UNDER_REVIEW/RESPONDED/ESCALATED), resume only
+  once RESOLVED/CLOSED. `buildPaymentCommunicationContent()` requires
+  the actual ledger balance as a non-optional parameter -- there's no
+  code path that renders a communication without a real figure, never
+  an AI-invented amount. 4 new tests.
 - [ ] P9-13 todo — Payment confirmation + financial ledger (doc 10
   §43-45): append-only `FinancialTransaction` ledger (the doc's own
   transaction-type list); an error is corrected with a new correcting
@@ -1543,3 +1547,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-9] `paymentMatching.ts`: `matchPaymentToInvoice()` (deterministic matching, UNMATCHED with no hint), `requiresReconciliationQueue()`, `checkDuplicatePayment()`. Uses plain interfaces mirroring the still-blocked Payment entity (P9-8) rather than depending on it. 10 new tests, full suite 803/803 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-10] `paymentReversal.ts`: `createPaymentReversal()`/`createRefund()` (never mutate the original, refund requires reason+approvedBy) + `recalculateOutstandingBalance()` (always reproduced from full transaction history). 6 new tests, full suite 809/809 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-11] `paymentReminder.ts`: `determinePaymentReminderStage()` (BEFORE_DUE/DUE_TODAY/OVERDUE_7/14/30_DAYS) + `planPaymentReminder()` (stop conditions first, idempotency next). Outstanding-balance math already covered by P9-10. 8 new tests, full suite 817/817 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-12] Added PaymentDispute/PaymentDisputeStatus schema model; `paymentDispute.ts`: `shouldStopCollectionReminders()` + `buildPaymentCommunicationContent()` (ledger balance required, never invented). 4 new tests, full suite 821/821 passing, `tsc --noEmit` clean, `next build` clean.
