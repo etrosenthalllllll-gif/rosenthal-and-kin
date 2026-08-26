@@ -95,6 +95,7 @@ model Estate {
   filings               Filing[]
   postFilingCases       PostFilingCase[]
   recoveries            Recovery[]
+  distributions         Distribution[]
 
   @@index([status])
 }
@@ -145,6 +146,7 @@ model Claimant {
   filings               Filing[]
   postFilingCases       PostFilingCase[]
   recoveries            Recovery[]
+  distributions         Distribution[]
 
   @@index([estateId])
   @@index([status])
@@ -1169,6 +1171,7 @@ model Recovery {
   claimant         Claimant                  @relation(fields: [claimantId], references: [id])
   estimateVersions RecoveryEstimateVersion[]
   actualRecoveries ActualRecovery[]
+  distributions    Distribution[]
 
   @@index([estateId])
   @@index([claimantId])
@@ -1233,4 +1236,51 @@ model ActualRecovery {
   recovery Recovery @relation(fields: [recoveryId], references: [id])
 
   @@index([recoveryId])
+}
+
+// doc 10 sections 10-13. "Never overwrite an approved distribution
+// calculation" -- each row IS a version (same pattern as
+// RecoveryEstimateVersion: a correction is a new row at `version + 1`,
+// scoped to the same recoveryId + claimantId, never an edit to the
+// prior one). Deliberately no `updatedAt` -- create-only.
+enum DistributionStatus {
+  CALCULATED
+  PENDING_APPROVAL
+  APPROVED
+  READY_FOR_PAYMENT
+  PAYMENT_PROCESSING
+  PAID
+  FAILED
+  DISPUTED
+  CANCELLED
+  RECONCILIATION_REQUIRED
+}
+
+model Distribution {
+  id                      String             @id @default(cuid())
+  recoveryId              String
+  estateId                String
+  claimantId              String // the beneficiary
+  version                 Int
+  grossRecoveryCents      Int
+  deductionsCents         Int                @default(0)
+  feesCents               Int                @default(0)
+  expensesCents           Int                @default(0)
+  netDistributableCents   Int
+  distributionPercent     Float?
+  distributionAmountCents Int
+  status                  DistributionStatus @default(CALCULATED)
+  approvalStatus          String?
+  paymentStatus           String?
+  calculationRuleId       String?
+  calculationRuleVersion  String?
+  createdAt               DateTime           @default(now())
+
+  recovery Recovery @relation(fields: [recoveryId], references: [id])
+  estate   Estate   @relation(fields: [estateId], references: [id])
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@unique([recoveryId, claimantId, version])
+  @@index([recoveryId])
+  @@index([claimantId])
 }

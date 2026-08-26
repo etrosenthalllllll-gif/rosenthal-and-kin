@@ -1311,12 +1311,18 @@ live provider call is blocked.
   MANDATORY_REVIEW) as caller-overridable defaults, never hardcoded.
   `percentDifference` is null (not a divide-by-zero) when nothing was
   expected. 6 new tests.
-- [ ] P9-4 todo — Distribution model + deterministic engine + rules +
-  versioning (doc 10 §10-13): GROSS RECOVERY − deductions − fees −
-  expenses = NET DISTRIBUTABLE AMOUNT, allocated per configurable
-  (never hardcoded per-case) distribution rules; an approved
-  distribution calculation is never overwritten -- a correction creates
-  a new DistributionVersion.
+- [x] P9-4 done — Distribution model + deterministic engine + rules +
+  versioning (doc 10 §10-13): added `Distribution`/`DistributionStatus`
+  to `schema.prisma` -- each row IS a version (`@@unique([recoveryId,
+  claimantId, version])`, no `updatedAt`), same pattern as
+  RecoveryEstimateVersion. `distributionEngine.ts`'s
+  `calculateNetDistributable()` (the doc's own formula) +
+  `validateDistributionRule()` (shares must sum to 100%, with floating-
+  point tolerance for a three-way split) + `allocateDistribution()`
+  (configurable share table, never hardcoded per-case) +
+  `getCurrentDistributionVersion()`/`nextDistributionVersionNumber()`
+  (scoped per beneficiary, never overwrites -- always the next version
+  past that beneficiary's current highest). 8 new tests.
 - [ ] P9-5 todo — Multiple beneficiaries + distribution approval +
   statement (doc 10 §14-16): each beneficiary's share independently
   trackable; funds are never distributed on AI output alone -- explicit
@@ -1499,3 +1505,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. Started Phase 9 (Recovery, Distribution & Payment, doc 10). [P9-1] Added Recovery/RecoveryStatus/RecoverySource + append-only RecoveryEstimateVersion schema models; `recoveryEstimate.ts`: `getCurrentEstimate()` (highest version wins) + `createNextEstimateVersion()` (never overwrites, always a new version). 4 new tests, full suite 756/756 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9 per Ethan's request), still queued behind the GitHub-login blocker. [P9-2] Added ActualRecovery/ActualRecoveryStatus schema model; `recoveryVerification.ts`'s `evaluateRecoveryVerification()` -- 7-item checklist + conflict-with-expected-recovery always forces REQUIRES_REVIEW. 4 new tests, full suite 760/760 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-3] `recoveryVariance.ts`'s `evaluateRecoveryVariance()` -- config-default thresholds (NORMAL/REVIEW_OPTIONAL/OPERATOR_REVIEW/MANDATORY_REVIEW), percentDifference null rather than divide-by-zero. 6 new tests, full suite 766/766 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-4] Added Distribution/DistributionStatus schema model (each row is a version, unique on recoveryId+claimantId+version); `distributionEngine.ts`: `calculateNetDistributable()`, `validateDistributionRule()`, `allocateDistribution()`, `getCurrentDistributionVersion()`/`nextDistributionVersionNumber()` (scoped per beneficiary, never overwrites). 8 new tests, full suite 774/774 passing, `tsc --noEmit` clean, `next build` clean.
