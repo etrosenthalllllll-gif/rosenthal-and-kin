@@ -912,12 +912,18 @@ provider call itself is `blocked: needs credential`.
   logic (payment status tracked separately from filing status, never
   inferred from one another) is buildable now against a fake payment
   result, same provider-abstraction discipline as P0-9.
-- [ ] P7-11 todo — Submission authorization + automation levels + human
-  override (doc 08 §28, 52-53): configurable authorization modes
-  (MANUAL_APPROVAL_REQUIRED / AUTOMATIC_SUBMISSION_AFTER_CONFIGURED_APPROVAL),
-  the doc's 4-level automation ladder, and a human-override model
-  requiring reason/operator/timestamp/affected-rule that can never
-  silently override a hard blocker.
+- [x] P7-11 done — Submission authorization + automation levels + human
+  override (doc 08 §28, 52-53): `filingAuthorization.ts`'s
+  `evaluateSubmissionAuthorization()` -- a not-READY filing is
+  BLOCKED_NOT_READY regardless of mode/level (readiness always wins); a
+  high-risk condition always requires an explicit operator submit even
+  at automation level 4; otherwise mode/level determine what still
+  needs a human action (operator submit at levels 1-2 or manual mode,
+  case-level approval at level 3, automatic at level 4).
+  `applyHumanOverride()` never overrides a hard blocker regardless of
+  how complete the override record is, and rejects an incomplete
+  override (missing reason/operator/timestamp/affected-rule) for a soft
+  blocker rather than accepting it with gaps. 9 new tests.
 - [ ] P7-12 todo — Idempotent submission engine (doc 08 §29-30, 57):
   pure state-check logic preventing duplicate submission on
   double-click/job-retry/network-timeout; an UNKNOWN submission status
@@ -1279,3 +1285,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-6] `filingData.ts`: `populateFilingData()`/`detectMissingRequiredFilingData()` delegate to formFieldMapping.ts (P6-8) rather than re-implementing the same priority/provenance logic. [P7-7] `filingValidation.ts`: `validateFilingFields()` delegates to formValidation.ts (P6-9); `checkDocumentRequirements()`/`validateFilingDocuments()` add connector-declared document-level checks (size/type/pages/naming), only checking what's declared. 12 new tests, full suite 535/535 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-8] `submissionArtifact.ts`: `buildSubmissionArtifacts()` maps over claimPackage.ts's already-ordered document list to preserve package order, never mutating the approved package; `markArtifactUploaded()`/`markArtifactFailed()` return new objects; `allArtifactsUploaded()` false on an empty list. 6 new tests, full suite 541/541 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-9] `filingFeeRules.ts`: versioned FILING_FEE_RULES table, `getApplicableFeeRule()` (method-specific beats general, AMBIGUOUS never auto-picked), `calculateFilingFee()` (base+additional+provider=total, always names the rule/version, zero total on NO_RULE_FOUND/AMBIGUOUS_RULE rather than guessing). 7 new tests, full suite 548/548 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-11] `filingAuthorization.ts`: `evaluateSubmissionAuthorization()` (BLOCKED_NOT_READY regardless of mode/level, high-risk always needs an explicit operator submit even at level 4) + `applyHumanOverride()` (never overrides a hard blocker, rejects an incomplete override record for a soft blocker). 9 new tests, full suite 557/557 passing, `tsc --noEmit` clean, `next build` clean.
