@@ -84,10 +84,12 @@ model Estate {
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
-  claimants     Claimant[]
-  relationships Relationship[]
-  documents     Document[]
-  notes         Note[]
+  claimants      Claimant[]
+  relationships  Relationship[]
+  documents      Document[]
+  notes          Note[]
+  verifications  Verification[]
+  potentialHeirs PotentialHeir[]
 
   @@index([status])
 }
@@ -132,6 +134,7 @@ model Claimant {
   transitions    ClaimantStateTransition[]
   conversations  Conversation[]
   communications Communication[]
+  verifications  Verification[]
 
   @@index([estateId])
   @@index([status])
@@ -168,11 +171,13 @@ model Person {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  claimants      Claimant[]
-  relationsFrom  Relationship[]  @relation("PersonA")
-  relationsTo    Relationship[]  @relation("PersonB")
-  conversations  Conversation[]
-  communications Communication[]
+  claimants             Claimant[]
+  relationsFrom         Relationship[]  @relation("PersonA")
+  relationsTo           Relationship[]  @relation("PersonB")
+  conversations         Conversation[]
+  communications        Communication[]
+  verificationSubjectOf Verification[]
+  potentialHeirOf       PotentialHeir[]
 
   // doc 04 section 19 -- centralized, channel-specific communication
   // preferences. "Do not rely solely on the individual channel system":
@@ -201,19 +206,153 @@ enum RelationshipType {
   OTHER
 }
 
+// ---------------------------------------------------------------------
+// Verification & Heirship Analysis (doc 06) -- PLAN.md P5-1.
+// ---------------------------------------------------------------------
+
+// doc 06 section 8's own outcome set for a single relationship/identity
+// claim, plus section 1's overall Verification record statuses --
+// merged into one enum since both describe the same "how well is this
+// supported" axis; a separate top-level UNVERIFIED/PROCESSING/
+// HUMAN_VERIFIED/REJECTED/RESOLVED covers the record-lifecycle half
+// doc 06 section 1 asks for, alongside section 8's finer-grained
+// evidentiary outcomes.
+enum VerificationStatus {
+  UNVERIFIED
+  PROCESSING
+  STRONGLY_SUPPORTED
+  SUPPORTED
+  PARTIALLY_SUPPORTED
+  UNSUPPORTED
+  CONFLICTED
+  INSUFFICIENT_EVIDENCE
+  REQUIRES_HUMAN_REVIEW
+  HUMAN_VERIFIED
+  REJECTED
+  RESOLVED
+}
+
+// doc 06 section 1's verification-type list.
+enum VerificationType {
+  IDENTITY
+  RELATIONSHIP
+  GENEALOGY
+  ADDRESS
+  DATE
+  DOCUMENT
+  CLAIMANT
+  HEIRSHIP
+  COMPETING_HEIR
+  OTHER
+}
+
 model Relationship {
-  id         String           @id @default(cuid())
+  id         String             @id @default(cuid())
   estateId   String
   personAId  String
   personBId  String
   type       RelationshipType
   evidence   String? // free text now; Document link comes with doc 05
   confidence Float? // 0.0 - 1.0
-  createdAt  DateTime         @default(now())
+  // doc 06 section 6-8: a relationship isn't just "recorded," it has an
+  // independent verification status and provenance -- added now that
+  // P5's verification engine can actually produce/consume these.
+  status     VerificationStatus @default(UNVERIFIED)
+  // doc 06 section 44's source-provenance list (CLAIMANT_STATEMENT,
+  // BIRTH_CERTIFICATE, RESEARCH_SOURCE, etc.) -- free text like
+  // `evidence` above rather than a closed enum, since section 44's own
+  // list is explicitly "examples," not exhaustive, and this needs to
+  // grow without a migration every time a new source type appears.
+  source     String?
+  updatedAt  DateTime           @updatedAt
 
   estate  Estate @relation(fields: [estateId], references: [id])
   personA Person @relation("PersonA", fields: [personAId], references: [id])
   personB Person @relation("PersonB", fields: [personBId], references: [id])
+
+  @@index([estateId])
+}
+
+// doc 06 section 1-2: a Verification record tracks one subject/claim
+// under review; VerificationClaim (section 2) breaks a case down into
+// individual subject-predicate-object propositions rather than one
+// giant per-case yes/no, per the doc's explicit instruction.
+model Verification {
+  id                 String             @id @default(cuid())
+  estateId           String
+  claimantId         String?
+  subjectPersonId    String?
+  type               VerificationType
+  claimText          String // human-readable claim, e.g. "Jane Smith is the daughter of John Smith."
+  status             VerificationStatus @default(UNVERIFIED)
+  confidence         Float? // 0.0 - 1.0
+  aiRecommendation   String?
+  humanDetermination String?
+  reviewerId         String?
+  reviewedAt         DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  estate        Estate              @relation(fields: [estateId], references: [id])
+  claimant      Claimant?           @relation(fields: [claimantId], references: [id])
+  subjectPerson Person?             @relation(fields: [subjectPersonId], references: [id])
+  claims        VerificationClaim[]
+
+  @@index([estateId])
+  @@index([claimantId])
+}
+
+// doc 06 section 2's individual claim -- subject/predicate/object, its
+// own evidence and status independent of the parent Verification's
+// overall status (a Verification can bundle several claims that don't
+// all resolve the same way).
+model VerificationClaim {
+  id              String             @id @default(cuid())
+  verificationId  String
+  subjectPersonId String?
+  predicate       String // e.g. "DAUGHTER_OF", "DIED_ON", "SAME_PERSON_AS"
+  objectPersonId  String? // when the object is another Person
+  objectValue     String? // when the object isn't a person (a date, a place, etc.)
+  confidence      Float?
+  status          VerificationStatus @default(UNVERIFIED)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  verification Verification @relation(fields: [verificationId], references: [id])
+
+  @@index([verificationId])
+}
+
+// doc 06 section 21's own status list, verbatim -- deliberately does
+// NOT include "CONFIRMED_HEIR": section 21 explicitly warns against
+// using that language "unless the appropriate human/legal workflow has
+// actually made that determination."
+enum PotentialHeirStatus {
+  POTENTIAL
+  SUPPORTED
+  DISPUTED
+  RULED_OUT
+  REQUIRES_REVIEW
+  CONFIRMED_BY_OPERATOR
+}
+
+// doc 06 sections 20-23: a candidate person whose relationship to the
+// decedent might materially affect the claim, discovered independently
+// of the claimant the case was originally opened for.
+model PotentialHeir {
+  id                     String              @id @default(cuid())
+  estateId               String
+  personId               String
+  relationshipToDecedent String
+  evidence               String?
+  confidence             Float?
+  discoverySource        String?
+  status                 PotentialHeirStatus @default(POTENTIAL)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  estate Estate @relation(fields: [estateId], references: [id])
+  person Person @relation(fields: [personId], references: [id])
 
   @@index([estateId])
 }
