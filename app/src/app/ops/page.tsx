@@ -1,14 +1,14 @@
 // Operator decision queue -- doc 02's "smart queue" UI. Reads real
 // PENDING decisions from Postgres, ranked by src/lib/priority.ts.
 //
-// KNOWN GAP, not an oversight: this route has no auth/session gate yet.
-// P0-6 built the permission-check primitive (src/lib/auth.ts) but the
-// login/session endpoint itself isn't wired up (still todo per PLAN.md).
-// Anyone who reaches this URL sees it. Do not treat this as
-// production-ready until that's closed -- flagging loudly rather than
-// quietly shipping an unauthenticated case-management view.
+// Gated by requireSession() below -- closes the auth gap this file used
+// to flag loudly. Note this is authentication only (any logged-in user
+// sees the queue); per-role authorization via src/lib/auth.ts's
+// requirePermission() still needs wiring into individual actions once
+// this page does more than read. See PLAN.md P0-6.
 import { prisma } from "@/lib/db";
 import { fetchDecisionQueue } from "@/lib/decisionQueue";
+import { requireSession } from "@/lib/requireSession";
 
 export const dynamic = "force-dynamic";
 
@@ -41,11 +41,22 @@ const LABEL_COLOR: Record<string, string> = {
 };
 
 export default async function OpsQueuePage() {
+  const user = await requireSession();
   const items = await fetchDecisionQueue(prisma);
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1rem", fontFamily: "system-ui, sans-serif" }}>
-      <h1 style={{ marginBottom: "0.25rem" }}>Decision Queue</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <h1 style={{ marginBottom: "0.25rem" }}>Decision Queue</h1>
+        <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          {user.name} ({user.role}) &middot;{" "}
+          <form action="/api/auth/logout" method="POST" style={{ display: "inline" }}>
+            <button type="submit" style={{ background: "none", border: "none", padding: 0, color: "#1d4ed8", cursor: "pointer", font: "inherit" }}>
+              Sign out
+            </button>
+          </form>
+        </div>
+      </div>
       <p style={{ color: "#6b7280", marginTop: 0 }}>
         {items.length} pending decision{items.length === 1 ? "" : "s"}, ranked by priority.
       </p>

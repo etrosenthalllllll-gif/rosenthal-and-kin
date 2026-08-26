@@ -35,6 +35,23 @@ model User {
   decisionsDecided Decision[]     @relation("DecisionDecidedBy")
   auditEvents      AuditEvent[]
   notes            Note[]
+  sessions         Session[]
+}
+
+// Server-side session record backing the login cookie. Only a SHA-256
+// hash of the session token is ever stored -- same "never store the raw
+// secret" discipline as User.passwordHash, just with a cheaper hash since
+// this is a high-entropy generated token, not a user-chosen password.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "import:tracker": "tsx scripts/run-tracker-import.mjs"
+    "import:tracker": "tsx scripts/run-tracker-import.mjs",
+    "create:user": "tsx scripts/create-user.mjs"
   },
   "dependencies": {
     "next": "14.2.35",
