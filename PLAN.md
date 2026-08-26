@@ -988,14 +988,20 @@ provider call itself is `blocked: needs credential`.
   interpretation itself needs an AIProvider (blocked); this
   classification logic works over an already-categorized rejection
   regardless of who/what assigned the category. 5 new tests.
-- [ ] P7-17 todo — Correction + resubmission workflow + duplicate-filing
-  protection (doc 08 §43-48): `CorrectionCase` model (the doc's own
-  status list); a correction that changes the claim package creates a
-  new package version (never patches the approved one -- reuses
-  P6-14's diff/versioning) requiring fresh approval; resubmission is
-  always a new FilingAttempt, never an overwrite; duplicate-filing
-  protection pauses and requires operator review rather than silently
-  blocking or silently allowing a possible duplicate.
+- [x] P7-17 done — Correction + resubmission workflow + duplicate-filing
+  protection (doc 08 §43-48): `filingCorrection.ts`'s `createCorrectionCase()`
+  builds the doc's own `CorrectionCase` status list, always starting
+  OPEN/unassigned/unresolved. `evaluateResubmissionReadiness()` mirrors
+  filingReadiness.ts's (P7-2) shape -- READY only once every one of §47's
+  7 checks passes, every failure named. `checkDuplicateFilingProtection()`
+  pauses and requires operator review whenever any existing active
+  filing is found for the same case/claim/property/claimant/authority
+  -- never silently blocks (which could stall a legitimate resubmission)
+  or silently allows (which could double-file). A package-changing
+  correction reuses claimPackage.ts's (P6-14) versioning/diffing rather
+  than a second mechanism; resubmission is always a new FilingAttempt
+  (P7-1's create-only model already enforces never-overwrite). 6 new
+  tests.
 - [ ] P7-18 todo — Filing deadlines + queue + decision-dashboard
   integration + event log/audit trail + analytics (doc 08 §49-51, 54,
   61-63): configured (never fabricated) filing deadlines with
@@ -1324,3 +1330,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-14] `filingProviderNormalization.ts`: `normalizeProviderStatus()` (fails closed to UNKNOWN for an unrecognized raw status/connector, raw response always preserved) + `verifyFilingConfirmation()` (a bare network response alone is never sufficient, VERIFIED needs an external filing ID plus a corroborating signal). 9 new tests, full suite 587/587 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-15] `filingTrackingReconciliation.ts`: `planNextStatusCheck()` (never polls webhook-capable connectors, follows the immediate/1hr/6hr/24hr schedule otherwise, stops at ACCEPTED/REJECTED/CLOSED) + `isDuplicateWebhookEvent()` + `reconcileFilingStatus()`/`shouldCreateReconciliationException()` (never assumes agreement) + `classifyProviderCheckOutcome()` (explicit PROVIDER_UNAVAILABLE, never silently "unchanged"). 10 new tests, full suite 597/597 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-16] `filingRejection.ts`: `DEFAULT_REJECTION_SEVERITY` config table + `classifyRejectionSeverity()` (fails closed to CRITICAL) + `classifyRejection()` (HIGH/CRITICAL always requires human review, decides nothing about resubmission). 5 new tests, full suite 602/602 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally, still queued behind the GitHub-login blocker. [P7-17] `filingCorrection.ts`: `createCorrectionCase()` (OPEN/unassigned/unresolved), `evaluateResubmissionReadiness()` (7-check readiness list, every failure named), `checkDuplicateFilingProtection()` (pauses + requires review, never silently blocks or allows). 6 new tests, full suite 608/608 passing, `tsc --noEmit` clean, `next build` clean.
