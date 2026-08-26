@@ -1526,3 +1526,30 @@ model WorkflowExecution {
   @@index([correlationId])
   @@index([status])
 }
+
+// Append-only -- doc 11 §7-10. `eventId` is the caller-supplied
+// dedup key (e.g. a provider's own event/message id, or a
+// deterministically-derived id for internally-raised events);
+// `@@unique` on it is what P10-3's idempotent-dedup check relies on --
+// a second insert attempt with the same eventId fails at the DB layer
+// rather than silently double-processing.
+model AutomationEvent {
+  id            String   @id @default(cuid())
+  eventId       String   @unique
+  eventType     String
+  entityType    String?
+  entityId      String?
+  caseId        String?
+  sourceSystem  String
+  payload       Json
+  correlationId String?
+  parentEventId String?
+  actor         String?
+  version       Int      @default(1)
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([eventType])
+  @@index([caseId])
+  @@index([correlationId])
+}

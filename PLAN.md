@@ -1525,11 +1525,16 @@ against in-memory/synthetic data like Phases 0-2's foundations.
   pinned to the version passed in), the doc's 16-item step-type
   vocabulary + `isKnownWorkflowStepType()` guard. 9 new tests, full
   suite 885/885 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P10-3 todo — Event model + event bus + idempotent dedup (doc 11
-  §7-10): standardized `AutomationEvent` (type/entity/case/source/
-  payload/correlation ID/actor), publish/subscribe abstraction so
-  systems stay decoupled, and a processed-event-ID store so a
-  duplicate-delivered event never re-executes its workflow.
+- [x] P10-3 done — Event model + event bus + idempotent dedup (doc 11
+  §7-10): added `AutomationEvent` schema (append-only, unique
+  `eventId` as the dedup key); `eventBus.ts`: `buildAutomationEvent()`,
+  `shouldProcessEvent()` (duplicate delivery is a silent no-op, never a
+  re-execution), `createInMemoryEventBus()` (publish/subscribe with no
+  publisher-subscriber coupling, swappable for a durable queue later
+  like `filingConnector.ts`'s connector pattern), plus the doc's own
+  event-type worked examples (non-exhaustive, same "extensible, not a
+  closed enum" reasoning as the step-type vocabulary). 8 new tests,
+  full suite 893/893 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P10-4 todo — Trigger conditions + rules engine (doc 11 §11-16):
   config-table rules (not scattered if/else) with the doc's operator
   set (=, !=, >, <, IN, CONTAINS, EXISTS, AND/OR/NOT, BETWEEN,
@@ -1769,3 +1774,4 @@ against in-memory/synthetic data like Phases 0-2's foundations.
 - 2026-08-26 — Read doc 11 ("Automation Control," 100 sections) in full from Drive and decomposed it into P10-1 through P10-26 in PLAN.md. No credential-blocked tasks in this phase -- it's the internal control plane (workflow engine, rules engine, confidence gating, retry/idempotency, scheduling, sync, observability, risk-gated approvals) coordinating the systems already built in Phases 0-9, all buildable now. Planning only, no code yet. Next: P10-1 (Workflow definition + versioning model).
 - 2026-08-26 — [P10-1] Workflow/WorkflowVersion schema + `workflowDefinition.ts` (status transitions, append-only versioning, structural definition validation). 12 new tests, full suite 876/876 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-2 (WorkflowExecution model + step types).
 - 2026-08-26 — [P10-2] WorkflowExecution/WorkflowExecutionStatus schema + `workflowExecution.ts` (execution status machine, new-execution planning pinned to a version, step-type vocabulary). 9 new tests, full suite 885/885 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-3 (Event model + event bus + idempotent dedup).
+- 2026-08-26 — [P10-3] AutomationEvent schema (unique eventId dedup key) + `eventBus.ts` (event construction, idempotent-dedup check, in-memory pub/sub). 8 new tests, full suite 893/893 passing, `tsc --noEmit` clean, `next build` clean. Next: P10-4 (Trigger conditions + rules engine).
