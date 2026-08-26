@@ -123,4 +123,15 @@ describe("decision type registry", () => {
       "ESCALATE",
     ]);
   });
+
+  it("registers the doc 10 distribution approval decision type (P9-5)", () => {
+    expect(DECISION_TYPES.APPROVE_DISTRIBUTION.category).toBe("DECISION");
+    expect(DECISION_TYPES.APPROVE_DISTRIBUTION.availableActions).toEqual([
+      "APPROVE",
+      "REVISE",
+      "REJECT",
+      "ESCALATE",
+    ]);
+    expect(DECISION_TYPES.APPROVE_DISTRIBUTION.highConsequence).toBe(true);
+  });
 });

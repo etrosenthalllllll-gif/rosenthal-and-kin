@@ -339,6 +339,18 @@ export const DECISION_TYPES = {
     highConsequence: false,
     category: "EXCEPTION",
   },
+  APPROVE_DISTRIBUTION: {
+    key: "APPROVE_DISTRIBUTION",
+    displayName: "Approve Distribution",
+    description:
+      "A calculated fund distribution needs explicit operator approval before any money moves -- doc 10 sections 14-16. Funds are never distributed on AI output alone.",
+    // doc 10 section 15's own literal action set.
+    availableActions: ["APPROVE", "REVISE", "REJECT", "ESCALATE"],
+    requiresComment: true,
+    requiresEvidenceViewed: true,
+    highConsequence: true, // money movement -- doc 02 section 19's confirmation-step trigger
+    category: "DECISION",
+  },
 } as const satisfies Record<string, DecisionTypeConfig>;
 
 export type DecisionTypeKey = keyof typeof DECISION_TYPES;

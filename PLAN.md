@@ -1323,12 +1323,17 @@ live provider call is blocked.
   `getCurrentDistributionVersion()`/`nextDistributionVersionNumber()`
   (scoped per beneficiary, never overwrites -- always the next version
   past that beneficiary's current highest). 8 new tests.
-- [ ] P9-5 todo — Multiple beneficiaries + distribution approval +
-  statement (doc 10 §14-16): each beneficiary's share independently
-  trackable; funds are never distributed on AI output alone -- explicit
-  APPROVE/REVISE/REJECT/ESCALATE required, same discipline as
-  claimPackageDecisionRouting.ts (P6-17); a generated distribution
-  statement references its underlying recovery/calculation versions.
+- [x] P9-5 done — Multiple beneficiaries + distribution approval +
+  statement (doc 10 §14-16): multi-beneficiary allocation was already
+  independently trackable via distributionEngine.ts (P9-4). Added
+  `APPROVE_DISTRIBUTION` to `decisionTypes.ts` (doc 10 §15's own literal
+  action set, `highConsequence: true`). `distributionApproval.ts`'s
+  `planDistributionApprovalDecision()` is unconditional -- every
+  distribution requires explicit operator approval before funds move,
+  no auto-approve path exists at all, matching the doc's own "never
+  based solely on AI output" instruction. `buildDistributionStatement()`
+  always names the exact recovery/distribution versions it was
+  generated from. 2 new tests (plus 1 decisionTypes.ts test).
 - [ ] P9-6 todo — Fee engine (recovery-side) + fee rule versioning +
   validation (doc 10 §17-20): configurable fee structures
   (percentage/flat/tiered/fixed-admin/other), every calculation
@@ -1506,3 +1511,4 @@ live provider call is blocked.
 - 2026-08-26 — Continuing locally (finishing Phase 9 per Ethan's request), still queued behind the GitHub-login blocker. [P9-2] Added ActualRecovery/ActualRecoveryStatus schema model; `recoveryVerification.ts`'s `evaluateRecoveryVerification()` -- 7-item checklist + conflict-with-expected-recovery always forces REQUIRES_REVIEW. 4 new tests, full suite 760/760 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-3] `recoveryVariance.ts`'s `evaluateRecoveryVariance()` -- config-default thresholds (NORMAL/REVIEW_OPTIONAL/OPERATOR_REVIEW/MANDATORY_REVIEW), percentDifference null rather than divide-by-zero. 6 new tests, full suite 766/766 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-4] Added Distribution/DistributionStatus schema model (each row is a version, unique on recoveryId+claimantId+version); `distributionEngine.ts`: `calculateNetDistributable()`, `validateDistributionRule()`, `allocateDistribution()`, `getCurrentDistributionVersion()`/`nextDistributionVersionNumber()` (scoped per beneficiary, never overwrites). 8 new tests, full suite 774/774 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — Continuing locally (finishing Phase 9), still queued behind the GitHub-login blocker. [P9-5] Added APPROVE_DISTRIBUTION to decisionTypes.ts; `distributionApproval.ts`'s `planDistributionApprovalDecision()` (unconditional, no auto-approve path) + `buildDistributionStatement()` (names exact recovery/distribution versions). 3 new tests, full suite 777/777 passing, `tsc --noEmit` clean, `next build` clean.
