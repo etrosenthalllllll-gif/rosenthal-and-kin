@@ -2362,6 +2362,99 @@ already produces.
   --noEmit` clean, `next build` clean. **Phase 12 (Analytics &
   Business Intelligence, doc 13) is complete -- all 30 tasks done.**
 
+## Phase 13 — Operator Command Center, made real (owner-directed, 2026-08-26)
+Ethan's own framing: "the whole business runs purely thru that command
+center... I as the business owner do nothing besides click in the
+command center." Not a new doc-numbered phase -- this is going back
+into Phase 1/2/4's UI layer and actually wiring the logic those phases
+already built (and tested) into real, clickable controls, since
+inspection showed `/ops` was read-only: no Approve/Reject/Escalate
+button existed anywhere despite `decisionWorkflow.ts` being fully built
+since Phase 1.
+
+- [x] Fixed a real bug found while wiring this: `decisionWorkflow.ts`'s
+  `ACTION_STATUS_MAP` was missing a status mapping for most
+  exception-lane actions (RESOLVE, DEFER, CLOSE, RETRY,
+  CREATE_NEW_CASE, KEEP_NEW/EXISTING/BOTH, RESEARCH, RULE_OUT, YES, NO,
+  REJECT_CLAIM) -- every one of those buttons would have thrown "no
+  status mapping defined" the instant an operator clicked it, on 12 of
+  the registry's ~22 decision types. Added the missing mappings plus a
+  registry-wide regression test (`decisionWorkflow.test.ts`) sweeping
+  every action on every `DECISION_TYPES` entry so this can't silently
+  reappear.
+- [x] `auth.ts`: two new permissions -- `DECIDE_ROUTINE_DECISIONS`
+  (ADMIN/OPERATOR/REVIEWER) and `DECIDE_HIGH_CONSEQUENCE_DECISIONS`
+  (ADMIN/REVIEWER only, gating any decision type flagged
+  `highConsequence`) -- plus `ADD_CASE_NOTES` (every non-READ_ONLY
+  role). Same tiered pattern already used for the financial
+  permissions.
+- [x] `decisionActionHandler.ts`: the DB-touching wrapper around
+  `decisionWorkflow.ts`'s already-tested pure logic -- loads the
+  Decision, applies the action, persists the Decision row +
+  (APPROVE_CLAIMANT only) the ClaimantStateTransition + Claimant.status
+  + an AuditEvent for each, all inside one `$transaction` so a decision
+  can never end up half-applied.
+- [x] `notes.ts` / `caseSummaryContext.ts` / `decisionHistory.ts`: wired
+  the Note model (existed since P0-2, never read/written), and
+  `caseSummary.ts` (built and tested since Phase 1, deliberately left
+  unwired for lack of real document/competing-heir data) to the real
+  Document and PotentialHeir tables that now exist.
+- [x] Two new API routes, both plain HTML form POSTs (no client JS,
+  same discipline as `/api/auth/login`): `POST
+  /api/decisions/[id]/action` and `POST /api/notes`.
+- [x] Full restyle of `/login`, `/ops`, and `/ops/cases/[claimantId]`
+  to the approved navy/gold/parchment brand (Playfair Display + Inter +
+  IBM Plex Mono, matching the Decision Dashboard / Client Portal
+  mockups), built mobile-first per Ethan's own stated use case ("I'm
+  just on my phone clicking yes/no") -- large tap targets, single-column
+  layout under 720px, shared `ops/opsUi.tsx` component set + CSS so the
+  three pages stay visually consistent.
+- [x] `/ops` now has real Approve/Reject/Revise/Escalate/etc. buttons
+  per decision (with a required-reason textarea where the decision type
+  demands one), priority-label filter chips, and an error/success
+  banner reflecting exactly what the server rejected and why. The case
+  page adds pending-decision actions, decision history, the now-wired
+  case summary, and a Notes list + add-note form.
+- 26 new tests (auth, decisionWorkflow regression, notes,
+  caseSummaryContext) across this work; full suite 1435/1435 passing,
+  `tsc --noEmit` clean. `next build` run in background at session end --
+  see session log for result.
+- **Not verified against the live Render DB tonight** -- no local
+  `.env`/`DATABASE_URL` exists in this working copy (by design -- never
+  committed), and mutating the live production DB for a seed/verify/
+  cleanup cycle without Ethan able to confirm first would break this
+  project's own established discipline (see the P0-6 session log entry:
+  "auto-blocked as a live-DB-mutation action... confirmed with Ethan
+  before running against production"). Everything above is
+  `tsc`/`vitest`/`next build`-verified, not yet click-tested on the real
+  deployment. **Next session (or Ethan) should do that real
+  seed → click through Approve/Reject/Escalate/Add Note → verify →
+  clean up pass before trusting this in production.**
+
+### Explicitly out of scope tonight -- needs Ethan's action first
+Three more things Ethan asked for in the same conversation, each
+blocked on a real account/credential/decision only he can make (not
+faked, not partially built against placeholder data):
+1. **Live Google Drive-wide sync** (tracker + findings sheets +
+   evidence ledgers + drafts, not just the one-time tracker import) --
+   the existing Sheets-API service account (P0-11) is scoped only to
+   the one tracker sheet it was explicitly shared with. Needs either
+   that service account shared onto every other file/folder in scope,
+   or broader Drive API access granted to it -- Ethan's call on which
+   files/folders, since "full Drive" also includes plenty that
+   shouldn't feed a case record.
+2. **Live inbound email → AI-drafted reply → Yes/No in `/ops`** --
+   needs a real Gmail API/OAuth grant to the *app itself* (this
+   session's own Gmail access doesn't extend to the deployed backend)
+   and a real AI provider account (Anthropic API key) wired
+   server-side. Neither exists yet.
+3. **One-click "file the claim"** -- intentionally does NOT skip the
+   legal sign-off gate (doc 08, Phase 7) even once built -- that gate
+   exists specifically so AI confidence can never be the thing that
+   greenlights a real court filing. The button can trigger that flow,
+   but the human sign-off click stays mandatory. The actual filing
+   connector (P7-3) also still needs a real filing-provider account.
+
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
 - Scale/triage, batch decisions, multi-operator — only when real volume forces it.
