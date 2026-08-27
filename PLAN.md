@@ -2105,11 +2105,13 @@ already produces.
   each paired current/previous/percent-change/trend; never recomputes
   the underlying counts itself). 5 new tests, full suite 1264/1264
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-4 todo — Lead funnel analytics + visualization (doc 13
-  §6-7): the doc's own 10-stage funnel (sourced→scored→qualified→
-  outreach→delivered→responded→engaged→verified→case-created→claim-
-  prepared→filed→recovery), counts/conversion/drop-off/average time
-  between stages, all derived from real counts, never invented.
+- [x] P12-4 done — Lead funnel analytics + visualization (doc 13
+  §6-7): `leadFunnelAnalytics.ts` -- `FUNNEL_STAGES` (the doc's own
+  12-stage funnel, verbatim order), `buildFunnelReport()` (each
+  stage's conversion/drop-off computed relative to the immediately-
+  preceding stage; counts always come from the caller, never invented
+  or estimated). 5 new tests, full suite 1269/1269 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P12-5 todo — Funnel conversion rates + drop-off analysis (doc 13
   §8-9): every stage-to-stage conversion rate, and automatic
   identification of the single largest drop-off point.
@@ -2416,3 +2418,4 @@ already produces.
 - 2026-08-26 — [P12-1] `analyticsEventModel.ts`: EXAMPLE_ANALYTICS_EVENT_TYPES, buildAnalyticsEvent(), thin reporting-layer record shapes. 3 new tests, full suite 1249/1249 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-2 (Time dimensions + comparison periods).
 - 2026-08-26 — [P12-2] `timeDimensions.ts`: resolveTimeWindow(), resolveComparisonWindow(), computePercentChange(). 10 new tests, full suite 1259/1259 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-3 (Central analytics dashboard assembly).
 - 2026-08-26 — [P12-3] `centralAnalyticsDashboard.ts`: buildMetricWithTrend(), buildCentralAnalyticsDashboard(). 5 new tests, full suite 1264/1264 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-4 (Lead funnel analytics + visualization).
+- 2026-08-26 — [P12-4] `leadFunnelAnalytics.ts`: FUNNEL_STAGES, buildFunnelReport(). 5 new tests, full suite 1269/1269 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-5 (Funnel conversion rates + drop-off analysis).
