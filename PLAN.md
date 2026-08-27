@@ -2229,10 +2229,13 @@ already produces.
   exactly which costs were subtracted -- never a bare "profit"). 3 new
   tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P12-18 todo — ROI analytics + acquisition/campaign ROI (doc 13
-  §49-51): a configurable ROI formula (never hardcoded), broken out by
-  source/campaign/workflow/jurisdiction/case-type/month, plus
-  dedicated per-source and per-campaign ROI tables.
+- [x] P12-18 done — ROI analytics + acquisition/campaign ROI (doc 13
+  §49-51): `roiAnalytics.ts`: `computeRoiPercent()` (caller-selected
+  REVENUE_MINUS_COST_OVER_COST/NET_PROFIT_OVER_COST formula, never
+  hardcoded), `computeRoiBreakout()` (by source/campaign/workflow/
+  jurisdiction/case-type/month), `buildSourceRoiTable()`,
+  `buildCampaignRoiTable()`. 6 new tests, full suite 1336/1336
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-19 todo — Cohort analysis + cohort recovery curves (doc 13
   §52-53): acquisition-month cohorts compared on response/conversion/
   filing/recovery/revenue/ROI, and 30/60/90/180-day recovery-curve
@@ -2485,4 +2488,5 @@ already produces.
 - 2026-08-26 — [P12-14] `automationRateAnalytics.ts`: computeInterventionRateByStage(), computeAutomationRateReport(), computeInterventionReasonBreakdown(), isAutomationImproving(). 6 new tests, full suite 1317/1317 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-15] `automationValueAnalytics.ts`: computeHoursSaved(), computeAutomationValue(). 4 new tests, full suite 1321/1321 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-18 (ROI analytics + acquisition/campaign ROI).
+- 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-19 (Cohort analysis + cohort recovery curves).
