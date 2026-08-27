@@ -2236,10 +2236,13 @@ already produces.
   jurisdiction/case-type/month), `buildSourceRoiTable()`,
   `buildCampaignRoiTable()`. 6 new tests, full suite 1336/1336
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-19 todo — Cohort analysis + cohort recovery curves (doc 13
-  §52-53): acquisition-month cohorts compared on response/conversion/
-  filing/recovery/revenue/ROI, and 30/60/90/180-day recovery-curve
-  tracking per cohort.
+- [x] P12-19 done — Cohort analysis + cohort recovery curves (doc 13
+  §52-53): `cohortAnalytics.ts`: `buildCohortComparison()` (response/
+  conversion/filing/recovery rate + ROI per acquisition-month cohort,
+  all relative to that cohort's own lead count), `buildRecoveryCurve()`
+  (`RECOVERY_CURVE_DAY_MARKS` = 30/60/90/180, percent-of-eventual-value
+  null until the cohort's eventual total is known). 4 new tests, full
+  suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-20 todo — Trend analytics + anomaly detection + KPI alerts
   (doc 13 §54-56): daily/weekly/monthly/quarterly trend series for
   every major KPI, threshold-or-statistical anomaly flagging, and
@@ -2489,4 +2492,5 @@ already produces.
 - 2026-08-26 — [P12-15] `automationValueAnalytics.ts`: computeHoursSaved(), computeAutomationValue(). 4 new tests, full suite 1321/1321 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-19 (Cohort analysis + cohort recovery curves).
+- 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-20 (Trend analytics + anomaly detection + KPI alerts).
