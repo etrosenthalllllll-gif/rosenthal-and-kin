@@ -2033,14 +2033,17 @@ observability logic over data the platform already produces.
   (maps onto `audit.ts`'s existing shape, same reuse discipline as
   `financialAudit.ts`/`automationAudit.ts`). 6 new tests, full suite
   1240/1240 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-27 todo — Logging strategy: structured logs + correlation
-  IDs + error codes (doc 12 §81-84): a structured log-entry shape
-  (timestamp/service/severity/case/workflow/execution/request/
-  correlation/event/error-code/message, never unstructured text-only),
-  consistent correlation IDs reused from Phase 10's
-  `attachCorrelationId()`, and a standardized internal error-code
-  catalog (AI_001, EMAIL_001, etc.) mapped to human-readable
-  explanations.
+- [x] P11-27 done — Logging strategy: structured logs + correlation
+  IDs + error codes (doc 12 §81-84): `loggingStrategy.ts` --
+  `buildStructuredLogEntry()` (the doc's full field list -- timestamp/
+  service/environment/severity/case/workflow/execution/request/
+  correlation/event/error-code/message -- as the only log shape this
+  module exposes, never a bare unstructured string), re-exports P10-20's
+  `attachCorrelationId()` rather than a second ID-stamping mechanism,
+  `ERROR_CODE_CATALOG`/`explainErrorCode()` (doc's own AI_001/EMAIL_001/
+  FILING_001/QUEUE_001/SYNC_001 examples, config-table, unmapped code
+  returns undefined rather than a guessed message). 4 new tests, full
+  suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-28 todo — Final Monitoring Center assembly + end-to-end
   incident test (doc 12 §85-91): the finished MONITORING CENTER
   dashboard shape (system health / active incidents / attention-
@@ -2211,3 +2214,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-24] `alertFatigueRemediation.ts`: evaluateDebouncedSeverity(), planAutomatedRemediation() (gated through orchestrationRisk.ts's risk table), buildRemediationLogEntry(), evaluateRemediationLoopProtection(). 8 new tests, full suite 1228/1228 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-25 (Dependency graph + blast-radius + system-wide alert grouping).
 - 2026-08-26 — [P11-25] `dependencyGraph.ts`: findDependentWorkflows(), computeBlastRadius(), shouldRaiseSystemWideIncident()/buildSystemWideAlertSummary(). Fixed a real tsc error caught in the test file (`.sort()` on a readonly array) before committing. 6 new tests, full suite 1234/1234 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-26 (Monitoring API + permissions + security monitoring).
 - 2026-08-26 — [P11-26] Extended auth.ts's Permission union with 5 monitoring permissions across ADMIN/OPERATOR/REVIEWER; `monitoringSecurity.ts`: canAccessMonitoringApi(), detectRepeatedFailurePattern(), buildSecurityEventAuditEntry(). 6 new tests, full suite 1240/1240 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-27 (Logging strategy: structured logs + correlation IDs + error codes).
+- 2026-08-26 — [P11-27] `loggingStrategy.ts`: buildStructuredLogEntry(), re-exported attachCorrelationId() from P10-20, ERROR_CODE_CATALOG/explainErrorCode(). 4 new tests, full suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-28 (Final Monitoring Center assembly + end-to-end incident test) -- the last task in Phase 11.
