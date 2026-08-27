@@ -2186,11 +2186,16 @@ already produces.
   `caseEconomics.ts`'s (P12-11) `computeCostPerUnit()` rather than
   three near-identical divisions. 7 new tests, full suite 1305/1305
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-13 todo — Operator-hours tracking + action tracking + labor
-  estimate/actual distinction + utilization (doc 13 §33-36): per-action
-  operator time records, a hard distinction between measured and
-  estimated time (an estimate is never presented as fact), and
-  utilization metrics (cases/hour, revenue/hour).
+- [x] P12-13 done — Operator-hours tracking + action tracking + labor
+  estimate/actual distinction + utilization (doc 13 §33-36):
+  `operatorHoursAnalytics.ts` -- `buildOperatorActionRecord()`
+  (duration only ever computed from a real start/end pair; an
+  estimated fallback is explicitly labeled, never presented as
+  measured fact), `summarizeLaborTime()` (measured and estimated
+  totals kept as two separate fields, never blended), 
+  `computeOperatorUtilization()` (avg time/case, cases/hour,
+  revenue/hour). 6 new tests, full suite 1311/1311 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P12-14 todo — Human-intervention rate + automation rate +
   breakdown + improvement-over-time (doc 13 §37-40): intervention rate
   by pipeline stage, the doc's own FULLY_AUTOMATED/AI_ASSISTED/
@@ -2463,3 +2468,4 @@ already produces.
 - 2026-08-26 — [P12-10] `revenueDashboard.ts`: buildRevenueRecognitionBreakdown(), groupRevenueBy(). 3 new tests, full suite 1292/1292 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-11 (Case economics + cost-per-case + cost breakdown + fixed/variable split).
 - 2026-08-26 — [P12-11] `caseEconomics.ts`: computeTotalCaseCost()/computeCaseEconomics(), computeCostPerUnit(), classifyCostNature()/splitFixedVariableCosts(). 6 new tests, full suite 1298/1298 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-12 (AI/communication/filing cost analytics).
 - 2026-08-26 — [P12-12] `channelCostAnalytics.ts`: groupAiSpendBy()/computeRevenueGeneratedPerAiCent(), communication + filing cost totals/per-unit functions (reuse computeCostPerUnit). 7 new tests, full suite 1305/1305 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-13 (Operator-hours tracking + action tracking + labor estimate/actual distinction + utilization).
+- 2026-08-26 — [P12-13] `operatorHoursAnalytics.ts`: buildOperatorActionRecord(), summarizeLaborTime(), computeOperatorUtilization(). 6 new tests, full suite 1311/1311 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-14 (Human-intervention rate + automation rate + breakdown + improvement-over-time).
