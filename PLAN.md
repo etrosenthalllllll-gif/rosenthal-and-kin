@@ -2251,11 +2251,14 @@ already produces.
   `buildNewAlert()` with a new `"KPI_THRESHOLD"` `AlertSource` added to
   `alertEngine.ts` -- no second alert mechanism). 7 new tests, full
   suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-21 todo — Executive + operational dashboard assembly (doc 13
-  §57-58): the doc's own executive-summary mockup (leads/cases/claims/
-  recoveries/revenue/cost/net-contribution/cost-per-case/human-
-  intervention/avg-time-to-recovery/ROI + trend + top problems) and a
-  separate today-focused operational view.
+- [x] P12-21 done — Executive + operational dashboard assembly (doc 13
+  §57-58): `executiveDashboard.ts`: `buildExecutiveSummaryView()` (the
+  doc's own mockup -- leads/cases/claims/recoveries/revenue/cost/net-
+  contribution/cost-per-case/human-intervention/avg-time-to-recovery/
+  ROI + trend + top problems), `buildOperationalView()` (separate
+  today-focused view, never merged onto the executive summary page).
+  Assembly-only, no new arithmetic. 2 new tests, full suite 1349/1349
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-22 todo — Funnel/financial/automation dashboard assembly
   (doc 13 §59-61): three dedicated dashboards assembled from P12-4
   through P12-17's already-computed metrics, no new logic.
@@ -2496,4 +2499,5 @@ already produces.
 - 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-21 (Executive + operational dashboard assembly).
+- 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-22 (Funnel/financial/automation dashboard assembly).
