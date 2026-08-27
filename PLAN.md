@@ -1999,13 +1999,19 @@ observability logic over data the platform already produces.
   45-minute example), `computeMeanTimeMs()` (null, not zero, for an
   empty batch). 4 new tests, full suite 1220/1220 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P11-24 todo — Alert fatigue protection + automated remediation
-  (doc 12 §69-74): debounce/cooldown-gated alerting (one failure ≠
-  alert; sustained failure escalates), a config-table of safe
-  automated remediations (worker restart, circuit-breaker pause) that
-  explicitly excludes high-risk business actions, remediation logging,
-  and a remediation-attempt cap that escalates to a human rather than
-  looping forever.
+- [x] P11-24 done — Alert fatigue protection + automated remediation
+  (doc 12 §69-74): `alertFatigueRemediation.ts` --
+  `evaluateDebouncedSeverity()` (matches the doc's own 5-min->WARNING/
+  15-min->CRITICAL example; a single failure never alerts),
+  `planAutomatedRemediation()` (the doc's own worker-crash/queue-
+  stall/circuit-breaker worked examples, gated through
+  `orchestrationRisk.ts`'s risk classification so only LOW/MEDIUM-risk
+  infrastructure actions ever auto-execute -- never a business
+  action), `buildRemediationLogEntry()` (every remediation logged,
+  never silent), `evaluateRemediationLoopProtection()` (matches the
+  doc's own max-3-restarts/hour example, escalates to a human rather
+  than looping forever). 8 new tests, full suite 1228/1228 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-25 todo — Dependency graph + blast-radius + system-wide
   alert grouping (doc 12 §75-77): a declared workflow→system
   dependency map, blast-radius calculation (which workflows/queues/
@@ -2193,3 +2199,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-21] `monitoringWorkflowTrace.ts`: buildDetailedWorkflowTrace(), buildSystemTimeline() (reuses P10-14/P10-20 rather than a third trace mechanism). 3 new tests, full suite 1212/1212 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-22 (Metrics retention + performance/throughput/reliability dashboards).
 - 2026-08-26 — [P11-22] `monitoringDashboards.ts`: METRICS_RETENTION_WINDOWS, buildPerformanceDashboard(), buildThroughputDashboard(), buildAutomationReliabilityDashboard() (composes P10-15/P10-24 functions). 4 new tests, full suite 1216/1216 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-23 (Mean-time-to-detection + mean-time-to-resolution).
 - 2026-08-26 — [P11-23] `incidentTimingMetrics.ts`: computeDetectionTimeMs(), computeResolutionTimeMs(), computeMeanTimeMs(). 4 new tests, full suite 1220/1220 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-24 (Alert fatigue protection + automated remediation).
+- 2026-08-26 — [P11-24] `alertFatigueRemediation.ts`: evaluateDebouncedSeverity(), planAutomatedRemediation() (gated through orchestrationRisk.ts's risk table), buildRemediationLogEntry(), evaluateRemediationLoopProtection(). 8 new tests, full suite 1228/1228 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-25 (Dependency graph + blast-radius + system-wide alert grouping).
