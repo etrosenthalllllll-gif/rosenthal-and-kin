@@ -2292,12 +2292,15 @@ already produces.
   (increments version, never mutates the prior definition in place).
   7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean,
   `next build` clean.
-- [ ] P12-26 todo — Attribution + cost attribution + shared-cost
-  allocation (doc 13 §72-75): lead→case→claim→recovery→revenue
-  attribution tracking with an explicit ATTRIBUTION_UNCERTAIN flag
-  (never invented precision), cost-to-object assignment, and
-  configurable shared-cost allocation methods (equal/by-case-count/
-  by-usage/by-revenue/excluded).
+- [x] P12-26 done — Attribution + cost attribution + shared-cost
+  allocation (doc 13 §72-75): `attributionAnalytics.ts`:
+  `buildAttributionChain()` (lead->case->claim->recovery, flags
+  `isAttributionUncertain` rather than inventing a source),
+  `assignCostToObject()` (case/source/campaign), `allocateSharedCost()`
+  (configurable EQUAL_SPLIT/BY_CASE_COUNT/BY_USAGE/BY_REVENUE/EXCLUDED
+  -- EXCLUDED always zeroes out rather than silently equal-splitting).
+  8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean,
+  `next build` clean.
 - [ ] P12-27 todo — Scenario modeling + automation-ROI model + scale
   analysis + bottleneck/marginal economics (doc 13 §76-81): a
   configurable-assumption scenario calculator explicitly labeled
@@ -2516,4 +2519,5 @@ already produces.
 - 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-25] `analyticsDataQuality.ts`: runAnalyticsDataQualityChecks(), getMetricDefinition(), reviseMetricDefinition(). 7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-26 (Attribution + cost attribution + shared-cost allocation).
+- 2026-08-26 — [P12-25] `analyticsDataQuality.ts`: runAnalyticsDataQualityChecks(), getMetricDefinition(), reviseMetricDefinition(). 7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-26] `attributionAnalytics.ts`: buildAttributionChain(), assignCostToObject(), allocateSharedCost(). 8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-27 (Scenario modeling + automation-ROI model + scale analysis + bottleneck/marginal economics).
