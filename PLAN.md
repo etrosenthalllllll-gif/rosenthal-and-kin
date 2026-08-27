@@ -1910,10 +1910,13 @@ observability logic over data the platform already produces.
   failure at all alerts -- financial integrity never waits for a
   percentage threshold). 4 new tests, full suite 1176/1176 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-14 todo — DB/storage + synchronization + stale-data
-  detection (doc 12 §39-41): storage utilization/backup-health
-  tracking, cross-system sync attempt/conflict tracking, and
-  stale-data detection (hasn't synced within its expected interval).
+- [x] P11-14 done — DB/storage + synchronization + stale-data
+  detection (doc 12 §39-41): `storageSyncMonitoring.ts` --
+  `evaluateStorageAlerts()` (storage capacity/backlog/backup-failure
+  config-table checks, every abnormal signal collected),
+  `computeSyncMonitoringMetrics()`, `isDataStale()` (matches the doc's
+  own 30h-since-sync/6h-expected example). 5 new tests, full suite
+  1181/1181 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-15 todo — Alert engine + severity + alert model (doc 12
   §42-44): INFO/WARNING/ERROR/CRITICAL/EMERGENCY severity (config-
   urable per source), the `Alert` shape (type/severity/source/
@@ -2147,3 +2150,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-11] `communicationMonitoring.ts`: computeEmailMetrics()/computeSmsMetrics()/computeVoiceMetrics(), detectAbnormalBounceRate(), evaluateCommunicationFailureSeverity(), detectRepeatedProviderFailure(). 7 new tests, full suite 1166/1166 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-12 (Filing integration monitoring + failure alerts + status reconciliation).
 - 2026-08-26 — [P11-12] `filingMonitoring.ts`: computeFilingProviderMetrics(), detectNoStatusUpdateAlert(), detectFilingSyncException (re-export of crossSystemSync's detectSyncException). 6 new tests, full suite 1172/1172 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-13 (Document/OCR + payment monitoring).
 - 2026-08-26 — [P11-13] `docPaymentMonitoring.ts`: computeOcrMonitoringMetrics(), computePaymentMonitoringMetrics(), hasPaymentReconciliationAlert(). 4 new tests, full suite 1176/1176 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-14 (DB/storage + synchronization + stale-data detection).
+- 2026-08-26 — [P11-14] `storageSyncMonitoring.ts`: evaluateStorageAlerts(), computeSyncMonitoringMetrics(), isDataStale(). 5 new tests, full suite 1181/1181 passing, `tsc --noEmit` clean, `next build` clean. Ethan confirmed GitHub is now signed in in the Browser pane -- checking and pushing the full local backlog (Phases 6-11) next. Next PLAN.md task after that: P11-15 (Alert engine + severity + alert model).
