@@ -1973,11 +1973,14 @@ observability logic over data the platform already produces.
   (the doc's 7-trigger CASE_ATTENTION_REQUIRED list, config-table
   style, every fired trigger collected). 3 new tests, full suite
   1209/1209 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-21 todo — Workflow trace + system timeline (doc 12 §61-62):
-  extends P10-14's `buildWorkflowTrace()`/`buildCaseTimeline()` with
-  the trigger→workflow→step→API→result→retry→next-step shape and a
-  system-wide (not just per-case) event timeline for incident
-  diagnosis.
+- [x] P11-21 done — Workflow trace + system timeline (doc 12 §61-62):
+  `monitoringWorkflowTrace.ts` -- `buildDetailedWorkflowTrace()`
+  (extends P10-14's `buildWorkflowTrace()` with the doc's own submit-
+  filing/timeout/retry/success/provider-reference example, "one
+  continuous trace"), `buildSystemTimeline()` (re-exports P10-20's
+  `buildCaseTimeline()` for this phase's monitoring-center context --
+  no third trace/timeline mechanism). 3 new tests, full suite
+  1212/1212 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-22 todo — Metrics retention + performance/throughput/
   reliability dashboards (doc 12 §63-66): 24h/7d/30d retention
   windows, average/P95 duration tracking across workflow/queue/API/AI/
@@ -2179,3 +2182,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-18] `alertOperatorActions.ts`: applyOperatorAlertAction(), requestAlertSuppression(), isExpectedDowntime(). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-19 (Operator dashboard assembly: health summary + prioritized queue + alert detail).
 - 2026-08-26 — [P11-19] `operatorMonitoringDashboard.ts`: buildTopLevelHealthSummary(), sortOperatorQueue(), buildAlertDetailView(). 3 new tests, full suite 1206/1206 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-20 (Case-level monitoring + stuck-case detection).
 - 2026-08-26 — [P11-20] `caseLevelMonitoring.ts`: buildCaseAutomationHealthPanel(), evaluateCaseAttentionRequired(). 3 new tests, full suite 1209/1209 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-21 (Workflow trace + system timeline).
+- 2026-08-26 — [P11-21] `monitoringWorkflowTrace.ts`: buildDetailedWorkflowTrace(), buildSystemTimeline() (reuses P10-14/P10-20 rather than a third trace mechanism). 3 new tests, full suite 1212/1212 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-22 (Metrics retention + performance/throughput/reliability dashboards).
