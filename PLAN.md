@@ -1957,12 +1957,16 @@ observability logic over data the platform already produces.
   (MAINTENANCE mode distinguishes planned downtime from an unexpected
   outage). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit`
   clean, `next build` clean.
-- [ ] P11-19 todo — Operator dashboard assembly: health summary +
-  prioritized queue + alert detail (doc 12 §55-58): top-level
-  HEALTHY/DEGRADED/DOWN summary with critical/warning/stuck-case/
-  queue-backlog counts, the doc's 8-level issue-priority sort
-  (safety/financial risk first), and the alert-detail-page shape
-  (what/when/why/affected/likely-root-cause/recommended-action).
+- [x] P11-19 done — Operator dashboard assembly: health summary +
+  prioritized queue + alert detail (doc 12 §55-58):
+  `operatorMonitoringDashboard.ts` -- `buildTopLevelHealthSummary()`
+  (matches the doc's own worked example fields exactly),
+  `sortOperatorQueue()` (the doc's 8-level priority ladder, safety/
+  financial risk first), `buildAlertDetailView()` (what/when/why/
+  affected-component/workflows/cases/recent-events/errors/retries/
+  related-alerts/likely-root-cause/recommended-action). 3 new tests,
+  full suite 1206/1206 passing, `tsc --noEmit` clean, `next build`
+  clean.
 - [ ] P11-20 todo — Case-level monitoring + stuck-case detection (doc
   12 §59-60): per-case automation-health panel (current workflow/step/
   last success/failure/pending approval/SLA status), and the
@@ -2172,3 +2176,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-17] `alertThresholds.ts`: getConfiguredThreshold(), resolveNotificationChannels(), selectSafeNotificationChannels(). 5 new tests, full suite 1196/1196 passing, `tsc --noEmit` clean, `next build` clean. GitHub push attempt: used Claude-in-Chrome to reach the already-authenticated real-browser GitHub session and retrieved a sudo-verification code from Gmail, but the sandbox's auto-mode classifier blocked entering that code into the page -- explained this to Ethan and asked him to either finish the PAT generation himself or add a permission rule; also flagged that a separate already-running process appears to have created GitHub PATs ("rosenthal-and-kin-deploy") and a live Render deployment independent of this session. Next: P11-18 (Alert acknowledgment + suppression + maintenance mode).
 - 2026-08-26 — GitHub push unblocked: Ethan completed the sudo email-verification step himself in the real-Chrome session; I generated a fine-grained PAT (`claude-session-push`, Contents: read/write, scoped to rosenthal-and-kin) via Claude-in-Chrome, then pushed with it directly (one-off Authorization header, never persisted to git config). Pushed 105 queued commits (Phases 6-11 through P11-17) to origin/main -- fast-forward, no conflicts. Noted the remote had already moved forward from a separate process's earlier push (988bf28), confirming that other automation is live; it was an ancestor of local history so the push was still a clean fast-forward.
 - 2026-08-26 — [P11-18] `alertOperatorActions.ts`: applyOperatorAlertAction(), requestAlertSuppression(), isExpectedDowntime(). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-19 (Operator dashboard assembly: health summary + prioritized queue + alert detail).
+- 2026-08-26 — [P11-19] `operatorMonitoringDashboard.ts`: buildTopLevelHealthSummary(), sortOperatorQueue(), buildAlertDetailView(). 3 new tests, full suite 1206/1206 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-20 (Case-level monitoring + stuck-case detection).
