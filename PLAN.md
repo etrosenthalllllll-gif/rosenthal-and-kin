@@ -1884,10 +1884,16 @@ observability logic over data the platform already produces.
   (delegates straight to `automationLimits.ts`'s `evaluateCostLimit()`
   rather than a second budget-comparison mechanism). 4 new tests, full
   suite 1159/1159 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-11 todo — Email/SMS/voice monitoring + communication failure
-  detection (doc 12 §29-33): per-channel queued/sent/delivered/failed/
-  bounce/opt-out tracking, abnormal-bounce-rate and
-  repeated-same-provider-failure detection.
+- [x] P11-11 done — Email/SMS/voice monitoring + communication failure
+  detection (doc 12 §29-33): `communicationMonitoring.ts` --
+  `computeEmailMetrics()`/`computeSmsMetrics()`/`computeVoiceMetrics()`
+  (per-channel rate calculations), `detectAbnormalBounceRate()`
+  (matches the doc's own 2%->18% example, reuses
+  `workflowMonitoring.ts`'s `detectFailureSpike()`),
+  `evaluateCommunicationFailureSeverity()` (matches the doc's own
+  100-attempted/70-failed CRITICAL example), 
+  `detectRepeatedProviderFailure()`. 7 new tests, full suite
+  1166/1166 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-12 todo — Filing integration monitoring + failure alerts +
   status reconciliation (doc 12 §34-36): submissions/rejections/
   pending/API-error tracking per provider, stuck-pending and
@@ -2131,3 +2137,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-8] `schedulerMonitoring.ts`: evaluateScheduledJobRun(), findDuplicateJobRuns(), isSchedulerDown(). 8 new tests, full suite 1149/1149 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-9 (AI monitoring + failure detection + quality validation).
 - 2026-08-26 — [P11-9] `aiMonitoring.ts`: computeAiRequestMetrics(), AI_FAILURE_TYPES, validateAiStructuredOutput(). 6 new tests, full suite 1155/1155 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-10 (AI confidence + model-version + cost monitoring).
 - 2026-08-26 — [P11-10] `aiConfidenceCostMonitoring.ts`: detectConfidenceAnomaly(), compareModelVersions(), evaluateAiDailyCostAlert() (reuses automationLimits.ts's evaluateCostLimit()). 4 new tests, full suite 1159/1159 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-11 (Email/SMS/voice monitoring + communication failure detection).
+- 2026-08-26 — [P11-11] `communicationMonitoring.ts`: computeEmailMetrics()/computeSmsMetrics()/computeVoiceMetrics(), detectAbnormalBounceRate(), evaluateCommunicationFailureSeverity(), detectRepeatedProviderFailure(). 7 new tests, full suite 1166/1166 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-12 (Filing integration monitoring + failure alerts + status reconciliation).
