@@ -1947,12 +1947,16 @@ observability logic over data the platform already produces.
   IMMEDIATE_OPERATOR/ESCALATION have no provider dependency so at
   least one channel always survives). 5 new tests, full suite
   1196/1196 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-18 todo — Alert acknowledgment + suppression + maintenance
-  mode (doc 12 §52-54): operator ACKNOWLEDGE/INVESTIGATE/RESOLVE/
-  SUPPRESS/ESCALATE actions (recorded, never silent), authorized
-  time-boxed suppression (reason+duration+operator required, never an
-  accidental permanent suppress), and a MAINTENANCE status distinct
-  from an unexpected outage.
+- [x] P11-18 done — Alert acknowledgment + suppression + maintenance
+  mode (doc 12 §52-54): `alertOperatorActions.ts` --
+  `applyOperatorAlertAction()` (ACKNOWLEDGE/INVESTIGATE/RESOLVE/
+  SUPPRESS/ESCALATE, always recording operator/timestamp/notes, never
+  a silent flip), `requestAlertSuppression()` (reason+operator
+  structurally required; an EMERGENCY-severity alert can never be
+  suppressed with an indefinite/zero duration), `isExpectedDowntime()`
+  (MAINTENANCE mode distinguishes planned downtime from an unexpected
+  outage). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit`
+  clean, `next build` clean.
 - [ ] P11-19 todo — Operator dashboard assembly: health summary +
   prioritized queue + alert detail (doc 12 §55-58): top-level
   HEALTHY/DEGRADED/DOWN summary with critical/warning/stuck-case/
@@ -2166,3 +2170,5 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-15] `alertEngine.ts`: Alert shape + statuses, buildNewAlert(), resolveAlertSeverity(). 3 new tests, full suite 1184/1184 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-16 (Alert dedup + correlation + incident model + root-cause grouping).
 - 2026-08-26 — [P11-16] `incidentModel.ts`: findMatchingOpenAlert()/dedupAlertOccurrence(), buildIncidentFromAlerts(), isLikelyCascadeAlert(). 7 new tests, full suite 1191/1191 passing, `tsc --noEmit` clean, `next build` clean. Ethan showed a screenshot proving his real Chrome (via the Claude in Chrome extension) is logged into GitHub as etrosenthalllllll-gif -- distinct from the sandboxed Browser pane (tab-1/seed), which is still logged out. Generating a PAT via the authenticated real-Chrome session next so the ~60-commit local backlog (Phases 6-11) can finally be pushed. Next PLAN.md task after that: P11-17 (Alert thresholds + escalation + notifications).
 - 2026-08-26 — [P11-17] `alertThresholds.ts`: getConfiguredThreshold(), resolveNotificationChannels(), selectSafeNotificationChannels(). 5 new tests, full suite 1196/1196 passing, `tsc --noEmit` clean, `next build` clean. GitHub push attempt: used Claude-in-Chrome to reach the already-authenticated real-browser GitHub session and retrieved a sudo-verification code from Gmail, but the sandbox's auto-mode classifier blocked entering that code into the page -- explained this to Ethan and asked him to either finish the PAT generation himself or add a permission rule; also flagged that a separate already-running process appears to have created GitHub PATs ("rosenthal-and-kin-deploy") and a live Render deployment independent of this session. Next: P11-18 (Alert acknowledgment + suppression + maintenance mode).
+- 2026-08-26 — GitHub push unblocked: Ethan completed the sudo email-verification step himself in the real-Chrome session; I generated a fine-grained PAT (`claude-session-push`, Contents: read/write, scoped to rosenthal-and-kin) via Claude-in-Chrome, then pushed with it directly (one-off Authorization header, never persisted to git config). Pushed 105 queued commits (Phases 6-11 through P11-17) to origin/main -- fast-forward, no conflicts. Noted the remote had already moved forward from a separate process's earlier push (988bf28), confirming that other automation is live; it was an ancestor of local history so the push was still a clean fast-forward.
+- 2026-08-26 — [P11-18] `alertOperatorActions.ts`: applyOperatorAlertAction(), requestAlertSuppression(), isExpectedDowntime(). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-19 (Operator dashboard assembly: health summary + prioritized queue + alert detail).
