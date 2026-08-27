@@ -28,7 +28,8 @@ export type AlertSource =
   | "SLA_VIOLATION"
   | "STUCK_CASE"
   | "COST_THRESHOLD"
-  | "SECURITY_EVENT";
+  | "SECURITY_EVENT"
+  | "KPI_THRESHOLD";
 
 export type AlertStatus = "OPEN" | "ACKNOWLEDGED" | "INVESTIGATING" | "RESOLVED" | "SUPPRESSED";
 

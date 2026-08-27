@@ -2243,12 +2243,14 @@ already produces.
   (`RECOVERY_CURVE_DAY_MARKS` = 30/60/90/180, percent-of-eventual-value
   null until the cohort's eventual total is known). 4 new tests, full
   suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-20 todo — Trend analytics + anomaly detection + KPI alerts
-  (doc 13 §54-56): daily/weekly/monthly/quarterly trend series for
-  every major KPI, threshold-or-statistical anomaly flagging, and
-  KPI-alert integration with Phase 11's alert engine (reusing
-  `alertEngine.ts`/`alertThresholds.ts` rather than a second alert
-  mechanism).
+- [x] P12-20 done — Trend analytics + anomaly detection + KPI alerts
+  (doc 13 §54-56): `trendAnomalyAnalytics.ts`: `buildTrendSeries()`
+  (per-KPI, per-granularity), `detectKpiAnomaly()` (fixed-threshold OR
+  statistical-outlier vs. recent-history std dev, skipped with <2
+  history points), `buildKpiAlert()` (routes through Phase 11's
+  `buildNewAlert()` with a new `"KPI_THRESHOLD"` `AlertSource` added to
+  `alertEngine.ts` -- no second alert mechanism). 7 new tests, full
+  suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-21 todo — Executive + operational dashboard assembly (doc 13
   §57-58): the doc's own executive-summary mockup (leads/cases/claims/
   recoveries/revenue/cost/net-contribution/cost-per-case/human-
@@ -2493,4 +2495,5 @@ already produces.
 - 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-20 (Trend analytics + anomaly detection + KPI alerts).
+- 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-21 (Executive + operational dashboard assembly).
