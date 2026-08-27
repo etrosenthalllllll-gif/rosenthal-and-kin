@@ -2266,12 +2266,15 @@ already produces.
   from P12-4 through P12-20's already-computed metrics, no new logic.
   3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean,
   `next build` clean.
-- [ ] P12-23 todo — Source comparison + case profitability + economic
-  status + negative-economics detection (doc 13 §62-65): ranked
-  per-source comparison table, a per-case profitability view,
-  configurable HIGHLY_PROFITABLE→NEGATIVE classification, and
-  NEGATIVE_EXPECTED_ECONOMICS flagging (surfaced for review, never
-  auto-terminated).
+- [x] P12-23 done — Source comparison + case profitability + economic
+  status + negative-economics detection (doc 13 §62-65):
+  `caseEconomicStatus.ts`: `rankSourceComparison()` (ranked by ROI
+  descending, null ROI sorts last), `buildCaseProfitabilityView()`,
+  `classifyEconomicStatus()` (configurable HIGHLY_PROFITABLE ->
+  NEGATIVE thresholds, never hardcoded), `evaluateNegativeEconomicsFlag()`
+  (surfaced for human review, no auto-terminate branch exists). 7 new
+  tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P12-24 todo — Forecasting + recovery forecast + pipeline value
   (doc 13 §66-68): basic historical-trend forecasts for leads/cases/
   claims/recoveries/revenue/cost/workload, always labeled as estimates
@@ -2505,4 +2508,5 @@ already produces.
 - 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-23 (Source comparison + case profitability + economic status + negative-economics detection).
+- 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-24 (Forecasting + recovery forecast + pipeline value).
