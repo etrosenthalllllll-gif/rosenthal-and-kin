@@ -67,7 +67,11 @@ export type Permission =
   | "CONFIGURE_MONITORING"
   | "EXECUTE_REMEDIATION"
   | "SUPPRESS_ALERTS"
-  | "RESOLVE_INCIDENTS";
+  | "RESOLVE_INCIDENTS"
+  // doc 13 section 84's own export-gating requirement -- analytics
+  // exports carry the same financial/case sensitivity as the reports
+  // they're built from, so this is not granted by VIEW_CASES alone.
+  | "EXPORT_ANALYTICS_DATA";
 
 // Explicit allow-list per role. A role not listed for a permission is
 // denied by default — this is deliberately fail-closed, matching doc 01's
@@ -103,6 +107,7 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "EXECUTE_REMEDIATION",
     "SUPPRESS_ALERTS",
     "RESOLVE_INCIDENTS",
+    "EXPORT_ANALYTICS_DATA",
   ]),
   OPERATOR: new Set([
     "VIEW_CASES",
@@ -143,6 +148,7 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     // (Administrator-only per the doc).
     "VIEW_MONITORING",
     "RESOLVE_INCIDENTS",
+    "EXPORT_ANALYTICS_DATA",
   ]),
   READ_ONLY: new Set(["VIEW_CASES", "VIEW_DOCUMENTS"]),
 };

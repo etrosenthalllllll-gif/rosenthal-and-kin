@@ -2312,14 +2312,19 @@ already produces.
   (incremental revenue/cost/profit for one additional unit). 8 new
   tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P12-28 todo — Dashboard filters + drill-down + exports +
-  reporting + data freshness (doc 13 §82-87): a shared filter-
-  dimension list, the drill-down chain from an aggregate number down
-  to its underlying cases/events, CSV/export gating by permission
-  (reusing `auth.ts`'s `Permission` union), scheduled-report
-  definitions built from the same metric registry as the dashboards,
-  and an explicit DATA_DELAYED flag rather than silently showing stale
-  numbers as current.
+- [x] P12-28 done — Dashboard filters + drill-down + exports +
+  reporting + data freshness (doc 13 §82-87): `dashboardOperations.ts`:
+  `DASHBOARD_FILTER_DIMENSIONS` (date range/source/jurisdiction/case
+  type/operator/workflow), `buildDrillDown()` (generic aggregate ->
+  underlying records), `authorizeExport()` (reuses `auth.ts`'s
+  `hasPermission()` with a new `EXPORT_ANALYTICS_DATA` permission,
+  granted to ADMIN/REVIEWER only), `renderScheduledReport()` (resolves
+  every metric from P12-25's shared `MetricDefinitionRegistry`, never
+  a divergent formula; missing metrics surfaced, not dropped),
+  `evaluateDataFreshness()` (explicit DATA_DELAYED-style flag). 7 new
+  tests, full suite 1392/1392 passing, `tsc --noEmit` clean, `next
+  build` clean (one transient Windows build-worker crash on the first
+  attempt, confirmed as such by an immediate clean re-run).
 - [ ] P12-29 todo — Security + auditability + data-quality testing +
   reconciliation + edge cases (doc 13 §88-92): analytics permission
   gating (reusing `auth.ts`, no parallel authorization system),
@@ -2525,4 +2530,5 @@ already produces.
 - 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-25] `analyticsDataQuality.ts`: runAnalyticsDataQualityChecks(), getMetricDefinition(), reviseMetricDefinition(). 7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-26] `attributionAnalytics.ts`: buildAttributionChain(), assignCostToObject(), allocateSharedCost(). 8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-27] `scenarioModelingAnalytics.ts`: buildScenarioModel(), compareManualVsAutomated(), estimateAtScale(), evaluateOperatorBottleneck(), estimateMarginalEconomics(). 8 new tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-28 (Dashboard filters + drill-down + exports + reporting + data freshness).
+- 2026-08-26 — [P12-27] `scenarioModelingAnalytics.ts`: buildScenarioModel(), compareManualVsAutomated(), estimateAtScale(), evaluateOperatorBottleneck(), estimateMarginalEconomics(). 8 new tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-28] `dashboardOperations.ts`: buildDrillDown(), authorizeExport(), renderScheduledReport(), evaluateDataFreshness() (extends auth.ts's Permission union with EXPORT_ANALYTICS_DATA). 7 new tests, full suite 1392/1392 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-29 (Security + auditability + data-quality testing + reconciliation + edge cases).
