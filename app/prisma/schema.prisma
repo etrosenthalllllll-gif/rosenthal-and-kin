@@ -151,9 +151,44 @@ model Claimant {
   distributions         Distribution[]
   invoices              Invoice[]
   paymentDisputes       PaymentDispute[]
+  accessLinks           ClaimantAccessLink[]
+  portalSessions        ClaimantPortalSession[]
 
   @@index([estateId])
   @@index([status])
+}
+
+// ---------------------------------------------------------------------
+// Claimant portal auth (doc 05 "secure claimant links") -- no password.
+// An operator (or eventually an automated outreach workflow) generates
+// a link; the claimant clicks it, which establishes a portal session --
+// same two-tier shape as the operator User/Session pair, just keyed to
+// Claimant with no password step at all.
+// ---------------------------------------------------------------------
+
+model ClaimantAccessLink {
+  id         String    @id @default(cuid())
+  claimantId String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@index([claimantId])
+}
+
+model ClaimantPortalSession {
+  id         String   @id @default(cuid())
+  claimantId String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  claimant Claimant @relation(fields: [claimantId], references: [id])
+
+  @@index([claimantId])
 }
 
 // Every status change is validated and recorded — never mutate `status`
@@ -667,6 +702,11 @@ enum CommunicationChannel {
   SMS
   VOICE
   MAIL
+  // A message sent by a claimant through their own portal (doc 05's
+  // client portal), not through a phone/mail/email provider -- direction
+  // is always INBOUND for this channel; there's no outbound provider to
+  // fail or need idempotency-key wiring for.
+  PORTAL
 }
 
 enum CommunicationDirection {

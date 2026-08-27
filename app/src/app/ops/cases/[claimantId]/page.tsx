@@ -151,6 +151,20 @@ export default async function CaseWorkspacePage({
       )}
       {searchParams.noteError && <div className="ops-notice error">Note couldn&apos;t be added -- it was empty.</div>}
 
+      <div className="ops-card">
+        <div className="ops-card-title">Claimant Portal</div>
+        <p style={{ fontSize: 12.5, color: "var(--dim)", margin: "0 0 10px" }}>
+          Generates a private link this claimant can use to view their case, upload documents, and message you --
+          no password, no account needed. Copy it and send it yourself (no automated send is wired up yet).
+        </p>
+        <form action="/api/portal-links" method="POST">
+          <input type="hidden" name="claimantId" value={claimant.id} />
+          <button type="submit" className="ops-btn ops-btn-primary">
+            Generate Portal Link
+          </button>
+        </form>
+      </div>
+
       {summary && (
         <div className="ops-card">
           <div className="ops-card-title">Case Summary</div>
