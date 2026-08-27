@@ -1866,12 +1866,16 @@ observability logic over data the platform already produces.
   `isSchedulerDown()` (heartbeat-timeout based, same shape as
   `queueMonitoring.ts`'s worker check). 8 new tests, full suite
   1149/1149 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-9 todo — AI monitoring + failure detection + quality
-  validation (doc 12 §23-25): request/success/failure/timeout/cost
-  tracking, the doc's named failure list (provider unavailable,
-  invalid JSON, missing fields, malformed response), and structured-
-  output validation -- a successful API response is never assumed to
-  mean valid AI output.
+- [x] P11-9 done — AI monitoring + failure detection + quality
+  validation (doc 12 §23-25): `aiMonitoring.ts` --
+  `computeAiRequestMetrics()` (success/failure/timeout rates),
+  `AI_FAILURE_TYPES` (the doc's 10-item named failure catalog),
+  `validateAiStructuredOutput()` (matches the doc's own
+  classification/confidence/reasoning_summary example; every missing
+  required field AND an out-of-[0,1]-range confidence are collected
+  into AI_OUTPUT_INVALID -- a successful API call is never assumed to
+  mean valid output). 6 new tests, full suite 1155/1155 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P11-10 todo — AI confidence + model-version + cost monitoring
   (doc 12 §26-28): confidence-distribution anomaly detection (average
   confidence drop flagged), per-model-version comparison, cost
@@ -2122,3 +2126,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-6] `stuckDetection.ts`: detectStuckWorkflow()/detectStuckCase() (reuse P10-24's evaluateWorkflowStaleness()), evaluateCaseSla(). 5 new tests, full suite 1131/1131 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-7 (Queue monitoring: backlog/starvation/stall + worker monitoring).
 - 2026-08-26 — [P11-7] `queueMonitoring.ts`: detectQueueBacklog() (reuses detectFailureSpike()), detectQueueStarvation(), detectQueueStall(), isWorkerResponsive()/countUnresponsiveWorkers(). 10 new tests, full suite 1141/1141 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-8 (Scheduler monitoring).
 - 2026-08-26 — [P11-8] `schedulerMonitoring.ts`: evaluateScheduledJobRun(), findDuplicateJobRuns(), isSchedulerDown(). 8 new tests, full suite 1149/1149 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-9 (AI monitoring + failure detection + quality validation).
+- 2026-08-26 — [P11-9] `aiMonitoring.ts`: computeAiRequestMetrics(), AI_FAILURE_TYPES, validateAiStructuredOutput(). 6 new tests, full suite 1155/1155 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-10 (AI confidence + model-version + cost monitoring).
