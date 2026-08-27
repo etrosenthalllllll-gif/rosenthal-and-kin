@@ -2222,11 +2222,13 @@ already produces.
   (average + median together, since median matters when skewed by a
   few large recoveries). 6 new tests, full suite 1327/1327 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-17 todo — Contribution margin + profit analytics (doc 13
-  §47-48): revenue minus variable costs (contribution margin, per-case
-  and percentage), and the full profit rollup (gross/net-contribution/
-  net-profit) -- never labeled "profit" without a clear cost
-  definition attached.
+- [x] P12-17 done — Contribution margin + profit analytics (doc 13
+  §47-48): `profitAnalytics.ts`: `computeContributionMargin()` (revenue
+  minus variable costs, cents + percentage), `computeProfitRollup()`
+  (gross profit / net contribution / net profit, each labeled with
+  exactly which costs were subtracted -- never a bare "profit"). 3 new
+  tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P12-18 todo — ROI analytics + acquisition/campaign ROI (doc 13
   §49-51): a configurable ROI formula (never hardcoded), broken out by
   source/campaign/workflow/jurisdiction/case-type/month, plus
@@ -2482,4 +2484,5 @@ already produces.
 - 2026-08-26 — [P12-13] `operatorHoursAnalytics.ts`: buildOperatorActionRecord(), summarizeLaborTime(), computeOperatorUtilization(). 6 new tests, full suite 1311/1311 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-14] `automationRateAnalytics.ts`: computeInterventionRateByStage(), computeAutomationRateReport(), computeInterventionReasonBreakdown(), isAutomationImproving(). 6 new tests, full suite 1317/1317 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-15] `automationValueAnalytics.ts`: computeHoursSaved(), computeAutomationValue(). 4 new tests, full suite 1321/1321 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-17 (Contribution margin + profit analytics).
+- 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-17] `profitAnalytics.ts`: computeContributionMargin(), computeProfitRollup(). 3 new tests, full suite 1330/1330 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-18 (ROI analytics + acquisition/campaign ROI).
