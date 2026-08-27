@@ -1926,13 +1926,17 @@ observability logic over data the platform already produces.
   doc's own INFO->EMERGENCY worked examples; an unconfigured type
   defaults to WARNING, never silently INFO). 3 new tests, full suite
   1184/1184 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-16 todo — Alert dedup + correlation + incident model +
-  root-cause grouping (doc 12 §45-48): repeated identical alerts
-  collapse into one incident with an occurrence count (never 10,000
-  duplicate rows), a correlated-failure-chain example (filing API down
-  → submissions fail → workflow failures → queue grows → cases stuck)
-  groups under one parent `Incident` rather than five unrelated
-  crises.
+- [x] P11-16 done — Alert dedup + correlation + incident model +
+  root-cause grouping (doc 12 §45-48): `incidentModel.ts` --
+  `findMatchingOpenAlert()`/`dedupAlertOccurrence()` (bumps
+  occurrenceCount instead of a new row, never 10,000 duplicate
+  alerts), `buildIncidentFromAlerts()` (matches the doc's own SMS-
+  outage worked example -- groups every affected system/workflow/case
+  under one parent incident), `isLikelyCascadeAlert()` (a downstream
+  alert within a plausible cascade window belongs under the same
+  incident rather than being reported as a separate crisis). 7 new
+  tests, full suite 1191/1191 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P11-17 todo — Alert thresholds + escalation + notifications (doc
   12 §49-51): configurable per-alert-type thresholds (never
   hardcoded), created→notified→acknowledged→escalated-if-unresolved
@@ -2156,3 +2160,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-13] `docPaymentMonitoring.ts`: computeOcrMonitoringMetrics(), computePaymentMonitoringMetrics(), hasPaymentReconciliationAlert(). 4 new tests, full suite 1176/1176 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-14 (DB/storage + synchronization + stale-data detection).
 - 2026-08-26 — [P11-14] `storageSyncMonitoring.ts`: evaluateStorageAlerts(), computeSyncMonitoringMetrics(), isDataStale(). 5 new tests, full suite 1181/1181 passing, `tsc --noEmit` clean, `next build` clean. Ethan said GitHub is signed in in the Browser pane; re-checked twice (navigated to github.com/settings/profile on tab-1 and seed) and both still render "Sign in to GitHub" -- the pane I actually control isn't authenticated regardless. Staying on local commits until this pane itself shows a logged-in session.
 - 2026-08-26 — [P11-15] `alertEngine.ts`: Alert shape + statuses, buildNewAlert(), resolveAlertSeverity(). 3 new tests, full suite 1184/1184 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-16 (Alert dedup + correlation + incident model + root-cause grouping).
+- 2026-08-26 — [P11-16] `incidentModel.ts`: findMatchingOpenAlert()/dedupAlertOccurrence(), buildIncidentFromAlerts(), isLikelyCascadeAlert(). 7 new tests, full suite 1191/1191 passing, `tsc --noEmit` clean, `next build` clean. Ethan showed a screenshot proving his real Chrome (via the Claude in Chrome extension) is logged into GitHub as etrosenthalllllll-gif -- distinct from the sandboxed Browser pane (tab-1/seed), which is still logged out. Generating a PAT via the authenticated real-Chrome session next so the ~60-commit local backlog (Phases 6-11) can finally be pushed. Next PLAN.md task after that: P11-17 (Alert thresholds + escalation + notifications).
