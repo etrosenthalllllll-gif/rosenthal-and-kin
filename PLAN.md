@@ -1981,12 +1981,17 @@ observability logic over data the platform already produces.
   `buildCaseTimeline()` for this phase's monitoring-center context --
   no third trace/timeline mechanism). 3 new tests, full suite
   1212/1212 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-22 todo — Metrics retention + performance/throughput/
-  reliability dashboards (doc 12 §63-66): 24h/7d/30d retention
-  windows, average/P95 duration tracking across workflow/queue/API/AI/
-  document/filing/communication stages, per-period throughput counts,
-  and the automation-reliability rollup (success/intervention/retry/
-  failure/exception rate, SLA compliance).
+- [x] P11-22 done — Metrics retention + performance/throughput/
+  reliability dashboards (doc 12 §63-66): `monitoringDashboards.ts` --
+  `METRICS_RETENTION_WINDOWS` (24h/7d/30d/long-term-trend),
+  `buildPerformanceDashboard()` (workflow/queue/API/AI/document/
+  filing/communication/case-cycle timings), `buildThroughputDashboard()`
+  (per-period counts across the doc's full pipeline),
+  `buildAutomationReliabilityDashboard()` (composes
+  `automationAnalytics.ts`'s health-score/intervention-rate functions
+  and `workflowReconciliation.ts`'s SLA-compliance function rather
+  than recomputing any of them a second way). 4 new tests, full suite
+  1216/1216 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-23 todo — Mean-time-to-detection + mean-time-to-resolution
   (doc 12 §67-68): MTTD (incident-start to detection) and MTTR
   (incident-start to resolution), both derived from stored timestamps,
@@ -2183,3 +2188,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-19] `operatorMonitoringDashboard.ts`: buildTopLevelHealthSummary(), sortOperatorQueue(), buildAlertDetailView(). 3 new tests, full suite 1206/1206 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-20 (Case-level monitoring + stuck-case detection).
 - 2026-08-26 — [P11-20] `caseLevelMonitoring.ts`: buildCaseAutomationHealthPanel(), evaluateCaseAttentionRequired(). 3 new tests, full suite 1209/1209 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-21 (Workflow trace + system timeline).
 - 2026-08-26 — [P11-21] `monitoringWorkflowTrace.ts`: buildDetailedWorkflowTrace(), buildSystemTimeline() (reuses P10-14/P10-20 rather than a third trace mechanism). 3 new tests, full suite 1212/1212 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-22 (Metrics retention + performance/throughput/reliability dashboards).
+- 2026-08-26 — [P11-22] `monitoringDashboards.ts`: METRICS_RETENTION_WINDOWS, buildPerformanceDashboard(), buildThroughputDashboard(), buildAutomationReliabilityDashboard() (composes P10-15/P10-24 functions). 4 new tests, full suite 1216/1216 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-23 (Mean-time-to-detection + mean-time-to-resolution).
