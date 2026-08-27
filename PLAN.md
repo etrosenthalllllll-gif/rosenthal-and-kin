@@ -2282,13 +2282,16 @@ already produces.
   <2 points), `computePipelineValue()` (potential/expected/committed/
   collected + total). 3 new tests, full suite 1362/1362 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P12-25 todo — Data quality + metric definitions + metric
-  versioning (doc 13 §69-71): analytics-specific data-quality checks
-  (missing timestamps/IDs, duplicate events, impossible transitions,
-  negative durations, missing cost/revenue, unreconciled payments,
-  inconsistent statuses), a central formal metric-definition registry,
-  and versioned metric definitions (a formula change is a new version,
-  never a silent redefinition).
+- [x] P12-25 done — Data quality + metric definitions + metric
+  versioning (doc 13 §69-71): `analyticsDataQuality.ts`:
+  `runAnalyticsDataQualityChecks()` (missing timestamps/IDs, duplicate
+  events, impossible transitions, negative durations, missing cost/
+  revenue, unreconciled payments, inconsistent statuses -- returns the
+  full issue list, never a bare boolean), `getMetricDefinition()`
+  (single central registry lookup), `reviseMetricDefinition()`
+  (increments version, never mutates the prior definition in place).
+  7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean,
+  `next build` clean.
 - [ ] P12-26 todo — Attribution + cost attribution + shared-cost
   allocation (doc 13 §72-75): lead→case→claim→recovery→revenue
   attribution tracking with an explicit ATTRIBUTION_UNCERTAIN flag
@@ -2512,4 +2515,5 @@ already produces.
 - 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-25 (Data quality + metric definitions + metric versioning).
+- 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-25] `analyticsDataQuality.ts`: runAnalyticsDataQualityChecks(), getMetricDefinition(), reviseMetricDefinition(). 7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-26 (Attribution + cost attribution + shared-cost allocation).
