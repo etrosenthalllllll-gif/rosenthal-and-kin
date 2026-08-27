@@ -1876,11 +1876,14 @@ observability logic over data the platform already produces.
   into AI_OUTPUT_INVALID -- a successful API call is never assumed to
   mean valid output). 6 new tests, full suite 1155/1155 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P11-10 todo — AI confidence + model-version + cost monitoring
-  (doc 12 §26-28): confidence-distribution anomaly detection (average
-  confidence drop flagged), per-model-version comparison, cost
-  tracking by request/case/workflow/model/day with configurable budget
-  alerts.
+- [x] P11-10 done — AI confidence + model-version + cost monitoring
+  (doc 12 §26-28): `aiConfidenceCostMonitoring.ts` --
+  `detectConfidenceAnomaly()` (matches the doc's own 92%->64% example),
+  `compareModelVersions()` (matches the doc's own v1 92%/v2 78%
+  example, highest-confidence first), `evaluateAiDailyCostAlert()`
+  (delegates straight to `automationLimits.ts`'s `evaluateCostLimit()`
+  rather than a second budget-comparison mechanism). 4 new tests, full
+  suite 1159/1159 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-11 todo — Email/SMS/voice monitoring + communication failure
   detection (doc 12 §29-33): per-channel queued/sent/delivered/failed/
   bounce/opt-out tracking, abnormal-bounce-rate and
@@ -2127,3 +2130,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-7] `queueMonitoring.ts`: detectQueueBacklog() (reuses detectFailureSpike()), detectQueueStarvation(), detectQueueStall(), isWorkerResponsive()/countUnresponsiveWorkers(). 10 new tests, full suite 1141/1141 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-8 (Scheduler monitoring).
 - 2026-08-26 — [P11-8] `schedulerMonitoring.ts`: evaluateScheduledJobRun(), findDuplicateJobRuns(), isSchedulerDown(). 8 new tests, full suite 1149/1149 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-9 (AI monitoring + failure detection + quality validation).
 - 2026-08-26 — [P11-9] `aiMonitoring.ts`: computeAiRequestMetrics(), AI_FAILURE_TYPES, validateAiStructuredOutput(). 6 new tests, full suite 1155/1155 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-10 (AI confidence + model-version + cost monitoring).
+- 2026-08-26 — [P11-10] `aiConfidenceCostMonitoring.ts`: detectConfidenceAnomaly(), compareModelVersions(), evaluateAiDailyCostAlert() (reuses automationLimits.ts's evaluateCostLimit()). 4 new tests, full suite 1159/1159 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-11 (Email/SMS/voice monitoring + communication failure detection).
