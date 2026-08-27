@@ -2121,11 +2121,14 @@ already produces.
   the doc's own "largest drop-off: qualified -> response" worked
   example format). 4 new tests, full suite 1273/1273 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P12-6 todo — Response-rate + channel analytics (doc 13 §10-13):
-  response rate by email/SMS/phone/campaign/source/jurisdiction/
-  template/day-time (never by a protected characteristic), full
-  per-channel funnels (sent/delivered/replied/positive/negative/
-  opt-out/qualified-response/case-conversion/revenue-attributed).
+- [x] P12-6 done — Response-rate + channel analytics (doc 13 §10-13):
+  `channelResponseAnalytics.ts` -- `ResponseRateDimension` (the doc's
+  own dimension list, deliberately excluding any demographic/protected-
+  characteristic dimension entirely rather than gating one),
+  `computeEmailChannelMetrics()`/`computeSmsChannelMetrics()`/
+  `computePhoneChannelMetrics()` (full per-channel funnels through to
+  revenue attributed). 4 new tests, full suite 1277/1277 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-7 todo — Outreach sequence + lead source analytics + source
   quality score (doc 13 §14-16): per-sequence and per-source
   performance tables (leads/qualified/responses/cases/claims/
@@ -2426,3 +2429,4 @@ already produces.
 - 2026-08-26 — [P12-3] `centralAnalyticsDashboard.ts`: buildMetricWithTrend(), buildCentralAnalyticsDashboard(). 5 new tests, full suite 1264/1264 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-4 (Lead funnel analytics + visualization).
 - 2026-08-26 — [P12-4] `leadFunnelAnalytics.ts`: FUNNEL_STAGES, buildFunnelReport(). 5 new tests, full suite 1269/1269 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-5 (Funnel conversion rates + drop-off analysis).
 - 2026-08-26 — [P12-5] `funnelConversionAnalysis.ts`: computeNamedFunnelConversionRates(), findLargestFunnelDropOff()/buildFunnelDropOffReport(). 4 new tests, full suite 1273/1273 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-6 (Response-rate + channel analytics).
+- 2026-08-26 — [P12-6] `channelResponseAnalytics.ts`: computeResponseRatePercent(), computeEmailChannelMetrics()/computeSmsChannelMetrics()/computePhoneChannelMetrics(). 4 new tests, full suite 1277/1277 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-7 (Outreach sequence + lead source analytics + source quality score).
