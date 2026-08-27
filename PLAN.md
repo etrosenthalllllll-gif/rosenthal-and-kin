@@ -1902,9 +1902,14 @@ observability logic over data the platform already produces.
   re-export of `crossSystemSync.ts`'s `detectSyncException()` rather
   than a new mechanism). 6 new tests, full suite 1172/1172 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-13 todo — Document/OCR + payment monitoring (doc 12 §37-38):
-  OCR processing time/failure/backlog tracking, payment attempt/
-  success/failure/reconciliation-discrepancy tracking.
+- [x] P11-13 done — Document/OCR + payment monitoring (doc 12
+  §37-38): `docPaymentMonitoring.ts` -- `computeOcrMonitoringMetrics()`
+  (combined OCR/classification/extraction failure rate),
+  `computePaymentMonitoringMetrics()` (success/reconciliation-failure
+  rates), `hasPaymentReconciliationAlert()` (any reconciliation
+  failure at all alerts -- financial integrity never waits for a
+  percentage threshold). 4 new tests, full suite 1176/1176 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-14 todo — DB/storage + synchronization + stale-data
   detection (doc 12 §39-41): storage utilization/backup-health
   tracking, cross-system sync attempt/conflict tracking, and
@@ -2141,3 +2146,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-10] `aiConfidenceCostMonitoring.ts`: detectConfidenceAnomaly(), compareModelVersions(), evaluateAiDailyCostAlert() (reuses automationLimits.ts's evaluateCostLimit()). 4 new tests, full suite 1159/1159 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-11 (Email/SMS/voice monitoring + communication failure detection).
 - 2026-08-26 — [P11-11] `communicationMonitoring.ts`: computeEmailMetrics()/computeSmsMetrics()/computeVoiceMetrics(), detectAbnormalBounceRate(), evaluateCommunicationFailureSeverity(), detectRepeatedProviderFailure(). 7 new tests, full suite 1166/1166 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-12 (Filing integration monitoring + failure alerts + status reconciliation).
 - 2026-08-26 — [P11-12] `filingMonitoring.ts`: computeFilingProviderMetrics(), detectNoStatusUpdateAlert(), detectFilingSyncException (re-export of crossSystemSync's detectSyncException). 6 new tests, full suite 1172/1172 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-13 (Document/OCR + payment monitoring).
+- 2026-08-26 — [P11-13] `docPaymentMonitoring.ts`: computeOcrMonitoringMetrics(), computePaymentMonitoringMetrics(), hasPaymentReconciliationAlert(). 4 new tests, full suite 1176/1176 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-14 (DB/storage + synchronization + stale-data detection).
