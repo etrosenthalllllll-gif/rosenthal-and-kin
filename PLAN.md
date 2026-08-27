@@ -2301,13 +2301,17 @@ already produces.
   -- EXCLUDED always zeroes out rather than silently equal-splitting).
   8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean,
   `next build` clean.
-- [ ] P12-27 todo — Scenario modeling + automation-ROI model + scale
-  analysis + bottleneck/marginal economics (doc 13 §76-81): a
-  configurable-assumption scenario calculator explicitly labeled
-  SCENARIO/MODEL (never actual results), manual-vs-automated model
-  comparison, volume-scaling estimates, bottleneck/operator-bottleneck
-  detection (capacity vs. demand vs. backlog), and marginal-economics
-  estimation for one additional lead/case/claim/recovery.
+- [x] P12-27 done — Scenario modeling + automation-ROI model + scale
+  analysis + bottleneck/marginal economics (doc 13 §76-81):
+  `scenarioModelingAnalytics.ts`: `buildScenarioModel()` (generic
+  wrapper, `isScenario: true` as a literal type -- never presented as
+  an actual result), `compareManualVsAutomated()`, `estimateAtScale()`
+  (labeled `isEstimate: true`), `evaluateOperatorBottleneck()`
+  (bottlenecked when demand exceeds capacity OR a backlog already
+  exists, not just a utilization threshold), `estimateMarginalEconomics()`
+  (incremental revenue/cost/profit for one additional unit). 8 new
+  tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P12-28 todo — Dashboard filters + drill-down + exports +
   reporting + data freshness (doc 13 §82-87): a shared filter-
   dimension list, the drill-down chain from an aggregate number down
@@ -2520,4 +2524,5 @@ already produces.
 - 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-25] `analyticsDataQuality.ts`: runAnalyticsDataQualityChecks(), getMetricDefinition(), reviseMetricDefinition(). 7 new tests, full suite 1369/1369 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-26] `attributionAnalytics.ts`: buildAttributionChain(), assignCostToObject(), allocateSharedCost(). 8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-27 (Scenario modeling + automation-ROI model + scale analysis + bottleneck/marginal economics).
+- 2026-08-26 — [P12-26] `attributionAnalytics.ts`: buildAttributionChain(), assignCostToObject(), allocateSharedCost(). 8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-27] `scenarioModelingAnalytics.ts`: buildScenarioModel(), compareManualVsAutomated(), estimateAtScale(), evaluateOperatorBottleneck(), estimateMarginalEconomics(). 8 new tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-28 (Dashboard filters + drill-down + exports + reporting + data freshness).
