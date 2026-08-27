@@ -1992,10 +1992,13 @@ observability logic over data the platform already produces.
   and `workflowReconciliation.ts`'s SLA-compliance function rather
   than recomputing any of them a second way). 4 new tests, full suite
   1216/1216 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-23 todo — Mean-time-to-detection + mean-time-to-resolution
-  (doc 12 §67-68): MTTD (incident-start to detection) and MTTR
-  (incident-start to resolution), both derived from stored timestamps,
-  never estimated.
+- [x] P11-23 done — Mean-time-to-detection + mean-time-to-resolution
+  (doc 12 §67-68): `incidentTimingMetrics.ts` -- `computeDetectionTimeMs()`
+  (matches the doc's own 10:00->10:02 = 2-minute example),
+  `computeResolutionTimeMs()` (matches the doc's own 10:00->10:45 =
+  45-minute example), `computeMeanTimeMs()` (null, not zero, for an
+  empty batch). 4 new tests, full suite 1220/1220 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P11-24 todo — Alert fatigue protection + automated remediation
   (doc 12 §69-74): debounce/cooldown-gated alerting (one failure ≠
   alert; sustained failure escalates), a config-table of safe
@@ -2189,3 +2192,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-20] `caseLevelMonitoring.ts`: buildCaseAutomationHealthPanel(), evaluateCaseAttentionRequired(). 3 new tests, full suite 1209/1209 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-21 (Workflow trace + system timeline).
 - 2026-08-26 — [P11-21] `monitoringWorkflowTrace.ts`: buildDetailedWorkflowTrace(), buildSystemTimeline() (reuses P10-14/P10-20 rather than a third trace mechanism). 3 new tests, full suite 1212/1212 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-22 (Metrics retention + performance/throughput/reliability dashboards).
 - 2026-08-26 — [P11-22] `monitoringDashboards.ts`: METRICS_RETENTION_WINDOWS, buildPerformanceDashboard(), buildThroughputDashboard(), buildAutomationReliabilityDashboard() (composes P10-15/P10-24 functions). 4 new tests, full suite 1216/1216 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-23 (Mean-time-to-detection + mean-time-to-resolution).
+- 2026-08-26 — [P11-23] `incidentTimingMetrics.ts`: computeDetectionTimeMs(), computeResolutionTimeMs(), computeMeanTimeMs(). 4 new tests, full suite 1220/1220 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-24 (Alert fatigue protection + automated remediation).
