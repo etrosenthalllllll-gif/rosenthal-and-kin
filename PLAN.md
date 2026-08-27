@@ -2213,11 +2213,15 @@ already produces.
   additional cases − automation cost, with assumptions carried through
   the result rather than discarded). 4 new tests, full suite
   1321/1321 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-16 todo — Throughput + system capacity + revenue-per-hour/
-  case (doc 13 §43-46): per-period throughput across the full
-  pipeline, current-capacity/queue/bottleneck estimate, revenue and
-  gross-profit per operator hour, average/median revenue-cost-profit
-  per case.
+- [x] P12-16 done — Throughput + system capacity + revenue-per-hour/
+  case (doc 13 §43-46): `throughputCapacityAnalytics.ts`:
+  `buildThroughputReport()` (per-period pipeline counts),
+  `computeCapacityReport()` (per-stage utilization + bottleneck stage
+  = highest utilization + system capacity bounded by the narrowest
+  stage), `computeRevenuePerOperatorHour()`, `computePerCaseFinancialStats()`
+  (average + median together, since median matters when skewed by a
+  few large recoveries). 6 new tests, full suite 1327/1327 passing,
+  `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-17 todo — Contribution margin + profit analytics (doc 13
   §47-48): revenue minus variable costs (contribution margin, per-case
   and percentage), and the full profit rollup (gross/net-contribution/
@@ -2477,4 +2481,5 @@ already produces.
 - 2026-08-26 — [P12-12] `channelCostAnalytics.ts`: groupAiSpendBy()/computeRevenueGeneratedPerAiCent(), communication + filing cost totals/per-unit functions (reuse computeCostPerUnit). 7 new tests, full suite 1305/1305 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-13 (Operator-hours tracking + action tracking + labor estimate/actual distinction + utilization).
 - 2026-08-26 — [P12-13] `operatorHoursAnalytics.ts`: buildOperatorActionRecord(), summarizeLaborTime(), computeOperatorUtilization(). 6 new tests, full suite 1311/1311 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-14] `automationRateAnalytics.ts`: computeInterventionRateByStage(), computeAutomationRateReport(), computeInterventionReasonBreakdown(), isAutomationImproving(). 6 new tests, full suite 1317/1317 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-15] `automationValueAnalytics.ts`: computeHoursSaved(), computeAutomationValue(). 4 new tests, full suite 1321/1321 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-16 (Throughput + system capacity + revenue-per-hour/case).
+- 2026-08-26 — [P12-15] `automationValueAnalytics.ts`: computeHoursSaved(), computeAutomationValue(). 4 new tests, full suite 1321/1321 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-16] `throughputCapacityAnalytics.ts`: buildThroughputReport(), computeCapacityReport(), computeRevenuePerOperatorHour(), computePerCaseFinancialStats(). 6 new tests, full suite 1327/1327 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-17 (Contribution margin + profit analytics).
