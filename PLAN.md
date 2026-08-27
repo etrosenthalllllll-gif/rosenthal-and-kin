@@ -2012,11 +2012,15 @@ observability logic over data the platform already produces.
   doc's own max-3-restarts/hour example, escalates to a human rather
   than looping forever). 8 new tests, full suite 1228/1228 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-25 todo — Dependency graph + blast-radius + system-wide
-  alert grouping (doc 12 §75-77): a declared workflow→system
-  dependency map, blast-radius calculation (which workflows/queues/
-  cases a failed component could affect), and one system-wide incident
-  instead of one alert per affected case.
+- [x] P11-25 done — Dependency graph + blast-radius + system-wide
+  alert grouping (doc 12 §75-77): `dependencyGraph.ts` --
+  `findDependentWorkflows()` (matches the doc's own Filing-API-down
+  example, reverse lookup), `computeBlastRadius()` (matches the doc's
+  own "filing provider outage affects N cases" example),
+  `shouldRaiseSystemWideIncident()`/`buildSystemWideAlertSummary()`
+  (one system-wide incident once the blast radius crosses threshold,
+  never one alert per affected case). 6 new tests, full suite
+  1234/1234 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-26 todo — Monitoring API + permissions + security monitoring
   (doc 12 §78-80): authenticated/authorized monitoring endpoints
   (health/metrics/alerts/incidents), role-scoped permissions
@@ -2200,3 +2204,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-22] `monitoringDashboards.ts`: METRICS_RETENTION_WINDOWS, buildPerformanceDashboard(), buildThroughputDashboard(), buildAutomationReliabilityDashboard() (composes P10-15/P10-24 functions). 4 new tests, full suite 1216/1216 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-23 (Mean-time-to-detection + mean-time-to-resolution).
 - 2026-08-26 — [P11-23] `incidentTimingMetrics.ts`: computeDetectionTimeMs(), computeResolutionTimeMs(), computeMeanTimeMs(). 4 new tests, full suite 1220/1220 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-24 (Alert fatigue protection + automated remediation).
 - 2026-08-26 — [P11-24] `alertFatigueRemediation.ts`: evaluateDebouncedSeverity(), planAutomatedRemediation() (gated through orchestrationRisk.ts's risk table), buildRemediationLogEntry(), evaluateRemediationLoopProtection(). 8 new tests, full suite 1228/1228 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-25 (Dependency graph + blast-radius + system-wide alert grouping).
+- 2026-08-26 — [P11-25] `dependencyGraph.ts`: findDependentWorkflows(), computeBlastRadius(), shouldRaiseSystemWideIncident()/buildSystemWideAlertSummary(). Fixed a real tsc error caught in the test file (`.sort()` on a readonly array) before committing. 6 new tests, full suite 1234/1234 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-26 (Monitoring API + permissions + security monitoring).
