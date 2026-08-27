@@ -2021,13 +2021,18 @@ observability logic over data the platform already produces.
   (one system-wide incident once the blast radius crosses threshold,
   never one alert per affected case). 6 new tests, full suite
   1234/1234 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-26 todo — Monitoring API + permissions + security monitoring
-  (doc 12 §78-80): authenticated/authorized monitoring endpoints
-  (health/metrics/alerts/incidents), role-scoped permissions
-  (operator/manager/administrator, extending `auth.ts`'s existing
-  `Permission` union rather than a parallel system), and
-  security-relevant event monitoring (repeated auth failures,
-  unauthorized requests) integrated with the existing audit trail.
+- [x] P11-26 done — Monitoring API + permissions + security monitoring
+  (doc 12 §78-80): extended `auth.ts`'s `Permission` union with
+  `VIEW_MONITORING`/`CONFIGURE_MONITORING`/`EXECUTE_REMEDIATION`/
+  `SUPPRESS_ALERTS`/`RESOLVE_INCIDENTS` (OPERATOR gets view-only,
+  REVIEWER -- the doc's "Manager" tier -- gets view+resolve, ADMIN
+  gets everything, matching doc 12 §79's three-tier example exactly);
+  `monitoringSecurity.ts`'s `canAccessMonitoringApi()` (every
+  monitoring API resource gated by a real permission check, backend-
+  enforced), `detectRepeatedFailurePattern()`, `buildSecurityEventAuditEntry()`
+  (maps onto `audit.ts`'s existing shape, same reuse discipline as
+  `financialAudit.ts`/`automationAudit.ts`). 6 new tests, full suite
+  1240/1240 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-27 todo — Logging strategy: structured logs + correlation
   IDs + error codes (doc 12 §81-84): a structured log-entry shape
   (timestamp/service/severity/case/workflow/execution/request/
@@ -2205,3 +2210,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-23] `incidentTimingMetrics.ts`: computeDetectionTimeMs(), computeResolutionTimeMs(), computeMeanTimeMs(). 4 new tests, full suite 1220/1220 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-24 (Alert fatigue protection + automated remediation).
 - 2026-08-26 — [P11-24] `alertFatigueRemediation.ts`: evaluateDebouncedSeverity(), planAutomatedRemediation() (gated through orchestrationRisk.ts's risk table), buildRemediationLogEntry(), evaluateRemediationLoopProtection(). 8 new tests, full suite 1228/1228 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-25 (Dependency graph + blast-radius + system-wide alert grouping).
 - 2026-08-26 — [P11-25] `dependencyGraph.ts`: findDependentWorkflows(), computeBlastRadius(), shouldRaiseSystemWideIncident()/buildSystemWideAlertSummary(). Fixed a real tsc error caught in the test file (`.sort()` on a readonly array) before committing. 6 new tests, full suite 1234/1234 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-26 (Monitoring API + permissions + security monitoring).
+- 2026-08-26 — [P11-26] Extended auth.ts's Permission union with 5 monitoring permissions across ADMIN/OPERATOR/REVIEWER; `monitoringSecurity.ts`: canAccessMonitoringApi(), detectRepeatedFailurePattern(), buildSecurityEventAuditEntry(). 6 new tests, full suite 1240/1240 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-27 (Logging strategy: structured logs + correlation IDs + error codes).

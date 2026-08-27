@@ -54,7 +54,20 @@ export type Permission =
   | "REFUND_PAYMENT"
   | "CLOSE_FINANCIAL_CASE"
   | "REOPEN_FINANCIAL_CASE"
-  | "ESCALATE_FINANCIAL_EXCEPTION";
+  | "ESCALATE_FINANCIAL_EXCEPTION"
+  // doc 12 section 79's own monitoring-permission examples ("Operator:
+  // view alerts related to assigned work. Manager: view system health
+  // and incidents. Administrator: configure thresholds and
+  // remediation. Only authorized users can: suppress alerts, change
+  // thresholds, disable monitoring, execute remediation, resolve
+  // incidents.") -- this codebase doesn't have a separate "Manager"
+  // role, so REVIEWER (the existing higher-trust non-admin role) is
+  // the closest fit for that tier.
+  | "VIEW_MONITORING"
+  | "CONFIGURE_MONITORING"
+  | "EXECUTE_REMEDIATION"
+  | "SUPPRESS_ALERTS"
+  | "RESOLVE_INCIDENTS";
 
 // Explicit allow-list per role. A role not listed for a permission is
 // denied by default — this is deliberately fail-closed, matching doc 01's
@@ -85,6 +98,11 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "CLOSE_FINANCIAL_CASE",
     "REOPEN_FINANCIAL_CASE",
     "ESCALATE_FINANCIAL_EXCEPTION",
+    "VIEW_MONITORING",
+    "CONFIGURE_MONITORING",
+    "EXECUTE_REMEDIATION",
+    "SUPPRESS_ALERTS",
+    "RESOLVE_INCIDENTS",
   ]),
   OPERATOR: new Set([
     "VIEW_CASES",
@@ -99,6 +117,9 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "CREATE_INVOICE",
     "RECORD_PAYMENT",
     "ESCALATE_FINANCIAL_EXCEPTION",
+    // doc 12 §79's Operator tier: view only, no configure/suppress/
+    // remediate/resolve authority.
+    "VIEW_MONITORING",
   ]),
   REVIEWER: new Set([
     "VIEW_CASES",
@@ -117,6 +138,11 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "CLOSE_FINANCIAL_CASE",
     "REOPEN_FINANCIAL_CASE",
     "ESCALATE_FINANCIAL_EXCEPTION",
+    // doc 12 §79's Manager tier: view system health/incidents and
+    // resolve them, but not configure thresholds or execute remediation
+    // (Administrator-only per the doc).
+    "VIEW_MONITORING",
+    "RESOLVE_INCIDENTS",
   ]),
   READ_ONLY: new Set(["VIEW_CASES", "VIEW_DOCUMENTS"]),
 };
