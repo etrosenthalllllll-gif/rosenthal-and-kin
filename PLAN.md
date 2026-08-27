@@ -2325,23 +2325,42 @@ already produces.
   tests, full suite 1392/1392 passing, `tsc --noEmit` clean, `next
   build` clean (one transient Windows build-worker crash on the first
   attempt, confirmed as such by an immediate clean re-run).
-- [ ] P12-29 todo — Security + auditability + data-quality testing +
-  reconciliation + edge cases (doc 13 §88-92): analytics permission
-  gating (reusing `auth.ts`, no parallel authorization system),
-  drillable-to-source-records auditability, an
-  ANALYTICS_RECONCILIATION_ERROR check comparing analytics totals
-  against the transactional system, and the doc's own edge-case list
-  (duplicate leads, merged/reopened cases, cancelled/resubmitted
-  claims, partial recoveries, refunds/chargebacks, transferred/shared
-  cases, late-arriving events).
-- [ ] P12-30 todo — Final executive view assembly + end-to-end
-  analytics test (doc 13 §93-97): the doc's own final one-page
-  executive-view assembly (how much entering/converting/recovered/
-  generated/costing/human-hours/intervention-rate/best-source/best-
-  workflow/scaling/automation-improving/ROI), plus one integration
-  test walking a realistic lead-to-recovery scenario through the
-  funnel, cost, revenue, ROI, and attribution modules built in this
-  phase and confirming every number ties back to its source records.
+- [x] P12-29 done — Security + auditability + data-quality testing +
+  reconciliation + edge cases (doc 13 §88-92): `analyticsAccessControl.ts`
+  -- `authorizeAnalyticsAccess()` (reuses `auth.ts`'s `hasPermission()`,
+  no parallel authorization system; GENERAL/FINANCIAL/CASE_LEVEL scopes
+  mapped to VIEW_CASES/VIEW_FINANCIAL_DATA/VIEW_DOCUMENTS),
+  `verifyMetricAuditTrail()` (doc's own Revenue-drillable-to-Transactions/
+  Cases/Payments/Invoices/Recovery-records example -- only `isTraceable`
+  when underlying payment records actually sum to the claimed value).
+  `analyticsReconciliation.ts` -- `evaluateAnalyticsReconciliation()`
+  (doc's own worked example, any nonzero delta is
+  ANALYTICS_RECONCILIATION_ERROR), plus one function per doc's own
+  edge-case list: canonical-id resolution for duplicate leads/merged
+  cases, reopened-case funnel exclusion, filing-outcome success
+  classification, resubmission exclusion, partial-recovery summation,
+  net-revenue-after-refunds/chargebacks/reversals, proportional
+  multi-operator/shared-case attribution, archived/deleted dashboard
+  exclusion, late-arriving-event historical-period revision. 28 new
+  tests, full suite 1420/1420 passing, `tsc --noEmit` clean, `next
+  build` clean.
+- [x] P12-30 done — Final executive view assembly + end-to-end
+  analytics test (doc 13 §93-97): `finalExecutiveView.ts` --
+  `buildFinalExecutiveView()` assembles the doc's own 13-question
+  one-page view verbatim (entering/converting/recovered/generated/
+  cost-per-case/human-hours/intervention-rate/recovery-speed/best-
+  source/best-workflow/scaling/automation-improving/ROI), each answer
+  paired from figures already computed elsewhere in this phase --
+  assembly-only; an unanswerable question surfaces as null, never
+  dropped. `analyticsEndToEnd.test.ts` -- one realistic lead-to-
+  recovery scenario walked through the funnel, cost, revenue, ROI, and
+  attribution modules built across this phase, confirming every
+  downstream number is internally consistent and traces back to its
+  source records via P12-29's audit-trail/reconciliation checks, plus
+  a negative case confirming an inconsistent scenario is flagged, not
+  silently reported. 6 new tests, full suite 1424/1424 passing, `tsc
+  --noEmit` clean, `next build` clean. **Phase 12 (Analytics &
+  Business Intelligence, doc 13) is complete -- all 30 tasks done.**
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -2532,3 +2551,7 @@ already produces.
 - 2026-08-26 — [P12-26] `attributionAnalytics.ts`: buildAttributionChain(), assignCostToObject(), allocateSharedCost(). 8 new tests, full suite 1377/1377 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-27] `scenarioModelingAnalytics.ts`: buildScenarioModel(), compareManualVsAutomated(), estimateAtScale(), evaluateOperatorBottleneck(), estimateMarginalEconomics(). 8 new tests, full suite 1385/1385 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-28] `dashboardOperations.ts`: buildDrillDown(), authorizeExport(), renderScheduledReport(), evaluateDataFreshness() (extends auth.ts's Permission union with EXPORT_ANALYTICS_DATA). 7 new tests, full suite 1392/1392 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-29 (Security + auditability + data-quality testing + reconciliation + edge cases).
+- 2026-08-26 — Session resumed on a new machine after the prior session's host went offline mid-P12-29 (Remote Control disconnect, not a code issue). Cloned the repo fresh from GitHub, found local baseline exactly matching PLAN.md (1392/1392 tests, `tsc`/`next build` clean) -- confirmed nothing was lost. Portable Node v20.16.0 from the prior session's install (`~/.local/node-portable`) reused rather than reinstalled.
+- 2026-08-26 — **Found and fixed a real regression**: commit `1a7f14e` (P12-21) had accidentally deleted `index.html` and `CNAME` (the live rosenthalandkin.com marketing site) along with `app/.env.example`, `app/README.md`, and `app/scripts/run-tracker-import.mjs`, bundled into what should have been an unrelated analytics commit -- caught only because Ethan noticed the live site was down. Restored all 5 files verbatim from the commit immediately before the deletion (`1a7f14e~1`), verified against a locally-downloaded copy of the site first to confirm the git-history version was the more current one (it included later Formspree-integration and headline-tightening commits the local download predated). Pushed immediately as its own isolated commit via a single-use fine-grained PAT (generated via Chrome on github.com, sudo-email-code fetched directly from Gmail via the Gmail MCP connector, used once, revoked immediately after) -- same single-use-credential discipline as every prior session's push. Flagged a second, unrelated leftover unused token (`claude-session-push`) found in the same settings page for Ethan to decide on rather than deleting unilaterally.
+- 2026-08-26 — [P12-29] `analyticsAccessControl.ts` (authorizeAnalyticsAccess(), verifyMetricAuditTrail()) + `analyticsReconciliation.ts` (evaluateAnalyticsReconciliation() + the doc's own edge-case list as one function each). 28 new tests, full suite 1420/1420 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-30] `finalExecutiveView.ts` (buildFinalExecutiveView(), the doc's own 13-question final view) + `analyticsEndToEnd.test.ts` (one lead-to-recovery scenario walked through funnel/cost/revenue/ROI/attribution, confirming every number ties back to source records). 6 new tests, full suite 1424/1424 passing, `tsc --noEmit` clean, `next build` clean. **Phase 12 is complete.** No Phase 13+ exists in this plan -- docs 14/15/16 (the deferred "layer" specs) remain explicitly deferred per their own sequencing note (nothing to observe/optimize until a real case has closed); next session should either action those (with an explicit override, same pattern as Phase 2's legal-research override) or treat the build as feature-complete pending a first live case.
