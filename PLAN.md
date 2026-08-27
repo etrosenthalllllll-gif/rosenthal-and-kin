@@ -2044,17 +2044,26 @@ observability logic over data the platform already produces.
   FILING_001/QUEUE_001/SYNC_001 examples, config-table, unmapped code
   returns undefined rather than a guessed message). 4 new tests, full
   suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-28 todo — Final Monitoring Center assembly + end-to-end
-  incident test (doc 12 §85-91): the finished MONITORING CENTER
-  dashboard shape (system health / active incidents / attention-
-  required / queues / system metrics, per the doc's own mockup), plus
-  one integration test walking the doc's own end-to-end incident
-  scenario (provider begins failing → errors increase → retries →
-  queue grows → cases stuck → monitoring detects → incident created →
-  alerts grouped → provider marked DEGRADED → circuit breaker opens →
-  workflows paused → operator alerted → provider recovers → circuit
-  closes → workflows resume → incident resolved) across the modules
-  built in this phase.
+- [x] P11-28 done — Final Monitoring Center assembly + end-to-end
+  incident test (doc 12 §85-91): `monitoringCenter.ts` --
+  `buildMonitoringCenterView()` (the doc's own final mockup shape:
+  system health / active incidents / attention-required / queues /
+  system metrics, assembly-only, no new logic); `monitoringEndToEnd.test.ts`
+  -- one integration test wiring real functions from every module
+  built this phase (apiMonitoring, healthStatus, queueMonitoring,
+  stuckDetection, alertEngine, incidentModel, providerCircuitBreaker,
+  dependencyGraph, alertOperatorActions, incidentTimingMetrics,
+  monitoringWorkflowTrace), walking the doc's own end-to-end incident
+  scenario: provider fails → errors increase → circuit breaker opens →
+  queue backlog → stuck case → health DOWN → incident created (dedup +
+  blast radius + system-wide grouping) → operator investigates →
+  provider recovers → circuit closes → incident resolved → complete
+  timeline available. 2 new tests, full suite 1246/1246 passing, `tsc
+  --noEmit` clean, `next build` clean.
+
+  **All of Phase 11 (P11-1 through P11-28) is now done.** No
+  credential-blocked tasks this phase -- pure internal observability
+  logic over data the platform already produces.
 
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
@@ -2215,3 +2224,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-25] `dependencyGraph.ts`: findDependentWorkflows(), computeBlastRadius(), shouldRaiseSystemWideIncident()/buildSystemWideAlertSummary(). Fixed a real tsc error caught in the test file (`.sort()` on a readonly array) before committing. 6 new tests, full suite 1234/1234 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-26 (Monitoring API + permissions + security monitoring).
 - 2026-08-26 — [P11-26] Extended auth.ts's Permission union with 5 monitoring permissions across ADMIN/OPERATOR/REVIEWER; `monitoringSecurity.ts`: canAccessMonitoringApi(), detectRepeatedFailurePattern(), buildSecurityEventAuditEntry(). 6 new tests, full suite 1240/1240 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-27 (Logging strategy: structured logs + correlation IDs + error codes).
 - 2026-08-26 — [P11-27] `loggingStrategy.ts`: buildStructuredLogEntry(), re-exported attachCorrelationId() from P10-20, ERROR_CODE_CATALOG/explainErrorCode(). 4 new tests, full suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-28 (Final Monitoring Center assembly + end-to-end incident test) -- the last task in Phase 11.
+- 2026-08-26 — [P11-28] `monitoringCenter.ts`: buildMonitoringCenterView() (assembly-only); `monitoringEndToEnd.test.ts`: one integration test walking doc 12's own end-to-end incident scenario across every Phase 11 module. 2 new tests, full suite 1246/1246 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 11 (P11-1 through P11-28) is now done -- no credential blockers this phase.** Pushed continuously to GitHub throughout this phase (each task committed and pushed individually) now that the token issue is resolved. Next: decide whether to start Phase 12 (doc 13, Analytics) or pause.
