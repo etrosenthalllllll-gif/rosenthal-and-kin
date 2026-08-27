@@ -2112,9 +2112,15 @@ already produces.
   preceding stage; counts always come from the caller, never invented
   or estimated). 5 new tests, full suite 1269/1269 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P12-5 todo — Funnel conversion rates + drop-off analysis (doc 13
-  §8-9): every stage-to-stage conversion rate, and automatic
-  identification of the single largest drop-off point.
+- [x] P12-5 done — Funnel conversion rates + drop-off analysis (doc 13
+  §8-9): `funnelConversionAnalysis.ts` -- `computeNamedFunnelConversionRates()`
+  (the doc's own named rates -- qualification/outreach/response/
+  verification/case-conversion/filing/recovery/overall-lead-to-
+  recovery -- each mapped to its exact stage pair),
+  `findLargestFunnelDropOff()`/`buildFunnelDropOffReport()` (matches
+  the doc's own "largest drop-off: qualified -> response" worked
+  example format). 4 new tests, full suite 1273/1273 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P12-6 todo — Response-rate + channel analytics (doc 13 §10-13):
   response rate by email/SMS/phone/campaign/source/jurisdiction/
   template/day-time (never by a protected characteristic), full
@@ -2419,3 +2425,4 @@ already produces.
 - 2026-08-26 — [P12-2] `timeDimensions.ts`: resolveTimeWindow(), resolveComparisonWindow(), computePercentChange(). 10 new tests, full suite 1259/1259 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-3 (Central analytics dashboard assembly).
 - 2026-08-26 — [P12-3] `centralAnalyticsDashboard.ts`: buildMetricWithTrend(), buildCentralAnalyticsDashboard(). 5 new tests, full suite 1264/1264 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-4 (Lead funnel analytics + visualization).
 - 2026-08-26 — [P12-4] `leadFunnelAnalytics.ts`: FUNNEL_STAGES, buildFunnelReport(). 5 new tests, full suite 1269/1269 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-5 (Funnel conversion rates + drop-off analysis).
+- 2026-08-26 — [P12-5] `funnelConversionAnalysis.ts`: computeNamedFunnelConversionRates(), findLargestFunnelDropOff()/buildFunnelDropOffReport(). 4 new tests, full suite 1273/1273 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-6 (Response-rate + channel analytics).
