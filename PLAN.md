@@ -1967,11 +1967,12 @@ observability logic over data the platform already produces.
   related-alerts/likely-root-cause/recommended-action). 3 new tests,
   full suite 1206/1206 passing, `tsc --noEmit` clean, `next build`
   clean.
-- [ ] P11-20 todo — Case-level monitoring + stuck-case detection (doc
-  12 §59-60): per-case automation-health panel (current workflow/step/
-  last success/failure/pending approval/SLA status), and the
-  CASE_ATTENTION_REQUIRED trigger list (no state change, waiting too
-  long, missing document, missed scheduled action, etc.).
+- [x] P11-20 done — Case-level monitoring + stuck-case detection (doc
+  12 §59-60): `caseLevelMonitoring.ts` -- `buildCaseAutomationHealthPanel()`
+  (all of the doc's own per-case fields), `evaluateCaseAttentionRequired()`
+  (the doc's 7-trigger CASE_ATTENTION_REQUIRED list, config-table
+  style, every fired trigger collected). 3 new tests, full suite
+  1209/1209 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-21 todo — Workflow trace + system timeline (doc 12 §61-62):
   extends P10-14's `buildWorkflowTrace()`/`buildCaseTimeline()` with
   the trigger→workflow→step→API→result→retry→next-step shape and a
@@ -2177,3 +2178,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — GitHub push unblocked: Ethan completed the sudo email-verification step himself in the real-Chrome session; I generated a fine-grained PAT (`claude-session-push`, Contents: read/write, scoped to rosenthal-and-kin) via Claude-in-Chrome, then pushed with it directly (one-off Authorization header, never persisted to git config). Pushed 105 queued commits (Phases 6-11 through P11-17) to origin/main -- fast-forward, no conflicts. Noted the remote had already moved forward from a separate process's earlier push (988bf28), confirming that other automation is live; it was an ancestor of local history so the push was still a clean fast-forward.
 - 2026-08-26 — [P11-18] `alertOperatorActions.ts`: applyOperatorAlertAction(), requestAlertSuppression(), isExpectedDowntime(). 7 new tests, full suite 1203/1203 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-19 (Operator dashboard assembly: health summary + prioritized queue + alert detail).
 - 2026-08-26 — [P11-19] `operatorMonitoringDashboard.ts`: buildTopLevelHealthSummary(), sortOperatorQueue(), buildAlertDetailView(). 3 new tests, full suite 1206/1206 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-20 (Case-level monitoring + stuck-case detection).
+- 2026-08-26 — [P11-20] `caseLevelMonitoring.ts`: buildCaseAutomationHealthPanel(), evaluateCaseAttentionRequired(). 3 new tests, full suite 1209/1209 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-21 (Workflow trace + system timeline).
