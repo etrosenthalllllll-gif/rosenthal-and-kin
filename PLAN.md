@@ -1859,8 +1859,13 @@ observability logic over data the platform already produces.
   `isWorkerResponsive()`/`countUnresponsiveWorkers()` (heartbeat-
   timeout based). 10 new tests, full suite 1141/1141 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P11-8 todo — Scheduler monitoring (doc 12 §22): missed/delayed/
-  duplicate scheduled-job detection against expected run times.
+- [x] P11-8 done — Scheduler monitoring (doc 12 §22):
+  `schedulerMonitoring.ts` -- `evaluateScheduledJobRun()` (matches the
+  doc's own 08:00-expected/12:00-actual DELAYED example; MISSED once a
+  never-run job's grace window elapses), `findDuplicateJobRuns()`,
+  `isSchedulerDown()` (heartbeat-timeout based, same shape as
+  `queueMonitoring.ts`'s worker check). 8 new tests, full suite
+  1149/1149 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-9 todo — AI monitoring + failure detection + quality
   validation (doc 12 §23-25): request/success/failure/timeout/cost
   tracking, the doc's named failure list (provider unavailable,
@@ -2116,3 +2121,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-5] `workflowMonitoring.ts`: computeWorkflowFailureRatePercent()/classifyFailureRate(), detectFailureSpike(), buildWorkflowExecutionMetrics(). 9 new tests, full suite 1126/1126 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-6 (Stuck workflow + stuck case + case SLA monitoring).
 - 2026-08-26 — [P11-6] `stuckDetection.ts`: detectStuckWorkflow()/detectStuckCase() (reuse P10-24's evaluateWorkflowStaleness()), evaluateCaseSla(). 5 new tests, full suite 1131/1131 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-7 (Queue monitoring: backlog/starvation/stall + worker monitoring).
 - 2026-08-26 — [P11-7] `queueMonitoring.ts`: detectQueueBacklog() (reuses detectFailureSpike()), detectQueueStarvation(), detectQueueStall(), isWorkerResponsive()/countUnresponsiveWorkers(). 10 new tests, full suite 1141/1141 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-8 (Scheduler monitoring).
+- 2026-08-26 — [P11-8] `schedulerMonitoring.ts`: evaluateScheduledJobRun(), findDuplicateJobRuns(), isSchedulerDown(). 8 new tests, full suite 1149/1149 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-9 (AI monitoring + failure detection + quality validation).
