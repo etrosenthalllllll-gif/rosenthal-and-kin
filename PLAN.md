@@ -2080,14 +2080,15 @@ Phase 10/11's analytics/metrics discipline rather than rebuilding it.
 No credential-blocked tasks -- entirely derived from data the platform
 already produces.
 
-- [ ] P12-1 todo — Analytics event model + central data model (doc 13
-  §1-3): the doc's own analytics-event catalog (LEAD_CREATED,
-  CASE_CREATED, CLAIM_FILED, etc. -- non-exhaustive, extensible like
-  every other event catalog in this codebase) plus the attribution
-  fields every event should carry (case/lead/workflow/source/campaign/
-  operator/date/jurisdiction/outcome/cost); a thin analytics-entity
-  shape (Lead/Case/Claim/Recovery/Cost/Revenue/Source/Campaign) that
-  reads from existing tables rather than duplicating them.
+- [x] P12-1 done — Analytics event model + central data model (doc 13
+  §1-3): `analyticsEventModel.ts` -- `EXAMPLE_ANALYTICS_EVENT_TYPES`
+  (doc's own catalog, non-exhaustive/extensible), `buildAnalyticsEvent()`
+  (attribution fields all optional, but type+timestamp always
+  required), thin reporting-layer shapes (`AnalyticsLeadRecord`/
+  `AnalyticsCaseRecord`/`AnalyticsClaimRecord`/`AnalyticsRecoveryRecord`/
+  `AnalyticsCostRecord`/`AnalyticsRevenueRecord`) that read from
+  existing tables rather than duplicating them. 3 new tests, full
+  suite 1249/1249 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-2 todo — Time dimensions + comparison periods (doc 13 §4):
   today/yesterday/7d/30d/90d/YTD/custom-range window resolution, and
   previous-period/month/quarter/year comparison, with percent-change
@@ -2405,3 +2406,4 @@ already produces.
 - 2026-08-26 — [P11-27] `loggingStrategy.ts`: buildStructuredLogEntry(), re-exported attachCorrelationId() from P10-20, ERROR_CODE_CATALOG/explainErrorCode(). 4 new tests, full suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-28 (Final Monitoring Center assembly + end-to-end incident test) -- the last task in Phase 11.
 - 2026-08-26 — [P11-28] `monitoringCenter.ts`: buildMonitoringCenterView() (assembly-only); `monitoringEndToEnd.test.ts`: one integration test walking doc 12's own end-to-end incident scenario across every Phase 11 module. 2 new tests, full suite 1246/1246 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 11 (P11-1 through P11-28) is now done -- no credential blockers this phase.** Pushed continuously to GitHub throughout this phase (each task committed and pushed individually) now that the token issue is resolved. Next: decide whether to start Phase 12 (doc 13, Analytics) or pause.
 - 2026-08-26 — Ethan asked me to attempt the live-DB `prisma db push` for P4-1's Document schema myself; tried it directly, blocked by the same auto-mode classifier as every prior attempt (schema changes against the live Render datasource are blocked outright regardless of chat authorization) -- explained clearly this needs Ethan to either run it himself or add a Bash permission rule, did not attempt to work around it. Confirmed P4-1 through P4-6 (documentRequirements.ts, documentDuplicateDetection.ts, matchDocumentToCase.ts, conflictDetection.ts, claimReadiness.ts + tests) were already fully implemented/committed/pushed from earlier in the project -- nothing to redo there. Ethan then said to continue through Phases 12-17. Decomposed doc 13 ("Analytics & Business Intelligence," 97 sections) into P12-1 through P12-30 in PLAN.md. Planning only, no code yet. Next: P12-1 (Analytics event model + central data model).
+- 2026-08-26 — [P12-1] `analyticsEventModel.ts`: EXAMPLE_ANALYTICS_EVENT_TYPES, buildAnalyticsEvent(), thin reporting-layer record shapes. 3 new tests, full suite 1249/1249 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-2 (Time dimensions + comparison periods).
