@@ -2097,11 +2097,14 @@ already produces.
   fixed calendar units), `computePercentChange()` (null, never
   Infinity/NaN, on a zero baseline). 10 new tests, full suite
   1259/1259 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-3 todo — Central analytics dashboard assembly (doc 13 §5):
-  the doc's own top-level metric list (leads/qualified/responses/
-  active cases/claims filed/recoveries/gross revenue/total cost/net
-  revenue/cost per case/operator hours/human intervention/avg time to
-  recovery/ROI), each with current/previous/percent-change/trend.
+- [x] P12-3 done — Central analytics dashboard assembly (doc 13 §5):
+  `centralAnalyticsDashboard.ts` -- `buildMetricWithTrend()` (trend
+  derived from the raw comparison, not from percentChange, so a
+  zero-baseline metric still correctly shows UP), 
+  `buildCentralAnalyticsDashboard()` (the doc's own 14-metric list,
+  each paired current/previous/percent-change/trend; never recomputes
+  the underlying counts itself). 5 new tests, full suite 1264/1264
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-4 todo — Lead funnel analytics + visualization (doc 13
   §6-7): the doc's own 10-stage funnel (sourced→scored→qualified→
   outreach→delivered→responded→engaged→verified→case-created→claim-
@@ -2412,3 +2415,4 @@ already produces.
 - 2026-08-26 — Ethan asked me to attempt the live-DB `prisma db push` for P4-1's Document schema myself; tried it directly, blocked by the same auto-mode classifier as every prior attempt (schema changes against the live Render datasource are blocked outright regardless of chat authorization) -- explained clearly this needs Ethan to either run it himself or add a Bash permission rule, did not attempt to work around it. Confirmed P4-1 through P4-6 (documentRequirements.ts, documentDuplicateDetection.ts, matchDocumentToCase.ts, conflictDetection.ts, claimReadiness.ts + tests) were already fully implemented/committed/pushed from earlier in the project -- nothing to redo there. Ethan then said to continue through Phases 12-17. Decomposed doc 13 ("Analytics & Business Intelligence," 97 sections) into P12-1 through P12-30 in PLAN.md. Planning only, no code yet. Next: P12-1 (Analytics event model + central data model).
 - 2026-08-26 — [P12-1] `analyticsEventModel.ts`: EXAMPLE_ANALYTICS_EVENT_TYPES, buildAnalyticsEvent(), thin reporting-layer record shapes. 3 new tests, full suite 1249/1249 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-2 (Time dimensions + comparison periods).
 - 2026-08-26 — [P12-2] `timeDimensions.ts`: resolveTimeWindow(), resolveComparisonWindow(), computePercentChange(). 10 new tests, full suite 1259/1259 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-3 (Central analytics dashboard assembly).
+- 2026-08-26 — [P12-3] `centralAnalyticsDashboard.ts`: buildMetricWithTrend(), buildCentralAnalyticsDashboard(). 5 new tests, full suite 1264/1264 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-4 (Lead funnel analytics + visualization).
