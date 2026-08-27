@@ -2168,12 +2168,15 @@ already produces.
   discipline as `apiMonitoring.ts`'s `groupApiMetricsBy()`). 3 new
   tests, full suite 1292/1292 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P12-11 todo — Case economics + cost-per-case + cost breakdown +
-  fixed/variable split (doc 13 §26-29): full per-case cost rollup
-  (acquisition/research/AI/communication/document/filing/payment-
-  processing/labor/other), cost-per-qualified-lead through
-  cost-per-recovery, and a configurable fixed-vs-variable cost-category
-  table.
+- [x] P12-11 done — Case economics + cost-per-case + cost breakdown +
+  fixed/variable split (doc 13 §26-29): `caseEconomics.ts` --
+  `computeTotalCaseCost()`/`computeCaseEconomics()` (full per-case
+  rollup through gross profit/net contribution/ROI),
+  `computeCostPerUnit()` (generalizes cost-per-qualified-lead through
+  cost-per-recovery into one function), `classifyCostNature()`/
+  `splitFixedVariableCosts()` (configurable per-category fixed-vs-
+  variable table). 6 new tests, full suite 1298/1298 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P12-12 todo — AI/communication/filing cost analytics (doc 13
   §30-32): spend by model/workflow/case/lead, revenue-generated-per-
   AI-dollar, and per-channel/per-filing cost tracking -- reuses
@@ -2453,3 +2456,4 @@ already produces.
 - 2026-08-26 — [P12-8] `claimConversionAnalytics.ts`: computeClaimConversionRates(), computeSegmentPerformance(). 3 new tests, full suite 1284/1284 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-9 (Recovery analytics + expected-vs-actual + recovery curve + time-to-recovery).
 - 2026-08-26 — [P12-9] `recoveryAnalyticsExtended.ts`: computeRecoveryAnalyticsSummary(), computeExpectedVsActualRecovery() (reuses P9-3), computeTimeToRecoveryDistribution() (reuses P11-4's percentile function). 5 new tests, full suite 1289/1289 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-10 (Revenue dashboard + revenue recognition).
 - 2026-08-26 — [P12-10] `revenueDashboard.ts`: buildRevenueRecognitionBreakdown(), groupRevenueBy(). 3 new tests, full suite 1292/1292 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-11 (Case economics + cost-per-case + cost breakdown + fixed/variable split).
+- 2026-08-26 — [P12-11] `caseEconomics.ts`: computeTotalCaseCost()/computeCaseEconomics(), computeCostPerUnit(), classifyCostNature()/splitFixedVariableCosts(). 6 new tests, full suite 1298/1298 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-12 (AI/communication/filing cost analytics).
