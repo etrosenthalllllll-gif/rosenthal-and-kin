@@ -2129,11 +2129,16 @@ already produces.
   `computePhoneChannelMetrics()` (full per-channel funnels through to
   revenue attributed). 4 new tests, full suite 1277/1277 passing,
   `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-7 todo — Outreach sequence + lead source analytics + source
-  quality score (doc 13 §14-16): per-sequence and per-source
-  performance tables (leads/qualified/responses/cases/claims/
-  recoveries/revenue/cost/profit/ROI), and a configurable-weighting
-  source-quality score based on downstream outcomes, not raw volume.
+- [x] P12-7 done — Outreach sequence + lead source analytics + source
+  quality score (doc 13 §14-16): `sourceSequenceAnalytics.ts` --
+  `computeSequencePerformance()`/`rankSequencesByRoi()`,
+  `computeSourcePerformance()` (leads/qualified/cases/claims/
+  recoveries/revenue/cost/profit/ROI), `computeSourceQualityScore()`
+  (configurable-weighting blend of downstream conversion rates --
+  verified a low-volume/high-quality source outranks a high-volume/
+  low-quality one, matching the doc's own stated principle). 4 new
+  tests, full suite 1281/1281 passing, `tsc --noEmit` clean, `next
+  build` clean.
 - [ ] P12-8 todo — Claim conversion + jurisdiction/case-type
   performance (doc 13 §17-19): lead→case→verified→prepared→filed→
   approved→recovery conversion rates, segmented by jurisdiction and
@@ -2430,3 +2435,4 @@ already produces.
 - 2026-08-26 — [P12-4] `leadFunnelAnalytics.ts`: FUNNEL_STAGES, buildFunnelReport(). 5 new tests, full suite 1269/1269 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-5 (Funnel conversion rates + drop-off analysis).
 - 2026-08-26 — [P12-5] `funnelConversionAnalysis.ts`: computeNamedFunnelConversionRates(), findLargestFunnelDropOff()/buildFunnelDropOffReport(). 4 new tests, full suite 1273/1273 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-6 (Response-rate + channel analytics).
 - 2026-08-26 — [P12-6] `channelResponseAnalytics.ts`: computeResponseRatePercent(), computeEmailChannelMetrics()/computeSmsChannelMetrics()/computePhoneChannelMetrics(). 4 new tests, full suite 1277/1277 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-7 (Outreach sequence + lead source analytics + source quality score).
+- 2026-08-26 — [P12-7] `sourceSequenceAnalytics.ts`: computeSequencePerformance()/rankSequencesByRoi(), computeSourcePerformance(), computeSourceQualityScore(). 4 new tests, full suite 1281/1281 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-8 (Claim conversion + jurisdiction/case-type performance).
