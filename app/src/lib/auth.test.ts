@@ -85,4 +85,30 @@ describe("role-based permissions", () => {
     expect(hasPermission("READ_ONLY", "RECORD_PAYMENT")).toBe(false);
     expect(hasPermission("READ_ONLY", "ESCALATE_FINANCIAL_EXCEPTION")).toBe(false);
   });
+
+  // --- decision-queue action permissions ---
+
+  it("OPERATOR can decide routine decisions but not high-consequence ones", () => {
+    expect(hasPermission("OPERATOR", "DECIDE_ROUTINE_DECISIONS")).toBe(true);
+    expect(hasPermission("OPERATOR", "DECIDE_HIGH_CONSEQUENCE_DECISIONS")).toBe(false);
+  });
+
+  it("REVIEWER and ADMIN can decide both routine and high-consequence decisions", () => {
+    expect(hasPermission("REVIEWER", "DECIDE_ROUTINE_DECISIONS")).toBe(true);
+    expect(hasPermission("REVIEWER", "DECIDE_HIGH_CONSEQUENCE_DECISIONS")).toBe(true);
+    expect(hasPermission("ADMIN", "DECIDE_ROUTINE_DECISIONS")).toBe(true);
+    expect(hasPermission("ADMIN", "DECIDE_HIGH_CONSEQUENCE_DECISIONS")).toBe(true);
+  });
+
+  it("READ_ONLY cannot decide any decision or add case notes", () => {
+    expect(hasPermission("READ_ONLY", "DECIDE_ROUTINE_DECISIONS")).toBe(false);
+    expect(hasPermission("READ_ONLY", "DECIDE_HIGH_CONSEQUENCE_DECISIONS")).toBe(false);
+    expect(hasPermission("READ_ONLY", "ADD_CASE_NOTES")).toBe(false);
+  });
+
+  it("every non-read-only role can add case notes", () => {
+    expect(hasPermission("OPERATOR", "ADD_CASE_NOTES")).toBe(true);
+    expect(hasPermission("REVIEWER", "ADD_CASE_NOTES")).toBe(true);
+    expect(hasPermission("ADMIN", "ADD_CASE_NOTES")).toBe(true);
+  });
 });

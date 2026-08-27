@@ -24,6 +24,12 @@ import { assertValidTransition, type ClaimantStatus } from "./stateMachine";
 // uses every action, but the mapping is action-semantics-based rather
 // than duplicated per decision type -- see decisionTypes.ts for which
 // actions are actually available on which type.
+//
+// Every action string used anywhere in DECISION_TYPES' availableActions
+// must have an entry here -- decisionTypes.test.ts's registry sweep plus
+// this module's own "every registered action has a status mapping" test
+// both enforce it, so a new decision type can't silently ship an action
+// that throws the first time an operator clicks it.
 const ACTION_STATUS_MAP: Record<string, DecisionStatus> = {
   SEND: "APPROVED",
   APPROVE: "APPROVED",
@@ -32,6 +38,7 @@ const ACTION_STATUS_MAP: Record<string, DecisionStatus> = {
   CLOSE_CASE: "APPROVED",
   REJECT: "REJECTED",
   REJECT_CASE: "REJECTED",
+  REJECT_CLAIM: "REJECTED",
   REVISE: "REVISED",
   REVISE_PACKAGE: "REVISED",
   ESCALATE: "ESCALATED",
@@ -39,6 +46,24 @@ const ACTION_STATUS_MAP: Record<string, DecisionStatus> = {
   REQUEST_DOCUMENT: "DEFERRED",
   CANCEL: "CANCELLED",
   KEEP_OPEN: "DEFERRED",
+  // --- Exception-lane actions (doc 02 §12, docs 05/06/08/09) --------
+  // These were configured on DECISION_TYPES from the start but never
+  // mapped here -- every exception button below APPROVE_OUTREACH's
+  // original set would have thrown UnavailableActionError's sibling
+  // "no status mapping defined" error the first time it was actually
+  // clicked. Found while wiring the real UI buttons to this logic.
+  RESOLVE: "APPROVED", // operator actively resolved the exception
+  RETRY: "DEFERRED", // send back for reprocessing, not yet closed out
+  DEFER: "DEFERRED", // explicit "come back to this later"
+  CLOSE: "APPROVED", // closed with no further action needed
+  CREATE_NEW_CASE: "APPROVED", // a real resolution outcome, not a no-op
+  KEEP_NEW: "APPROVED",
+  KEEP_EXISTING: "APPROVED",
+  KEEP_BOTH: "APPROVED",
+  RESEARCH: "DEFERRED", // needs more digging before it can resolve
+  RULE_OUT: "REJECTED", // this candidate does not hold up
+  YES: "APPROVED",
+  NO: "REJECTED",
 };
 
 export class MissingRequiredCommentError extends Error {

@@ -7,6 +7,7 @@ import {
 } from "./decisionWorkflow";
 import { InvalidDecisionTransitionError } from "./decisionStatus";
 import { InvalidClaimantTransitionError } from "./stateMachine";
+import { DECISION_TYPES } from "./decisionTypes";
 
 describe("applyDecisionAction", () => {
   it("applies SEND on APPROVE_OUTREACH and resolves to APPROVED", () => {
@@ -76,6 +77,29 @@ describe("applyDecisionAction", () => {
         action: "SEND",
       })
     ).toThrow();
+  });
+
+  // Regression test for a real bug: several exception-lane actions
+  // (RESOLVE, DEFER, CLOSE, RETRY, CREATE_NEW_CASE, KEEP_NEW,
+  // KEEP_EXISTING, KEEP_BOTH, RESEARCH, RULE_OUT, YES, NO) were
+  // configured as availableActions on DECISION_TYPES but had no entry
+  // in ACTION_STATUS_MAP -- every one of those buttons would have
+  // thrown "no status mapping defined" the first time an operator
+  // actually clicked it. This sweeps the whole registry so a newly
+  // added decision type can never reintroduce the gap silently.
+  it("has a status mapping for every action referenced anywhere in the decision-type registry", () => {
+    for (const config of Object.values(DECISION_TYPES)) {
+      for (const action of config.availableActions) {
+        expect(() =>
+          applyDecisionAction({
+            decisionType: config.key,
+            currentStatus: "PENDING",
+            action,
+            reason: config.requiresComment ? "test reason" : undefined,
+          })
+        ).not.toThrow();
+      }
+    }
   });
 });
 

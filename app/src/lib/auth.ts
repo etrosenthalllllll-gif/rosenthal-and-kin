@@ -71,7 +71,22 @@ export type Permission =
   // doc 13 section 84's own export-gating requirement -- analytics
   // exports carry the same financial/case sensitivity as the reports
   // they're built from, so this is not granted by VIEW_CASES alone.
-  | "EXPORT_ANALYTICS_DATA";
+  | "EXPORT_ANALYTICS_DATA"
+  // doc 02's decision-queue actions (Approve/Reject/Revise/Escalate,
+  // etc. -- src/lib/decisionWorkflow.ts). Split into two tiers rather
+  // than one blanket "act on decisions" permission: routine decisions
+  // (outreach, document requests) are open to every non-read-only
+  // role, but a decision type flagged `highConsequence` in
+  // decisionTypes.ts (filing, financial distribution, case closure)
+  // additionally requires the higher tier -- same
+  // OPERATOR-can't-approve/REVIEWER-can pattern already established
+  // for the financial permissions above, applied to the decision
+  // queue itself.
+  | "DECIDE_ROUTINE_DECISIONS"
+  | "DECIDE_HIGH_CONSEQUENCE_DECISIONS"
+  // Adding an operator note to a case (Note model) -- routine, but
+  // still not a READ_ONLY action.
+  | "ADD_CASE_NOTES";
 
 // Explicit allow-list per role. A role not listed for a permission is
 // denied by default — this is deliberately fail-closed, matching doc 01's
@@ -108,6 +123,9 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "SUPPRESS_ALERTS",
     "RESOLVE_INCIDENTS",
     "EXPORT_ANALYTICS_DATA",
+    "DECIDE_ROUTINE_DECISIONS",
+    "DECIDE_HIGH_CONSEQUENCE_DECISIONS",
+    "ADD_CASE_NOTES",
   ]),
   OPERATOR: new Set([
     "VIEW_CASES",
@@ -125,6 +143,9 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     // doc 12 §79's Operator tier: view only, no configure/suppress/
     // remediate/resolve authority.
     "VIEW_MONITORING",
+    // Routine decisions only -- highConsequence ones need REVIEWER/ADMIN.
+    "DECIDE_ROUTINE_DECISIONS",
+    "ADD_CASE_NOTES",
   ]),
   REVIEWER: new Set([
     "VIEW_CASES",
@@ -149,6 +170,9 @@ const ROLE_PERMISSIONS: Record<UserRole, ReadonlySet<Permission>> = {
     "VIEW_MONITORING",
     "RESOLVE_INCIDENTS",
     "EXPORT_ANALYTICS_DATA",
+    "DECIDE_ROUTINE_DECISIONS",
+    "DECIDE_HIGH_CONSEQUENCE_DECISIONS",
+    "ADD_CASE_NOTES",
   ]),
   READ_ONLY: new Set(["VIEW_CASES", "VIEW_DOCUMENTS"]),
 };
