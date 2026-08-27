@@ -2065,6 +2065,185 @@ observability logic over data the platform already produces.
   credential-blocked tasks this phase -- pure internal observability
   logic over data the platform already produces.
 
+## Phase 12 — Analytics & Business Intelligence (doc 13)
+Doc 13 (97 sections) read in full from Drive. "Build the ANALYTICS
+LAYER that consumes events and data from those systems and turns them
+into accurate business metrics... derived from the underlying event
+history whenever possible. Do NOT rely on manually maintained
+spreadsheets." Central discipline repeated throughout: never confuse
+potential/expected/earned/invoiced/collected revenue; never claim
+"100% automated"; every number must be drillable back to real records;
+forecasts/scenarios are always clearly labeled as estimates, never
+actuals. Pure-math/config-table logic throughout, reusing Phase 9's
+financial vocabulary (expected vs. actual, invoice vs. payment) and
+Phase 10/11's analytics/metrics discipline rather than rebuilding it.
+No credential-blocked tasks -- entirely derived from data the platform
+already produces.
+
+- [ ] P12-1 todo — Analytics event model + central data model (doc 13
+  §1-3): the doc's own analytics-event catalog (LEAD_CREATED,
+  CASE_CREATED, CLAIM_FILED, etc. -- non-exhaustive, extensible like
+  every other event catalog in this codebase) plus the attribution
+  fields every event should carry (case/lead/workflow/source/campaign/
+  operator/date/jurisdiction/outcome/cost); a thin analytics-entity
+  shape (Lead/Case/Claim/Recovery/Cost/Revenue/Source/Campaign) that
+  reads from existing tables rather than duplicating them.
+- [ ] P12-2 todo — Time dimensions + comparison periods (doc 13 §4):
+  today/yesterday/7d/30d/90d/YTD/custom-range window resolution, and
+  previous-period/month/quarter/year comparison, with percent-change
+  computation guarded against a zero baseline.
+- [ ] P12-3 todo — Central analytics dashboard assembly (doc 13 §5):
+  the doc's own top-level metric list (leads/qualified/responses/
+  active cases/claims filed/recoveries/gross revenue/total cost/net
+  revenue/cost per case/operator hours/human intervention/avg time to
+  recovery/ROI), each with current/previous/percent-change/trend.
+- [ ] P12-4 todo — Lead funnel analytics + visualization (doc 13
+  §6-7): the doc's own 10-stage funnel (sourced→scored→qualified→
+  outreach→delivered→responded→engaged→verified→case-created→claim-
+  prepared→filed→recovery), counts/conversion/drop-off/average time
+  between stages, all derived from real counts, never invented.
+- [ ] P12-5 todo — Funnel conversion rates + drop-off analysis (doc 13
+  §8-9): every stage-to-stage conversion rate, and automatic
+  identification of the single largest drop-off point.
+- [ ] P12-6 todo — Response-rate + channel analytics (doc 13 §10-13):
+  response rate by email/SMS/phone/campaign/source/jurisdiction/
+  template/day-time (never by a protected characteristic), full
+  per-channel funnels (sent/delivered/replied/positive/negative/
+  opt-out/qualified-response/case-conversion/revenue-attributed).
+- [ ] P12-7 todo — Outreach sequence + lead source analytics + source
+  quality score (doc 13 §14-16): per-sequence and per-source
+  performance tables (leads/qualified/responses/cases/claims/
+  recoveries/revenue/cost/profit/ROI), and a configurable-weighting
+  source-quality score based on downstream outcomes, not raw volume.
+- [ ] P12-8 todo — Claim conversion + jurisdiction/case-type
+  performance (doc 13 §17-19): lead→case→verified→prepared→filed→
+  approved→recovery conversion rates, segmented by jurisdiction and
+  case type without assuming every jurisdiction shares one workflow.
+- [ ] P12-9 todo — Recovery analytics + expected-vs-actual + recovery
+  curve + time-to-recovery (doc 13 §20-23): expected/actual/pending
+  recovery tracking, variance (reusing P9-3's `recoveryVariance.ts`
+  rather than a second expected-vs-actual mechanism), P75/P90/P95
+  time-to-recovery segmented by source/jurisdiction/case-type/
+  workflow/period.
+- [ ] P12-10 todo — Revenue dashboard + revenue recognition (doc 13
+  §24-25): gross/collected/outstanding/expected revenue by month/
+  source/jurisdiction/case/operator/channel, with the doc's own
+  never-confuse-these-concepts distinction kept as five genuinely
+  separate fields, not one blended "revenue" number.
+- [ ] P12-11 todo — Case economics + cost-per-case + cost breakdown +
+  fixed/variable split (doc 13 §26-29): full per-case cost rollup
+  (acquisition/research/AI/communication/document/filing/payment-
+  processing/labor/other), cost-per-qualified-lead through
+  cost-per-recovery, and a configurable fixed-vs-variable cost-category
+  table.
+- [ ] P12-12 todo — AI/communication/filing cost analytics (doc 13
+  §30-32): spend by model/workflow/case/lead, revenue-generated-per-
+  AI-dollar, and per-channel/per-filing cost tracking -- reuses
+  `financialAnalytics.ts`'s (P9-19) pure-rate-math pattern.
+- [ ] P12-13 todo — Operator-hours tracking + action tracking + labor
+  estimate/actual distinction + utilization (doc 13 §33-36): per-action
+  operator time records, a hard distinction between measured and
+  estimated time (an estimate is never presented as fact), and
+  utilization metrics (cases/hour, revenue/hour).
+- [ ] P12-14 todo — Human-intervention rate + automation rate +
+  breakdown + improvement-over-time (doc 13 §37-40): intervention rate
+  by pipeline stage, the doc's own FULLY_AUTOMATED/AI_ASSISTED/
+  HUMAN_APPROVED/HUMAN_REVIEWED/MANUAL/EXCEPTION classification (never
+  a bare "automated" boolean), per-reason breakdown, and trend over
+  time.
+- [ ] P12-15 todo — Operator hours saved + automation value model (doc
+  13 §41-42): modeled-vs-measured savings kept as separate labeled
+  fields, and the automation-value formula (labor avoided + throughput
+  gain + additional cases − automation cost), assumptions always shown.
+- [ ] P12-16 todo — Throughput + system capacity + revenue-per-hour/
+  case (doc 13 §43-46): per-period throughput across the full
+  pipeline, current-capacity/queue/bottleneck estimate, revenue and
+  gross-profit per operator hour, average/median revenue-cost-profit
+  per case.
+- [ ] P12-17 todo — Contribution margin + profit analytics (doc 13
+  §47-48): revenue minus variable costs (contribution margin, per-case
+  and percentage), and the full profit rollup (gross/net-contribution/
+  net-profit) -- never labeled "profit" without a clear cost
+  definition attached.
+- [ ] P12-18 todo — ROI analytics + acquisition/campaign ROI (doc 13
+  §49-51): a configurable ROI formula (never hardcoded), broken out by
+  source/campaign/workflow/jurisdiction/case-type/month, plus
+  dedicated per-source and per-campaign ROI tables.
+- [ ] P12-19 todo — Cohort analysis + cohort recovery curves (doc 13
+  §52-53): acquisition-month cohorts compared on response/conversion/
+  filing/recovery/revenue/ROI, and 30/60/90/180-day recovery-curve
+  tracking per cohort.
+- [ ] P12-20 todo — Trend analytics + anomaly detection + KPI alerts
+  (doc 13 §54-56): daily/weekly/monthly/quarterly trend series for
+  every major KPI, threshold-or-statistical anomaly flagging, and
+  KPI-alert integration with Phase 11's alert engine (reusing
+  `alertEngine.ts`/`alertThresholds.ts` rather than a second alert
+  mechanism).
+- [ ] P12-21 todo — Executive + operational dashboard assembly (doc 13
+  §57-58): the doc's own executive-summary mockup (leads/cases/claims/
+  recoveries/revenue/cost/net-contribution/cost-per-case/human-
+  intervention/avg-time-to-recovery/ROI + trend + top problems) and a
+  separate today-focused operational view.
+- [ ] P12-22 todo — Funnel/financial/automation dashboard assembly
+  (doc 13 §59-61): three dedicated dashboards assembled from P12-4
+  through P12-17's already-computed metrics, no new logic.
+- [ ] P12-23 todo — Source comparison + case profitability + economic
+  status + negative-economics detection (doc 13 §62-65): ranked
+  per-source comparison table, a per-case profitability view,
+  configurable HIGHLY_PROFITABLE→NEGATIVE classification, and
+  NEGATIVE_EXPECTED_ECONOMICS flagging (surfaced for review, never
+  auto-terminated).
+- [ ] P12-24 todo — Forecasting + recovery forecast + pipeline value
+  (doc 13 §66-68): basic historical-trend forecasts for leads/cases/
+  claims/recoveries/revenue/cost/workload, always labeled as estimates
+  (never guaranteed outcomes), and pipeline value split into
+  potential/expected/committed/collected.
+- [ ] P12-25 todo — Data quality + metric definitions + metric
+  versioning (doc 13 §69-71): analytics-specific data-quality checks
+  (missing timestamps/IDs, duplicate events, impossible transitions,
+  negative durations, missing cost/revenue, unreconciled payments,
+  inconsistent statuses), a central formal metric-definition registry,
+  and versioned metric definitions (a formula change is a new version,
+  never a silent redefinition).
+- [ ] P12-26 todo — Attribution + cost attribution + shared-cost
+  allocation (doc 13 §72-75): lead→case→claim→recovery→revenue
+  attribution tracking with an explicit ATTRIBUTION_UNCERTAIN flag
+  (never invented precision), cost-to-object assignment, and
+  configurable shared-cost allocation methods (equal/by-case-count/
+  by-usage/by-revenue/excluded).
+- [ ] P12-27 todo — Scenario modeling + automation-ROI model + scale
+  analysis + bottleneck/marginal economics (doc 13 §76-81): a
+  configurable-assumption scenario calculator explicitly labeled
+  SCENARIO/MODEL (never actual results), manual-vs-automated model
+  comparison, volume-scaling estimates, bottleneck/operator-bottleneck
+  detection (capacity vs. demand vs. backlog), and marginal-economics
+  estimation for one additional lead/case/claim/recovery.
+- [ ] P12-28 todo — Dashboard filters + drill-down + exports +
+  reporting + data freshness (doc 13 §82-87): a shared filter-
+  dimension list, the drill-down chain from an aggregate number down
+  to its underlying cases/events, CSV/export gating by permission
+  (reusing `auth.ts`'s `Permission` union), scheduled-report
+  definitions built from the same metric registry as the dashboards,
+  and an explicit DATA_DELAYED flag rather than silently showing stale
+  numbers as current.
+- [ ] P12-29 todo — Security + auditability + data-quality testing +
+  reconciliation + edge cases (doc 13 §88-92): analytics permission
+  gating (reusing `auth.ts`, no parallel authorization system),
+  drillable-to-source-records auditability, an
+  ANALYTICS_RECONCILIATION_ERROR check comparing analytics totals
+  against the transactional system, and the doc's own edge-case list
+  (duplicate leads, merged/reopened cases, cancelled/resubmitted
+  claims, partial recoveries, refunds/chargebacks, transferred/shared
+  cases, late-arriving events).
+- [ ] P12-30 todo — Final executive view assembly + end-to-end
+  analytics test (doc 13 §93-97): the doc's own final one-page
+  executive-view assembly (how much entering/converting/recovered/
+  generated/costing/human-hours/intervention-rate/best-source/best-
+  workflow/scaling/automation-improving/ROI), plus one integration
+  test walking a realistic lead-to-recovery scenario through the
+  funnel, cost, revenue, ROI, and attribution modules built in this
+  phase and confirming every number ties back to its source records.
+
 ## Deferred
 - Trust ledger (Phase 9 sub-component) — only if a case forces pass-through, per `docs/decisions/funds-flow-model.md`.
 - Scale/triage, batch decisions, multi-operator — only when real volume forces it.
@@ -2225,3 +2404,4 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-26] Extended auth.ts's Permission union with 5 monitoring permissions across ADMIN/OPERATOR/REVIEWER; `monitoringSecurity.ts`: canAccessMonitoringApi(), detectRepeatedFailurePattern(), buildSecurityEventAuditEntry(). 6 new tests, full suite 1240/1240 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-27 (Logging strategy: structured logs + correlation IDs + error codes).
 - 2026-08-26 — [P11-27] `loggingStrategy.ts`: buildStructuredLogEntry(), re-exported attachCorrelationId() from P10-20, ERROR_CODE_CATALOG/explainErrorCode(). 4 new tests, full suite 1244/1244 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-28 (Final Monitoring Center assembly + end-to-end incident test) -- the last task in Phase 11.
 - 2026-08-26 — [P11-28] `monitoringCenter.ts`: buildMonitoringCenterView() (assembly-only); `monitoringEndToEnd.test.ts`: one integration test walking doc 12's own end-to-end incident scenario across every Phase 11 module. 2 new tests, full suite 1246/1246 passing, `tsc --noEmit` clean, `next build` clean. **All of Phase 11 (P11-1 through P11-28) is now done -- no credential blockers this phase.** Pushed continuously to GitHub throughout this phase (each task committed and pushed individually) now that the token issue is resolved. Next: decide whether to start Phase 12 (doc 13, Analytics) or pause.
+- 2026-08-26 — Ethan asked me to attempt the live-DB `prisma db push` for P4-1's Document schema myself; tried it directly, blocked by the same auto-mode classifier as every prior attempt (schema changes against the live Render datasource are blocked outright regardless of chat authorization) -- explained clearly this needs Ethan to either run it himself or add a Bash permission rule, did not attempt to work around it. Confirmed P4-1 through P4-6 (documentRequirements.ts, documentDuplicateDetection.ts, matchDocumentToCase.ts, conflictDetection.ts, claimReadiness.ts + tests) were already fully implemented/committed/pushed from earlier in the project -- nothing to redo there. Ethan then said to continue through Phases 12-17. Decomposed doc 13 ("Analytics & Business Intelligence," 97 sections) into P12-1 through P12-30 in PLAN.md. Planning only, no code yet. Next: P12-1 (Analytics event model + central data model).
