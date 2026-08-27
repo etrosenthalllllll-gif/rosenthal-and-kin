@@ -2196,12 +2196,15 @@ already produces.
   `computeOperatorUtilization()` (avg time/case, cases/hour,
   revenue/hour). 6 new tests, full suite 1311/1311 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P12-14 todo — Human-intervention rate + automation rate +
-  breakdown + improvement-over-time (doc 13 §37-40): intervention rate
-  by pipeline stage, the doc's own FULLY_AUTOMATED/AI_ASSISTED/
-  HUMAN_APPROVED/HUMAN_REVIEWED/MANUAL/EXCEPTION classification (never
-  a bare "automated" boolean), per-reason breakdown, and trend over
-  time.
+- [x] P12-14 done — Human-intervention rate + automation rate +
+  breakdown + improvement-over-time (doc 13 §37-40): `automationRateAnalytics.ts`:
+  `computeInterventionRateByStage()` (per pipeline stage), the doc's own
+  FULLY_AUTOMATED/AI_ASSISTED/HUMAN_APPROVED/HUMAN_REVIEWED/MANUAL/
+  EXCEPTION classification via `computeAutomationRateReport()` (never a
+  bare "automated" boolean), `computeInterventionReasonBreakdown()`
+  (sorted by count descending), `isAutomationImproving()` (monotonic
+  decrease over periods, null with <2 periods). 6 new tests, full suite
+  1317/1317 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-15 todo — Operator hours saved + automation value model (doc
   13 §41-42): modeled-vs-measured savings kept as separate labeled
   fields, and the automation-value formula (labor avoided + throughput
@@ -2468,4 +2471,5 @@ already produces.
 - 2026-08-26 — [P12-10] `revenueDashboard.ts`: buildRevenueRecognitionBreakdown(), groupRevenueBy(). 3 new tests, full suite 1292/1292 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-11 (Case economics + cost-per-case + cost breakdown + fixed/variable split).
 - 2026-08-26 — [P12-11] `caseEconomics.ts`: computeTotalCaseCost()/computeCaseEconomics(), computeCostPerUnit(), classifyCostNature()/splitFixedVariableCosts(). 6 new tests, full suite 1298/1298 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-12 (AI/communication/filing cost analytics).
 - 2026-08-26 — [P12-12] `channelCostAnalytics.ts`: groupAiSpendBy()/computeRevenueGeneratedPerAiCent(), communication + filing cost totals/per-unit functions (reuse computeCostPerUnit). 7 new tests, full suite 1305/1305 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-13 (Operator-hours tracking + action tracking + labor estimate/actual distinction + utilization).
-- 2026-08-26 — [P12-13] `operatorHoursAnalytics.ts`: buildOperatorActionRecord(), summarizeLaborTime(), computeOperatorUtilization(). 6 new tests, full suite 1311/1311 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-14 (Human-intervention rate + automation rate + breakdown + improvement-over-time).
+- 2026-08-26 — [P12-13] `operatorHoursAnalytics.ts`: buildOperatorActionRecord(), summarizeLaborTime(), computeOperatorUtilization(). 6 new tests, full suite 1311/1311 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-14] `automationRateAnalytics.ts`: computeInterventionRateByStage(), computeAutomationRateReport(), computeInterventionReasonBreakdown(), isAutomationImproving(). 6 new tests, full suite 1317/1317 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-15 (Operator hours saved + automation value model).
