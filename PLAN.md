@@ -2139,10 +2139,15 @@ already produces.
   low-quality one, matching the doc's own stated principle). 4 new
   tests, full suite 1281/1281 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P12-8 todo — Claim conversion + jurisdiction/case-type
-  performance (doc 13 §17-19): lead→case→verified→prepared→filed→
-  approved→recovery conversion rates, segmented by jurisdiction and
-  case type without assuming every jurisdiction shares one workflow.
+- [x] P12-8 done — Claim conversion + jurisdiction/case-type
+  performance (doc 13 §17-19): `claimConversionAnalytics.ts` --
+  `computeClaimConversionRates()` (the doc's own 6-step lead→case→
+  verified→prepared→filed→approved→recovery chain),
+  `computeSegmentPerformance()` (filing-success/recovery rates,
+  average recovery, ROI per jurisdiction or case-type segment,
+  computed independently -- never merges segments, so no assumption
+  that every jurisdiction shares one workflow). 3 new tests, full
+  suite 1284/1284 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-9 todo — Recovery analytics + expected-vs-actual + recovery
   curve + time-to-recovery (doc 13 §20-23): expected/actual/pending
   recovery tracking, variance (reusing P9-3's `recoveryVariance.ts`
@@ -2436,3 +2441,4 @@ already produces.
 - 2026-08-26 — [P12-5] `funnelConversionAnalysis.ts`: computeNamedFunnelConversionRates(), findLargestFunnelDropOff()/buildFunnelDropOffReport(). 4 new tests, full suite 1273/1273 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-6 (Response-rate + channel analytics).
 - 2026-08-26 — [P12-6] `channelResponseAnalytics.ts`: computeResponseRatePercent(), computeEmailChannelMetrics()/computeSmsChannelMetrics()/computePhoneChannelMetrics(). 4 new tests, full suite 1277/1277 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-7 (Outreach sequence + lead source analytics + source quality score).
 - 2026-08-26 — [P12-7] `sourceSequenceAnalytics.ts`: computeSequencePerformance()/rankSequencesByRoi(), computeSourcePerformance(), computeSourceQualityScore(). 4 new tests, full suite 1281/1281 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-8 (Claim conversion + jurisdiction/case-type performance).
+- 2026-08-26 — [P12-8] `claimConversionAnalytics.ts`: computeClaimConversionRates(), computeSegmentPerformance(). 3 new tests, full suite 1284/1284 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-9 (Recovery analytics + expected-vs-actual + recovery curve + time-to-recovery).
