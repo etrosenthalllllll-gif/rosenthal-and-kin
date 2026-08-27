@@ -2259,9 +2259,13 @@ already produces.
   today-focused view, never merged onto the executive summary page).
   Assembly-only, no new arithmetic. 2 new tests, full suite 1349/1349
   passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-22 todo — Funnel/financial/automation dashboard assembly
-  (doc 13 §59-61): three dedicated dashboards assembled from P12-4
-  through P12-17's already-computed metrics, no new logic.
+- [x] P12-22 done — Funnel/financial/automation dashboard assembly
+  (doc 13 §59-61): `analyticsDashboardAssembly.ts`:
+  `buildFunnelDashboard()`, `buildAnalyticsFinancialDashboard()`,
+  `buildAutomationDashboard()` -- three dedicated dashboards assembled
+  from P12-4 through P12-20's already-computed metrics, no new logic.
+  3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean,
+  `next build` clean.
 - [ ] P12-23 todo — Source comparison + case profitability + economic
   status + negative-economics detection (doc 13 §62-65): ranked
   per-source comparison table, a per-case profitability view,
@@ -2500,4 +2504,5 @@ already produces.
 - 2026-08-26 — [P12-18] `roiAnalytics.ts`: computeRoiPercent(), computeRoiBreakout(), buildSourceRoiTable(), buildCampaignRoiTable(). 6 new tests, full suite 1336/1336 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-19] `cohortAnalytics.ts`: buildCohortComparison(), buildRecoveryCurve(). 4 new tests, full suite 1340/1340 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-22 (Funnel/financial/automation dashboard assembly).
+- 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-23 (Source comparison + case profitability + economic status + negative-economics detection).
