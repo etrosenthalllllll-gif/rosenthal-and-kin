@@ -2148,12 +2148,16 @@ already produces.
   computed independently -- never merges segments, so no assumption
   that every jurisdiction shares one workflow). 3 new tests, full
   suite 1284/1284 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P12-9 todo — Recovery analytics + expected-vs-actual + recovery
-  curve + time-to-recovery (doc 13 §20-23): expected/actual/pending
-  recovery tracking, variance (reusing P9-3's `recoveryVariance.ts`
-  rather than a second expected-vs-actual mechanism), P75/P90/P95
-  time-to-recovery segmented by source/jurisdiction/case-type/
-  workflow/period.
+- [x] P12-9 done — Recovery analytics + expected-vs-actual + recovery
+  curve + time-to-recovery (doc 13 §20-23): `recoveryAnalyticsExtended.ts`
+  -- `computeRecoveryAnalyticsSummary()` (expected/actual/pending/
+  average/median/recovery-rate), `computeExpectedVsActualRecovery()`
+  (reuses P9-3's `evaluateRecoveryVariance()` rather than a second
+  mechanism), `computeTimeToRecoveryDistribution()` (average/median/
+  P75/P90/P95, reusing P11-4's `computeLatencyPercentile()` -- a
+  time-to-recovery distribution is the same nearest-rank percentile
+  problem as a latency distribution). 5 new tests, full suite
+  1289/1289 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-10 todo — Revenue dashboard + revenue recognition (doc 13
   §24-25): gross/collected/outstanding/expected revenue by month/
   source/jurisdiction/case/operator/channel, with the doc's own
@@ -2442,3 +2446,4 @@ already produces.
 - 2026-08-26 — [P12-6] `channelResponseAnalytics.ts`: computeResponseRatePercent(), computeEmailChannelMetrics()/computeSmsChannelMetrics()/computePhoneChannelMetrics(). 4 new tests, full suite 1277/1277 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-7 (Outreach sequence + lead source analytics + source quality score).
 - 2026-08-26 — [P12-7] `sourceSequenceAnalytics.ts`: computeSequencePerformance()/rankSequencesByRoi(), computeSourcePerformance(), computeSourceQualityScore(). 4 new tests, full suite 1281/1281 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-8 (Claim conversion + jurisdiction/case-type performance).
 - 2026-08-26 — [P12-8] `claimConversionAnalytics.ts`: computeClaimConversionRates(), computeSegmentPerformance(). 3 new tests, full suite 1284/1284 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-9 (Recovery analytics + expected-vs-actual + recovery curve + time-to-recovery).
+- 2026-08-26 — [P12-9] `recoveryAnalyticsExtended.ts`: computeRecoveryAnalyticsSummary(), computeExpectedVsActualRecovery() (reuses P9-3), computeTimeToRecoveryDistribution() (reuses P11-4's percentile function). 5 new tests, full suite 1289/1289 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-10 (Revenue dashboard + revenue recognition).
