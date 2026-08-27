@@ -2275,11 +2275,13 @@ already produces.
   (surfaced for human review, no auto-terminate branch exists). 7 new
   tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next
   build` clean.
-- [ ] P12-24 todo — Forecasting + recovery forecast + pipeline value
-  (doc 13 §66-68): basic historical-trend forecasts for leads/cases/
-  claims/recoveries/revenue/cost/workload, always labeled as estimates
-  (never guaranteed outcomes), and pipeline value split into
-  potential/expected/committed/collected.
+- [x] P12-24 done — Forecasting + recovery forecast + pipeline value
+  (doc 13 §66-68): `forecastingAnalytics.ts`: `buildHistoricalTrendForecast()`
+  (linear regression over history, `isEstimate: true` as a literal
+  type so it can never be mistaken for a guaranteed outcome, null with
+  <2 points), `computePipelineValue()` (potential/expected/committed/
+  collected + total). 3 new tests, full suite 1362/1362 passing, `tsc
+  --noEmit` clean, `next build` clean.
 - [ ] P12-25 todo — Data quality + metric definitions + metric
   versioning (doc 13 §69-71): analytics-specific data-quality checks
   (missing timestamps/IDs, duplicate events, impossible transitions,
@@ -2509,4 +2511,5 @@ already produces.
 - 2026-08-26 — [P12-20] `trendAnomalyAnalytics.ts`: buildTrendSeries(), detectKpiAnomaly(), buildKpiAlert() (extends alertEngine.ts's AlertSource with KPI_THRESHOLD). 7 new tests, full suite 1347/1347 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-21] `executiveDashboard.ts`: buildExecutiveSummaryView(), buildOperationalView(). 2 new tests, full suite 1349/1349 passing, `tsc --noEmit` clean, `next build` clean.
 - 2026-08-26 — [P12-22] `analyticsDashboardAssembly.ts`: buildFunnelDashboard(), buildAnalyticsFinancialDashboard(), buildAutomationDashboard(). 3 new tests, full suite 1352/1352 passing, `tsc --noEmit` clean, `next build` clean.
-- 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-24 (Forecasting + recovery forecast + pipeline value).
+- 2026-08-26 — [P12-23] `caseEconomicStatus.ts`: rankSourceComparison(), buildCaseProfitabilityView(), classifyEconomicStatus(), evaluateNegativeEconomicsFlag(). 7 new tests, full suite 1359/1359 passing, `tsc --noEmit` clean, `next build` clean.
+- 2026-08-26 — [P12-24] `forecastingAnalytics.ts`: buildHistoricalTrendForecast(), computePipelineValue(). 3 new tests, full suite 1362/1362 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-25 (Data quality + metric definitions + metric versioning).
