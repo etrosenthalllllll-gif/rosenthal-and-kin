@@ -2177,10 +2177,15 @@ already produces.
   `splitFixedVariableCosts()` (configurable per-category fixed-vs-
   variable table). 6 new tests, full suite 1298/1298 passing, `tsc
   --noEmit` clean, `next build` clean.
-- [ ] P12-12 todo — AI/communication/filing cost analytics (doc 13
-  §30-32): spend by model/workflow/case/lead, revenue-generated-per-
-  AI-dollar, and per-channel/per-filing cost tracking -- reuses
-  `financialAnalytics.ts`'s (P9-19) pure-rate-math pattern.
+- [x] P12-12 done — AI/communication/filing cost analytics (doc 13
+  §30-32): `channelCostAnalytics.ts` -- `groupAiSpendBy()`/
+  `computeRevenueGeneratedPerAiCent()`, `computeTotalCommunicationCost()`/
+  `computeCommunicationCostPerContact()`/`computeCommunicationCostPerResponse()`,
+  `computeTotalFilingCost()`/`computeCostPerFiling()`/
+  `computeCostPerSuccessfulFiling()` -- all per-unit calculations reuse
+  `caseEconomics.ts`'s (P12-11) `computeCostPerUnit()` rather than
+  three near-identical divisions. 7 new tests, full suite 1305/1305
+  passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P12-13 todo — Operator-hours tracking + action tracking + labor
   estimate/actual distinction + utilization (doc 13 §33-36): per-action
   operator time records, a hard distinction between measured and
@@ -2457,3 +2462,4 @@ already produces.
 - 2026-08-26 — [P12-9] `recoveryAnalyticsExtended.ts`: computeRecoveryAnalyticsSummary(), computeExpectedVsActualRecovery() (reuses P9-3), computeTimeToRecoveryDistribution() (reuses P11-4's percentile function). 5 new tests, full suite 1289/1289 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-10 (Revenue dashboard + revenue recognition).
 - 2026-08-26 — [P12-10] `revenueDashboard.ts`: buildRevenueRecognitionBreakdown(), groupRevenueBy(). 3 new tests, full suite 1292/1292 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-11 (Case economics + cost-per-case + cost breakdown + fixed/variable split).
 - 2026-08-26 — [P12-11] `caseEconomics.ts`: computeTotalCaseCost()/computeCaseEconomics(), computeCostPerUnit(), classifyCostNature()/splitFixedVariableCosts(). 6 new tests, full suite 1298/1298 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-12 (AI/communication/filing cost analytics).
+- 2026-08-26 — [P12-12] `channelCostAnalytics.ts`: groupAiSpendBy()/computeRevenueGeneratedPerAiCent(), communication + filing cost totals/per-unit functions (reuse computeCostPerUnit). 7 new tests, full suite 1305/1305 passing, `tsc --noEmit` clean, `next build` clean. Next: P12-13 (Operator-hours tracking + action tracking + labor estimate/actual distinction + utilization).
