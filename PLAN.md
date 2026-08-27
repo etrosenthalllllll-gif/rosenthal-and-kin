@@ -1917,11 +1917,15 @@ observability logic over data the platform already produces.
   `computeSyncMonitoringMetrics()`, `isDataStale()` (matches the doc's
   own 30h-since-sync/6h-expected example). 5 new tests, full suite
   1181/1181 passing, `tsc --noEmit` clean, `next build` clean.
-- [ ] P11-15 todo — Alert engine + severity + alert model (doc 12
-  §42-44): INFO/WARNING/ERROR/CRITICAL/EMERGENCY severity (config-
-  urable per source), the `Alert` shape (type/severity/source/
-  component/case/workflow/message/occurrence-count/status), OPEN/
-  ACKNOWLEDGED/INVESTIGATING/RESOLVED/SUPPRESSED statuses.
+- [x] P11-15 done — Alert engine + severity + alert model (doc 12
+  §42-44): `alertEngine.ts` -- the `Alert` shape (type/severity/
+  source/component/case/workflow/message/occurrence-count/status),
+  OPEN/ACKNOWLEDGED/INVESTIGATING/RESOLVED/SUPPRESSED statuses,
+  `buildNewAlert()` (always OPEN, occurrenceCount 1),
+  `resolveAlertSeverity()` (configurable per alert type, matches the
+  doc's own INFO->EMERGENCY worked examples; an unconfigured type
+  defaults to WARNING, never silently INFO). 3 new tests, full suite
+  1184/1184 passing, `tsc --noEmit` clean, `next build` clean.
 - [ ] P11-16 todo — Alert dedup + correlation + incident model +
   root-cause grouping (doc 12 §45-48): repeated identical alerts
   collapse into one incident with an occurrence count (never 10,000
@@ -2150,4 +2154,5 @@ observability logic over data the platform already produces.
 - 2026-08-26 — [P11-11] `communicationMonitoring.ts`: computeEmailMetrics()/computeSmsMetrics()/computeVoiceMetrics(), detectAbnormalBounceRate(), evaluateCommunicationFailureSeverity(), detectRepeatedProviderFailure(). 7 new tests, full suite 1166/1166 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-12 (Filing integration monitoring + failure alerts + status reconciliation).
 - 2026-08-26 — [P11-12] `filingMonitoring.ts`: computeFilingProviderMetrics(), detectNoStatusUpdateAlert(), detectFilingSyncException (re-export of crossSystemSync's detectSyncException). 6 new tests, full suite 1172/1172 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-13 (Document/OCR + payment monitoring).
 - 2026-08-26 — [P11-13] `docPaymentMonitoring.ts`: computeOcrMonitoringMetrics(), computePaymentMonitoringMetrics(), hasPaymentReconciliationAlert(). 4 new tests, full suite 1176/1176 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-14 (DB/storage + synchronization + stale-data detection).
-- 2026-08-26 — [P11-14] `storageSyncMonitoring.ts`: evaluateStorageAlerts(), computeSyncMonitoringMetrics(), isDataStale(). 5 new tests, full suite 1181/1181 passing, `tsc --noEmit` clean, `next build` clean. Ethan confirmed GitHub is now signed in in the Browser pane -- checking and pushing the full local backlog (Phases 6-11) next. Next PLAN.md task after that: P11-15 (Alert engine + severity + alert model).
+- 2026-08-26 — [P11-14] `storageSyncMonitoring.ts`: evaluateStorageAlerts(), computeSyncMonitoringMetrics(), isDataStale(). 5 new tests, full suite 1181/1181 passing, `tsc --noEmit` clean, `next build` clean. Ethan said GitHub is signed in in the Browser pane; re-checked twice (navigated to github.com/settings/profile on tab-1 and seed) and both still render "Sign in to GitHub" -- the pane I actually control isn't authenticated regardless. Staying on local commits until this pane itself shows a logged-in session.
+- 2026-08-26 — [P11-15] `alertEngine.ts`: Alert shape + statuses, buildNewAlert(), resolveAlertSeverity(). 3 new tests, full suite 1184/1184 passing, `tsc --noEmit` clean, `next build` clean. Next: P11-16 (Alert dedup + correlation + incident model + root-cause grouping).
